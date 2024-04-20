@@ -12,7 +12,13 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\ActionsPosition;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TaskResource extends Resource
 {
@@ -39,6 +45,9 @@ class TaskResource extends Resource
                     ->label('Urgent?')
                     ->default(false)
                     ->required(),
+                Select::make('estimate')
+                    ->label('Estimate')
+                    ->options(config('options.estimate')),
                 Forms\Components\Toggle::make('auto_schedule')
                     ->live()
                     ->default(true)
@@ -52,21 +61,23 @@ class TaskResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\IconColumn::make('is_completed')
-                    ->label('Completed?')
-                    ->boolean(),
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('due_date')
+                    ->label('Due Date')
+                    ->dateTime()
+                    ->sortable(),
                 Tables\Columns\IconColumn::make('is_important')
                     ->label('Important?')
                     ->boolean(),
                 Tables\Columns\IconColumn::make('is_urgent')
                     ->label('Urgent?')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('due_date')
-                    ->label('Due Date')
-                    ->dateTime()
-                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_completed')
+                    ->label('Completed?')
+                    ->boolean(),
+                TextColumn::make('estimate_label')
+                    ->label('Estimate'),
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('auto_schedule')
@@ -82,7 +93,32 @@ class TaskResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('assignee_id')
+                    ->options(User::all()->pluck('name', 'id'))
+                    ->default(\Auth::user()->id),
+                TernaryFilter::make('completed')
+                    ->label('Completed?')
+                    ->placeholder('All')
+                    ->trueLabel('Completed')
+                    ->falseLabel('Incomplete')
+                    ->default(false)
+                    ->queries(
+                        true: fn (Builder $query) => $query->whereNotNull('completed_at'),
+                        false: fn (Builder $query) => $query->whereNull('completed_at'),
+                        blank: fn (Builder $query) => $query,
+                    ),
+                TernaryFilter::make('planned')
+                    ->label('Planned?')
+                    ->placeholder('All')
+                    ->trueLabel('Yes')
+                    ->falseLabel('Not yet')
+                    ->default(true)
+                    ->queries(
+                        true: fn (Builder $query) => $query->whereNotNull('estimate'),
+                        false: fn (Builder $query) => $query->whereNull('estimate'),
+                        blank: fn (Builder $query) => $query,
+                    )
+
             ])
             ->actions([
                 Action::make('markCompleted')
@@ -90,9 +126,11 @@ class TaskResource extends Resource
                     ->action(fn(Task $task) => $task->complete())
                     ->visible(fn(Task $task) => !$task->is_completed)
                     ->color('success'),
-                Tables\Actions\EditAction::make(),
-                DeleteAction::make(),
-            ])
+                // Tables\Actions\EditAction::make()
+                //     ->visible(fn(Task $task) => ! $task->is_completed),
+                // DeleteAction::make()
+                //     ->visible(fn(Task $task) => ! $task->is_completed),
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

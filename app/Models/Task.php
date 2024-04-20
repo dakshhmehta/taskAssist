@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\ScheduleTasksForUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,6 +16,14 @@ class Task extends Model
 
     public function assignee(){
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    public function getEstimateLabelAttribute(){
+        if(! $this->estimate) return null;
+
+        $options = config('options.estimate');
+
+        return $options[$this->estimate];
     }
 
     public function getIsCompletedAttribute(){
