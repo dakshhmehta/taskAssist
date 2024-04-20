@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaskResource\Pages;
-use App\Filament\Resources\TaskResource\RelationManagers;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
@@ -11,9 +10,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TaskResource extends Resource
 {
@@ -53,9 +52,9 @@ class TaskResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('assignee_id')
-                    ->numeric()
-                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_completed')
+                    ->label('Completed?')
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_important')
@@ -68,12 +67,11 @@ class TaskResource extends Resource
                     ->label('Due Date')
                     ->dateTime()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('assignee.name')
+                    ->sortable(),
                 Tables\Columns\IconColumn::make('auto_schedule')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->boolean(),
-                Tables\Columns\TextColumn::make('completed_at')
-                    ->dateTime()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -87,7 +85,13 @@ class TaskResource extends Resource
                 //
             ])
             ->actions([
+                Action::make('markCompleted')
+                    ->label('Complete')
+                    ->action(fn(Task $task) => $task->complete())
+                    ->visible(fn(Task $task) => !$task->is_completed)
+                    ->color('success'),
                 Tables\Actions\EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

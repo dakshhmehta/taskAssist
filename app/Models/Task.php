@@ -16,4 +16,13 @@ class Task extends Model
     public function assignee(){
         return $this->belongsTo(User::class, 'assignee_id');
     }
+
+    public function getIsCompletedAttribute(){
+        return ($this->completed_at != null);
+    }
+
+    public function complete(){
+        $this->completed_at = now();
+        $this->save();
+    }
 }
