@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Jobs\ScheduleTasksForUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Tags\HasTags;
 
 class Task extends Model
 {
     use HasFactory;
+    use HasTags;
 
     protected $dates = ['completed_at'];
 

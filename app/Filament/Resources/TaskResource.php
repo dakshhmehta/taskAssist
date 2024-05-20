@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieTagsInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -54,6 +55,7 @@ class TaskResource extends Resource
                     ->required(),
                 Forms\Components\DateTimePicker::make('due_date')
                     ->hidden(fn($get) => $get('auto_schedule')),
+                SpatieTagsInput::make('tags')
             ]);
     }
 
