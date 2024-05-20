@@ -12,6 +12,10 @@ class Task extends Model
 
     protected $dates = ['completed_at'];
 
+    protected $casts = [
+        'due_date' => 'datetime',
+    ];
+
     protected $guarded = [];
 
     public function assignee(){

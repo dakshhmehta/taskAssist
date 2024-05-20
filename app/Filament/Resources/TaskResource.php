@@ -65,7 +65,7 @@ class TaskResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('due_date')
                     ->label('Due Date')
-                    ->dateTime()
+                    ->dateTime('d-m-Y H:i A')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_important')
                     ->label('Important?')

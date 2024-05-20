@@ -81,7 +81,7 @@ class ScheduleTasksForUser implements ShouldQueue
             \Log::debug($task->estimate . ' - ' . $task->title);
 
             if ($dailyLimit - $task->estimate >= 0) {
-                $task->due_date = $date;
+                $task->due_date = $date->format('Y-m-d');
                 $task->save();
 
                 $dailyLimit = $dailyLimit - $task->estimate;
