@@ -20,6 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Session;
 
 class TaskResource extends Resource
 {
@@ -29,12 +30,18 @@ class TaskResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $userId = \Auth::user()->id;
+        $lastUserId = Session::get('last_assignee_id', null);
+        if($lastUserId){
+            $userId = $lastUserId;
+        }
+
         return $form
             ->schema([
                 Select::make('assignee_id')
                     ->label('Assignee')
                     ->options(User::all()->pluck('name', 'id'))
-                    ->default(\Auth::user()->id)
+                    ->default($userId)
                     ->required(),
                 Forms\Components\TextInput::make('title')
                     ->required(),

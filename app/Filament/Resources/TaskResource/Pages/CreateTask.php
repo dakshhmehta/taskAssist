@@ -13,6 +13,8 @@ class CreateTask extends CreateRecord
 
     protected function afterCreate(): void
     {
+        \Session::put('last_assignee_id', $this->record->assignee_id);
+
         dispatch(new ScheduleTasksForUser($this->record->assignee_id));
     }
 }

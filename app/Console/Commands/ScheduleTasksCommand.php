@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Jobs\ScheduleTasksForUser;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Console\Command;
 
@@ -28,6 +29,15 @@ class ScheduleTasksCommand extends Command
     public function handle()
     {
         $users = User::all();
+
+        // Update all the dates to unset if its not yet to be planned.
+        $tasks = Task::whereNull('estimate')->get();
+
+        foreach($tasks as &$task){
+            $this->info($task->title);
+            $task->due_date = null;
+            $task->save();
+        }
 
         foreach($users as &$user){
             dispatch(new ScheduleTasksForUser($user->id));

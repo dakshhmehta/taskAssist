@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TagResource\RelationManagers;
 
+use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
@@ -13,6 +14,8 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Enums\ActionsPosition;
 
 class TasksRelationManager extends RelationManager
 {
@@ -100,9 +103,14 @@ class TasksRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
+                Action::make('markCompleted')
+                    ->label('Complete')
+                    ->action(fn(Task $task) => $task->complete())
+                    ->visible(fn(Task $task) => !$task->is_completed)
+                    ->color('success'),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
+                // Tables\Actions\DeleteAction::make(),
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
