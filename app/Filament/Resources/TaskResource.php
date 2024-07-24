@@ -131,6 +131,18 @@ class TaskResource extends Resource
 
             ])
             ->actions([
+                Action::make('startTime')
+                    ->label('Start')
+                    ->action(fn (Task $task) => $task->startTimer())
+                    ->visible(fn (Task $task) => $task->canStartWork(\Auth::user()->id))
+                    ->color('info'),
+
+                Action::make('stopTime')
+                    ->label('Stop')
+                    ->action(fn (Task $task) => $task->endTimer())
+                    ->visible(fn (Task $task) => $task->isTimeStarted(\Auth::user()->id))
+                    ->color('warning'),
+
                 Action::make('markCompleted')
                     ->label('Complete')
                     ->action(fn (Task $task) => $task->complete())
