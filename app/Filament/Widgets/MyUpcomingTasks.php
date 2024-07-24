@@ -12,7 +12,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 class MyUpcomingTasks extends BaseWidget
 {
     protected int | string | array $columnSpan = 12;
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 1;
 
     public function table(Table $table): Table
     {

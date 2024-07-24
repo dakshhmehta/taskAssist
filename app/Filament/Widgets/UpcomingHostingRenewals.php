@@ -10,9 +10,9 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class UpcomingHostingRenewals extends BaseWidget
 {
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 2;
 
-    protected int | string | array $columnSpan = 2;
+    protected int | string | array $columnSpan = 3;
 
     public function table(Table $table): Table
     {
