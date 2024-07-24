@@ -2,7 +2,8 @@
 
 namespace App;
 
-class ResellerClub {
+class ResellerClub
+{
     protected static $endpoints = [
         'domains' => 'https://httpapi.com/api/domains/search.json',
         'hostings-in' => 'https://httpapi.com/api/singledomainhosting/linux/in/search.json',
@@ -14,7 +15,8 @@ class ResellerClub {
     protected static $apiKey = 'iHw8T69SKedmkoeYjGBSMAHlAhCVH80Y';
     protected $resellerId = '433839';
 
-    public static function fetch($domain){
+    public static function fetch($domain)
+    {
         // API endpoint for listing domains
         $apiEndpoint = static::$endpoints['domains'];
 
@@ -100,7 +102,7 @@ class ResellerClub {
     public static function getHostings($country)
     {
         // API endpoint for listing domains
-        $apiEndpoint = static::$endpoints['hostings-'.$country];
+        $apiEndpoint = static::$endpoints['hostings-' . $country];
 
         // Define the parameters for the API call
         $params = [
@@ -135,6 +137,50 @@ class ResellerClub {
             curl_close($ch);
 
             return $responseData;
+        }
+
+        return 'Error: Undefined!';
+    }
+
+    public static function getBalance()
+    {
+        // API endpoint for listing domains
+        $apiEndpoint = 'https://httpapi.com/api/billing/reseller-balance.json';
+
+        // Define the parameters for the API call
+        $params = [
+            'auth-userid' => static::$userId,
+            'api-key' => static::$apiKey,
+
+            'reseller-id' => static::$userId,
+        ];
+
+        // Initialize cURL session
+        $ch = curl_init();
+
+        // Set the URL with parameters
+        curl_setopt($ch, CURLOPT_URL, $apiEndpoint . '?' . http_build_query($params));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Skip SSL verification for simplicity
+
+        // Execute the cURL request
+        $response = curl_exec($ch);
+
+        // Check for cURL errors
+        if (curl_errno($ch)) {
+            return 'Error:' . curl_error($ch);
+        } else {
+            // Decode the JSON response
+            $responseData = json_decode($response, true);
+
+            // Close the cURL session
+            curl_close($ch);
+
+            if (isset($responseData['sellingcurrencybalance'])) {
+                return $responseData['sellingcurrencybalance'];
+            }
+
+            return -1;
         }
 
         return 'Error: Undefined!';

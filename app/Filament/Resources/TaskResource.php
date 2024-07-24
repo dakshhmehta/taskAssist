@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaskResource\Pages;
+use App\Filament\Resources\TaskResource\Pages\TimeClock;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
@@ -32,7 +33,7 @@ class TaskResource extends Resource
     {
         $userId = \Auth::user()->id;
         $lastUserId = Session::get('last_assignee_id', null);
-        if($lastUserId){
+        if ($lastUserId) {
             $userId = $lastUserId;
         }
 
@@ -61,7 +62,7 @@ class TaskResource extends Resource
                     ->default(true)
                     ->required(),
                 Forms\Components\DateTimePicker::make('due_date')
-                    ->hidden(fn($get) => $get('auto_schedule')),
+                    ->hidden(fn ($get) => $get('auto_schedule')),
                 SpatieTagsInput::make('tags')
             ]);
     }
@@ -132,8 +133,8 @@ class TaskResource extends Resource
             ->actions([
                 Action::make('markCompleted')
                     ->label('Complete')
-                    ->action(fn(Task $task) => $task->complete())
-                    ->visible(fn(Task $task) => !$task->is_completed)
+                    ->action(fn (Task $task) => $task->complete())
+                    ->visible(fn (Task $task) => !$task->is_completed)
                     ->color('success'),
                 // Tables\Actions\EditAction::make()
                 //     ->visible(fn(Task $task) => ! $task->is_completed),

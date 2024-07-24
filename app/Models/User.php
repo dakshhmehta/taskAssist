@@ -50,4 +50,8 @@ class User extends Authenticatable
     public function tasks(){
         return $this->hasMany(Task::class, 'assignee_id');
     }
+
+    public function timesheet(){
+        return $this->hasMany(Timesheet::class);
+    }
 }
