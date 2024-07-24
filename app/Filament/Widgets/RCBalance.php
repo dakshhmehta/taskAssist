@@ -8,6 +8,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class RCBalance extends BaseWidget
 {
+    protected int | string | array $columnSpan = 12;
+
     protected static ?string $pollingInterval = '1h';
 
     protected function getStats(): array

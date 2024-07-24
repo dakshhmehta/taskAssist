@@ -46,11 +46,6 @@ class UserTasksLists extends BaseWidget
         ->columns([
             TextColumn::make('assignee.name'),
             TextColumn::make('title'),
-            // TextColumn::make('due_date')
-            // ->label('Due Date')
-            // ->dateTime('d-m-Y'),
-            // TextColumn::make('estimate_label')
-            //     ->label('Estimate')
         ])
         ->actions([
             Action::make('markCompleted')
@@ -58,10 +53,6 @@ class UserTasksLists extends BaseWidget
                 ->action(fn(Task $task) => $task->complete())
                 ->visible(fn(Task $task) => !$task->is_completed)
                 ->color('success'),
-            // Tables\Actions\EditAction::make()
-            //     ->visible(fn(Task $task) => ! $task->is_completed),
-            // DeleteAction::make()
-            //     ->visible(fn(Task $task) => ! $task->is_completed),
-        ], position: ActionsPosition::BeforeColumns);
+        ]);
     }
 }

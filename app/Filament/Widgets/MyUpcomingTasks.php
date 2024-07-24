@@ -50,6 +50,6 @@ class MyUpcomingTasks extends BaseWidget
                     ->action(fn (Task $task) => $task->complete())
                     ->visible(fn (Task $task) => !$task->is_completed)
                     ->color('success'),
-            ], position: ActionsPosition::BeforeColumns);
+            ]);
     }
 }
