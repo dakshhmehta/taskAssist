@@ -20,6 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 class TaskResource extends Resource
@@ -76,6 +77,8 @@ class TaskResource extends Resource
                     ->label('Due Date')
                     ->dateTime('d-m-Y H:i A')
                     ->sortable(),
+                TextColumn::make('hms')
+                    ->label('Time Taken'),
                 Tables\Columns\IconColumn::make('is_important')
                     ->label('Important?')
                     ->boolean(),
@@ -133,19 +136,19 @@ class TaskResource extends Resource
                 Action::make('startTime')
                     ->label('Start')
                     ->action(fn (Task $task) => $task->startTimer())
-                    ->visible(fn (Task $task) => $task->canStartWork(\Auth::user()->id))
+                    ->visible(fn (Task $task) => $task->canStartWork(Auth::user()->id))
                     ->color('info'),
 
                 Action::make('stopTime')
                     ->label('Stop')
                     ->action(fn (Task $task) => $task->endTimer())
-                    ->visible(fn (Task $task) => $task->isTimeStarted(\Auth::user()->id))
+                    ->visible(fn (Task $task) => $task->isTimeStarted(Auth::user()->id))
                     ->color('warning'),
 
                 Action::make('markCompleted')
                     ->label('Complete')
                     ->action(fn (Task $task) => $task->complete())
-                    ->visible(fn (Task $task) => !$task->is_completed)
+                    ->visible(fn (Task $task) => !$task->is_completed && $task->assignee_id == Auth::user()->id)
                     ->color('success'),
                 // Tables\Actions\EditAction::make()
                 //     ->visible(fn(Task $task) => ! $task->is_completed),
@@ -154,7 +157,7 @@ class TaskResource extends Resource
             ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

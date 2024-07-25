@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Domain;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class DomainPolicy
 {
@@ -13,7 +12,7 @@ class DomainPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -21,7 +20,7 @@ class DomainPolicy
      */
     public function view(User $user, Domain $domain): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -37,7 +36,7 @@ class DomainPolicy
      */
     public function update(User $user, Domain $domain): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -45,7 +44,7 @@ class DomainPolicy
      */
     public function delete(User $user, Domain $domain): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -53,7 +52,7 @@ class DomainPolicy
      */
     public function restore(User $user, Domain $domain): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -61,6 +60,6 @@ class DomainPolicy
      */
     public function forceDelete(User $user, Domain $domain): bool
     {
-        return true;
+        return $user->is_admin;
     }
 }

@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
 {
@@ -53,5 +54,26 @@ class User extends Authenticatable
 
     public function timesheet(){
         return $this->hasMany(Timesheet::class);
+    }
+
+    public function setPasswordAttribute($value){
+        $this->attributes['password'] = Hash::make($value);
+    }
+
+    public function getUtilizationAttribute(){
+        $tasks = $this->tasks()
+            ->whereNotNull('estimate')
+            ->get();
+
+        $efficiencies = [];
+        foreach($tasks as $task){
+            $efficiencies[] = (($task->minutes_taken * 100) / $task->estimate) * 100;
+        }
+
+        return sprintf("%.2f", array_sum($efficiencies) / count($efficiencies));
+    }
+
+    public function getIsAdminAttribute(){
+        return $this->id == 1;
     }
 }

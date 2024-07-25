@@ -2,25 +2,27 @@
 
 namespace App\Policies;
 
-use App\Models\Invoice;
+use App\Models\Task;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Auth;
 
-class InvoicePolicy
+class TaskPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->is_admin;
+        return true;
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Invoice $invoice): bool
+    public function view(User $user, Task $task): bool
     {
-        return $user->is_admin;
+        return true;
     }
 
     /**
@@ -28,38 +30,38 @@ class InvoicePolicy
      */
     public function create(User $user): bool
     {
-        return $user->is_admin;
+        return true;
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Invoice $invoice): bool
+    public function update(User $user, Task $task): bool
     {
-        return $user->is_admin;
+        return $user->is_admin || $task->assignee_id == $user->id;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Invoice $invoice): bool
+    public function delete(User $user, Task $task): bool
     {
-        return $user->is_admin;
+        return $user->is_admin || $task->assignee_id == $user->id;
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Invoice $invoice): bool
+    public function restore(User $user, Task $task): bool
     {
-        return $user->is_admin;
+        return true;
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Invoice $invoice): bool
+    public function forceDelete(User $user, Task $task): bool
     {
-        return $user->is_admin;
+        return $user->is_admin || $task->assignee_id == $user->id;
     }
 }

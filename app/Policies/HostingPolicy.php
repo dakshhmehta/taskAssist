@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Hosting;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class HostingPolicy
 {
@@ -13,7 +12,7 @@ class HostingPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -21,7 +20,7 @@ class HostingPolicy
      */
     public function view(User $user, Hosting $hosting): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -37,7 +36,7 @@ class HostingPolicy
      */
     public function update(User $user, Hosting $hosting): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -45,7 +44,7 @@ class HostingPolicy
      */
     public function delete(User $user, Hosting $hosting): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -53,7 +52,7 @@ class HostingPolicy
      */
     public function restore(User $user, Hosting $hosting): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -61,6 +60,6 @@ class HostingPolicy
      */
     public function forceDelete(User $user, Hosting $hosting): bool
     {
-        return true;
+        return $user->is_admin;
     }
 }

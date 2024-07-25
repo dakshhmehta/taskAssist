@@ -50,6 +50,7 @@ class UserResource extends Resource
                     ->searchable(),
                 TextColumn::make('work_hours')
                     ->label('Working Hours'),
+                TextColumn::make('utilization'),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')

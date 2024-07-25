@@ -8,6 +8,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Support\Facades\Auth;
 
 class UserTasksLists extends BaseWidget
 {
@@ -19,6 +20,11 @@ class UserTasksLists extends BaseWidget
     public function __construct($userId = null)
     {
         $this->userId = $userId;
+    }
+
+    public static function canView(): bool
+    {
+        return Auth::user()->is_admin;
     }
 
     public function table(Table $table): Table

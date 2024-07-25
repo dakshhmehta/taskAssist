@@ -103,4 +103,20 @@ class Task extends Model
 
         return false;
     }
+
+    public function getMinutesTakenAttribute(){
+        $timesheet = $this->timesheet()->whereNotNull('end_at')->get();
+
+        $minutes = 0;
+
+        foreach($timesheet as $entry){
+            $minutes += $entry->end_at->diffInMinutes($entry->start_at);
+        }
+
+        return $minutes;
+    }
+
+    public function getHmsAttribute(){
+        return Timesheet::toHMS($this->minutes_taken);
+    }
 }

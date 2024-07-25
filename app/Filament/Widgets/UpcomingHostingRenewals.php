@@ -7,12 +7,18 @@ use Carbon\Carbon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Support\Facades\Auth;
 
 class UpcomingHostingRenewals extends BaseWidget
 {
     protected static ?int $sort = 2;
 
     protected int | string | array $columnSpan = 3;
+
+    public static function canView(): bool
+    {
+        return Auth::user()->is_admin;
+    }
 
     public function table(Table $table): Table
     {
