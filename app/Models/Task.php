@@ -6,12 +6,15 @@ use App\Jobs\ScheduleTasksForUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Parallax\FilamentComments\Models\Traits\HasFilamentComments;
 use Spatie\Tags\HasTags;
 
 class Task extends Model
 {
     use HasFactory;
     use HasTags;
+
+    use HasFilamentComments;
 
     protected $dates = ['completed_at'];
 

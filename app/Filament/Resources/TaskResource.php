@@ -22,6 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class TaskResource extends Resource
 {
@@ -144,6 +145,8 @@ class TaskResource extends Resource
                     ->action(fn (Task $task) => $task->endTimer())
                     ->visible(fn (Task $task) => $task->isTimeStarted(Auth::user()->id))
                     ->color('warning'),
+
+                CommentsAction::make(),
 
                 Action::make('markCompleted')
                     ->label('Complete')
