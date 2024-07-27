@@ -46,7 +46,7 @@ class TaskPolicy
      */
     public function delete(User $user, Task $task): bool
     {
-        return $user->is_admin || $task->assignee_id == $user->id;
+        return $user->is_admin;
     }
 
     /**
@@ -62,6 +62,6 @@ class TaskPolicy
      */
     public function forceDelete(User $user, Task $task): bool
     {
-        return $user->is_admin || $task->assignee_id == $user->id;
+        return $user->is_admin;
     }
 }

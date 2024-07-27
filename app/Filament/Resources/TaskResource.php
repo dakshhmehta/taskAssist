@@ -151,7 +151,7 @@ class TaskResource extends Resource
                 Action::make('markCompleted')
                     ->label('Complete')
                     ->action(fn (Task $task) => $task->complete())
-                    ->visible(fn (Task $task) => !$task->is_completed && $task->assignee_id == Auth::user()->id)
+                    ->visible(fn (Task $task) => !$task->is_completed && ($task->assignee_id == Auth::user()->id || Auth::user()->is_admin))
                     ->color('success'),
                 // Tables\Actions\EditAction::make()
                 //     ->visible(fn(Task $task) => ! $task->is_completed),
