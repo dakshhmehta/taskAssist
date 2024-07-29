@@ -62,6 +62,17 @@ class Task extends Model
         return $this->hasMany(Timesheet::class);
     }
 
+    public function getInProgressAttribute(){
+        return ((bool) $this->timesheet()->working()->count() == 1);
+    }
+
+    public function isCompletable(){
+        return !$this->is_completed &&  // Is not completed
+            ($this->assignee_id == Auth::user()->id || Auth::user()->is_admin) && // Or is admin
+            $this->in_progress == false // Task is not being worked upon
+        ;
+    }
+
     public function isTimeStarted($userId)
     {
         $hasTimerStarterd = Timesheet::where('user_id', $userId)
