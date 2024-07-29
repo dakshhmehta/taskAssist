@@ -92,6 +92,7 @@ class ScheduleTasksForUser implements ShouldQueue
                     \Log::debug('Switch to next day');
 
                     $dailyLimit = $user->work_hours * 60;
+
                     do {
                         $date = $date->addDay();
                     } while ($date->isWeekend());

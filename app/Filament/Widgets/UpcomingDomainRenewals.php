@@ -22,7 +22,7 @@ class UpcomingDomainRenewals extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $upcomingRenewalDate = Domain::where('expiry_date', '>=', now()->startOfDay())->min('expiry_date');
+        $upcomingRenewalDate = Domain::where('expiry_date', '>=', now()->endOfDay())->min('expiry_date');
         $upcomingRenewalDate = Carbon::parse($upcomingRenewalDate);
 
         return $table

@@ -40,7 +40,10 @@ class ScheduleTasksCommand extends Command
         }
 
         foreach($users as &$user){
+            $this->info('Re-prioritizing tasks for '.$user->name);
             dispatch(new ScheduleTasksForUser($user->id));
         }
+
+        return true;
     }
 }
