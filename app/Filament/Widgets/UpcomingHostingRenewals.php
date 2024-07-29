@@ -22,7 +22,7 @@ class UpcomingHostingRenewals extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $upcomingRenewalDate = Hosting::where('expiry_date', '>=', now()->startOfDay())->min('expiry_date');
+        $upcomingRenewalDate = Hosting::where('expiry_date', '>=', now()->endOfDay())->min('expiry_date');
         $upcomingRenewalDate = Carbon::parse($upcomingRenewalDate);
 
         return $table
