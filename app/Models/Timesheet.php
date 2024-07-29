@@ -26,6 +26,10 @@ class Timesheet extends Model
         return $this->belongsTo(Task::class);
     }
 
+    public function scopeWorking($query){
+        $query->whereNotNull('start_at')->whereNull('end_at');
+    }
+
     public static function toHMS($minutes)
     {
         $hours = str_pad(intdiv($minutes, 60), 2, "0", STR_PAD_LEFT); // Get the number of hours

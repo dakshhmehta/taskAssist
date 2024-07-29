@@ -15,7 +15,7 @@ class UserTasksLists extends BaseWidget
     protected $userId;
 
     protected int | string | array $columnSpan = 12;
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 3;
 
     public function __construct($userId = null)
     {
