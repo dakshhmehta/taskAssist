@@ -30,7 +30,7 @@ class MyUpcomingTasks extends BaseWidget
                 TextColumn::make('title'),
                 TextColumn::make('due_date')
                     ->label('Due Date')
-                    ->dateTime('d-m-Y H:i A'),
+                    ->dateTime('d-m-Y h:i A'),
             ])
             ->actions([
                 Action::make('startTime')
