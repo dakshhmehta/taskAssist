@@ -62,14 +62,25 @@ class User extends Authenticatable
 
     public function getUtilizationAttribute(){
         $tasks = $this->tasks()
+            ->where('assignee_id', $this->id)
             ->whereNotNull('estimate')
+            ->where('due_date', '<=', now()->endOfDay())
             ->get();
 
         $efficiencies = [];
         foreach($tasks as $task){
-            $efficiencies[] = (($task->minutes_taken * 100) / $task->estimate) * 100;
+            $minutes = $task->minutes_taken;
+            if($minutes > 0){
+                \Log::debug([$task->title.' ', $minutes.' - '.$task->estimate]);
+                $efficiencies[] = (($minutes * 100) / $task->estimate);
+            }
         }
 
+        if(count($efficiencies) == 0){
+            return 0;
+        }
+
+        \Log::debug([count($efficiencies)]);
         return sprintf("%.2f", array_sum($efficiencies) / count($efficiencies));
     }
 
