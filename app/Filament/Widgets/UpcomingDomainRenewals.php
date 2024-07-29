@@ -29,7 +29,7 @@ class UpcomingDomainRenewals extends BaseWidget
             ->heading('Domain Renewals - '.$upcomingRenewalDate->format('d-m-Y'))
             ->query(function() use(&$upcomingRenewalDate) {
 
-                    $domains = Domain::where('expiry_date', 'LIKE', $upcomingRenewalDate->format('Y-m-d').'%');
+                    $domains = Domain::where('expiry_date', '<=', $upcomingRenewalDate->format('Y-m-d h:i:s'));
     
                     return $domains;
                 }

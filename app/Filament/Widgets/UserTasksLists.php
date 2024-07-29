@@ -53,6 +53,9 @@ class UserTasksLists extends BaseWidget
             TextColumn::make('assignee.name'),
             TextColumn::make('title'),
         ])
+        ->recordUrl(
+            fn (Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
+        )
         ->actions([
             Action::make('markCompleted')
                 ->label('Complete')
