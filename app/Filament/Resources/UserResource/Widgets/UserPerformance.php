@@ -26,7 +26,7 @@ class UserPerformance extends BaseWidget
 
     protected function getStats(): array
     {
-        $thirtyDaysAgo = Carbon::now()->subWeeks(1)->startOfWeek();
+        $thirtyDaysAgo = Carbon::now()->startOfWeek();
 
         // Retrieve the average tasks completed by each user in the last 30 days
         $averageTasks = Task::select('assignee_id', \DB::raw('COUNT(*) / COUNT(DISTINCT DATE(completed_at)) AS avg_tasks'))
@@ -36,12 +36,10 @@ class UserPerformance extends BaseWidget
             ->groupBy('assignee_id')
             ->first();
 
-        $totalTasks = Task::select('assignee_id', \DB::raw('COUNT(*) AS count'))
-            ->whereNotNull('completed_at')
+        $totalTasks = Task::whereNotNull('completed_at')
             ->where('completed_at', '>=', $thirtyDaysAgo)
             ->where('assignee_id', $this->userId)
-            ->groupBy('assignee_id')
-            ->first();
+            ->count();
 
             // Retrieve the average time taken per task by each user in the last 30 days
         $averageTimePerTask = Timesheet::select('user_id', \DB::raw('AVG(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS avg_time'))
