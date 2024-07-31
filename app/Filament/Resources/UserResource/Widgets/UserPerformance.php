@@ -73,7 +73,8 @@ class UserPerformance extends BaseWidget
                 ->description('in this week');
         }
 
-        $widgets[] = Stat::make('Performance Rating', Auth::user()->performance);
+        $widgets[] = Stat::make('Performance Rating', Auth::user()->performance)
+            ->description('in this week');
 
         return $widgets;
     }
