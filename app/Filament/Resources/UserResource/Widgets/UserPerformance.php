@@ -58,20 +58,22 @@ class UserPerformance extends BaseWidget
 
         $widgets = [];
 
-        if($totalTasks > 0){
+        if ($totalTasks > 0) {
             $widgets[] = Stat::make('Completed Tasks', $totalTasks)
                 ->description('in this week');
         }
 
-        if($averageTasks){
+        if ($averageTasks) {
             $widgets[] = Stat::make('Completed Tasks / Day', (int) $averageTasks->avg_tasks)
                 ->description('in this week');
         }
 
-        if($totalTimeWorked){
+        if ($totalTimeWorked) {
             $widgets[] = Stat::make('Total Time Worked', Timesheet::toHMS($totalTimeWorked->time))
                 ->description('in this week');
         }
+
+        $widgets[] = Stat::make('Performance Rating', Auth::user()->performance);
 
         return $widgets;
     }

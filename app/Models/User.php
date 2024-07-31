@@ -87,4 +87,18 @@ class User extends Authenticatable
     public function getIsAdminAttribute(){
         return $this->id == 1;
     }
+
+    public function getPerformanceAttribute(){
+        if($this->utilization <= 100){
+            return 10;
+        }
+
+        $performance = ((100 - ($this->utilization - 100)) / 10);
+
+        if($performance < 0){
+            $performance = 0;
+        }
+
+        return sprintf("%.2f", $performance);
+    }
 }
