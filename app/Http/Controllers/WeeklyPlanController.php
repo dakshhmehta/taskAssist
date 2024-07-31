@@ -22,8 +22,8 @@ class WeeklyPlanController extends Controller
             $user->_time_worked = $user->timeWorkedThisWeek();
         }
 
-        $starPerformer = $users->sortBy('_performance', true)
-            ->sortBy('_time_worked', true)
+        $starPerformer = $users->sortByDesc('_performance', false)
+            ->sortByDesc('_time_worked', false)
             ->first();
 
         $endDate = (clone $startDate)->addDay(4);

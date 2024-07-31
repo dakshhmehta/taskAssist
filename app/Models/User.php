@@ -112,7 +112,7 @@ class User extends Authenticatable
     public function performanceThisWeek()
     {
         if($this->timeWorkedThisWeek() <= 0){
-            return -1;
+            return 0;
         }
 
         $tasks = $this->tasks()
