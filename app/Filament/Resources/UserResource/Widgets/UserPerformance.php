@@ -17,7 +17,7 @@ class UserPerformance extends BaseWidget
 
     public function __construct($userId = null)
     {
-        if($userId == null){
+        if ($userId == null) {
             $userId = Auth::user()->id;
         }
 
@@ -36,22 +36,32 @@ class UserPerformance extends BaseWidget
             ->groupBy('assignee_id')
             ->first();
 
-        // Retrieve the average time taken per task by each user in the last 30 days
-            $averageTimePerTask = Timesheet::select('user_id', \DB::raw('AVG(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS avg_time'))
-                ->whereNotNull('start_at')
-                ->whereNotNull('end_at')
-                ->where('end_at', '>=', $thirtyDaysAgo)
-                ->where('user_id', $this->userId)
-                ->groupBy('user_id')
-                ->first();
+        $totalTasks = Task::select('assignee_id', \DB::raw('COUNT(*) AS count'))
+            ->whereNotNull('completed_at')
+            ->where('completed_at', '>=', $thirtyDaysAgo)
+            ->where('assignee_id', $this->userId)
+            ->groupBy('assignee_id')
+            ->first();
 
-                
-        
+            // Retrieve the average time taken per task by each user in the last 30 days
+        $averageTimePerTask = Timesheet::select('user_id', \DB::raw('AVG(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS avg_time'))
+            ->whereNotNull('start_at')
+            ->whereNotNull('end_at')
+            ->where('end_at', '>=', $thirtyDaysAgo)
+            ->where('user_id', $this->userId)
+            ->groupBy('user_id')
+            ->first();
+
+
+
         return [
+            Stat::make('Completed Tasks', $totalTasks->count)
+                ->description('in this week'),
+
             Stat::make('Completed Tasks / Day', (int) $averageTasks->avg_tasks)
                 ->description('in this week'),
 
-                Stat::make('Avg Time / Task', Timesheet::toHMS($averageTimePerTask->avg_time))
+            Stat::make('Avg Time / Task', Timesheet::toHMS($averageTimePerTask->avg_time))
                 ->description('in this week')
 
         ];
