@@ -4,6 +4,7 @@ namespace App\Filament\Resources\UserResource\Widgets;
 
 use App\Models\Task;
 use App\Models\Timesheet;
+use App\Models\User;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -27,6 +28,7 @@ class UserPerformance extends BaseWidget
     protected function getStats(): array
     {
         $period = Carbon::now()->startOfWeek();
+        $user = User::find($this->userId);
 
         $averageTasks = Task::select('assignee_id', \DB::raw('COUNT(*) / COUNT(DISTINCT DATE(completed_at)) AS avg_tasks'))
             ->whereNotNull('completed_at')
@@ -48,13 +50,7 @@ class UserPerformance extends BaseWidget
             ->groupBy('user_id')
             ->first();
 
-        $totalTimeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
-            ->whereNotNull('start_at')
-            ->whereNotNull('end_at')
-            ->where('end_at', '>=', $period)
-            ->where('user_id', $this->userId)
-            ->groupBy('user_id')
-            ->first();
+        $totalTimeWorked = $user->timeWorkedThisWeek();
 
         $widgets = [];
 
@@ -69,11 +65,11 @@ class UserPerformance extends BaseWidget
         }
 
         if ($totalTimeWorked) {
-            $widgets[] = Stat::make('Total Time Worked', Timesheet::toHMS($totalTimeWorked->time))
+            $widgets[] = Stat::make('Total Time Worked', Timesheet::toHMS($totalTimeWorked))
                 ->description('in this week');
         }
 
-        $widgets[] = Stat::make('Performance Rating', Auth::user()->performanceThisWeek())
+        $widgets[] = Stat::make('Performance Rating', $user->performanceThisWeek())
             ->description('in this week');
 
         return $widgets;

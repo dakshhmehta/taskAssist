@@ -68,6 +68,7 @@ class User extends Authenticatable
         $tasks = $this->tasks()
             ->where('assignee_id', $this->id)
             ->whereNotNull('estimate')
+            ->whereNotNull('completed_at')
             ->where('due_date', '<=', now()->endOfDay())
             ->get();
 
@@ -110,18 +111,21 @@ class User extends Authenticatable
 
     public function performanceThisWeek()
     {
+        if($this->timeWorkedThisWeek() <= 0){
+            return -1;
+        }
+
         $tasks = $this->tasks()
             ->where('assignee_id', $this->id)
             ->whereNotNull('estimate')
-            ->where('due_date', '>=', now()->startOfWeek())
-            ->where('due_date', '<=', now()->endOfWeek())
+            ->where('completed_at', '>=', now()->startOfWeek())
+            ->where('completed_at', '<=', now()->endOfWeek())
             ->get();
 
         $efficiencies = [];
         foreach ($tasks as $task) {
             $minutes = $task->minutes_taken;
             if ($minutes > 0) {
-                \Log::debug([$task->title . ' ', $minutes . ' - ' . $task->estimate]);
                 $efficiencies[] = (($minutes * 100) / $task->estimate);
             }
         }
@@ -142,6 +146,23 @@ class User extends Authenticatable
             $performance = 0;
         }
 
-        return sprintf("%.2f", $performance);
+        return (float) sprintf("%.2f", $performance);
+    }
+
+    public function timeWorkedThisWeek(){
+        $totalTimeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
+            ->whereNotNull('start_at')
+            ->whereNotNull('end_at')
+            ->where('end_at', '>=', now()->startOfWeek())
+            ->where('end_at', '<=', now()->endOfWeek())
+            ->where('user_id', $this->id)
+            ->groupBy('user_id')
+            ->first();
+
+        if(! $totalTimeWorked){
+            return 0;
+        }
+
+        return (int) $totalTimeWorked->time;
     }
 }

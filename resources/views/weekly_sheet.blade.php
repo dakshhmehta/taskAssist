@@ -22,6 +22,21 @@
     <table>
         <thead>
             <tr>
+                <th colspan="4">
+                    <h2>Start Performance of Previous Week</h2>
+                </th>
+            </tr>
+            <tr>
+                <th colspan="2">Name</th>
+                <th>Performance</th>
+                <th>Time Worked</th>
+            </tr>
+            <tr>
+                <td colspan="2">{{ $starPerformer->name }}</th>
+                <td>{{ $starPerformer->_performance }}</th>
+                <td>{{ App\Models\Timesheet::toHMS($starPerformer->_time_worked) }}</th>
+            </tr>
+            <tr>
                 <td colspan="4" class="center"><h1>Tasks for {{ $startDate->format('d/m/Y') }} to {{ $endDate->format('d/m/Y') }}</h1></td>
             </tr>
             <tr>

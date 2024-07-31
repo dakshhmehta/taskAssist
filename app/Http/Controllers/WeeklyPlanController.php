@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class WeeklyPlanController extends Controller
@@ -14,6 +15,17 @@ class WeeklyPlanController extends Controller
             $startDate = $startDate->addDay();
         }
 
+        $users = User::all();
+
+        foreach($users as &$user){
+            $user->_performance = (float) $user->performanceThisWeek();
+            $user->_time_worked = $user->timeWorkedThisWeek();
+        }
+
+        $starPerformer = $users->sortBy('_performance', true)
+            ->sortBy('_time_worked', true)
+            ->first();
+
         $endDate = (clone $startDate)->addDay(4);
 
         $tasks = Task::where('due_date', '>=', $startDate->startOfDay()->format('Y-m-d H:i:s'))
@@ -23,7 +35,7 @@ class WeeklyPlanController extends Controller
                 ->orderBy('assignee_id')
                 ->orderBy('due_date', 'ASC')->get();
 
-        return view('weekly_sheet', compact('tasks', 'startDate', 'endDate'));
+        return view('weekly_sheet', compact('tasks', 'startDate', 'endDate', 'starPerformer'));
     }
 
     public function getStandupsheet(Request $request){
