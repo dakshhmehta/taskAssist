@@ -53,7 +53,7 @@ class UserPerformance extends BaseWidget
 
 
         return [
-            Stat::make('Completed Tasks', $totalTasks->count)
+            Stat::make('Completed Tasks', $totalTasks)
                 ->description('in this week'),
 
             Stat::make('Completed Tasks / Day', (int) $averageTasks->avg_tasks)
