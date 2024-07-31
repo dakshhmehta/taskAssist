@@ -64,8 +64,8 @@ class UserPerformance extends BaseWidget
         }
 
         if ($averageTasks) {
-            $widgets[] = Stat::make('Completed Tasks / Day', (int) $averageTasks->avg_tasks)
-                ->description('in this week');
+            // $widgets[] = Stat::make('Completed Tasks / Day', (int) $averageTasks->avg_tasks)
+            //     ->description('in this week');
         }
 
         if ($totalTimeWorked) {
