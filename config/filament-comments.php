@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Comment;
+
 return [
     /*
      * Whether or not user avatars should be displayed next to comments.
@@ -19,7 +21,7 @@ return [
     /*
      * The comment model to be used
      */
-    'comment_model' => \Parallax\FilamentComments\Models\FilamentComment::class,
+    'comment_model' => Comment::class,
 
     /*
      * The policy that will be used to authorize actions against comments.

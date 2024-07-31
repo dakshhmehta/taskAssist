@@ -8,6 +8,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class MyUpcomingTasks extends BaseWidget
 {
@@ -44,6 +45,8 @@ class MyUpcomingTasks extends BaseWidget
                     ->action(fn (Task $task) => $task->endTimer())
                     ->visible(fn (Task $task) => $task->isTimeStarted(\Auth::user()->id))
                     ->color('warning'),
+
+                CommentsAction::make(),
 
                 Action::make('markCompleted')
                     ->label('Complete')
