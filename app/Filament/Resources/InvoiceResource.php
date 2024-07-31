@@ -13,6 +13,7 @@ use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Tables;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 
 class InvoiceResource extends Resource
 {
@@ -94,6 +95,10 @@ class InvoiceResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('print')
+                    // ->icon('printer')
+                    ->label('Print')
+                    ->url(fn(Invoice $invoice):string => route('invoices.print', [$invoice->id, 'force' => 1]), true)
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
