@@ -15,24 +15,19 @@ class Comment extends FilamentComment
                 // Notify admins
                 $users = User::all();
 
-                $replyBtn = ReplyOnCommentAction::make('reply-comment')
-                    ->record($comment->subject);
-
-                // dd($replyBtn);
-
                 foreach ($users as $user) {
                     if ($user->is_admin) {
                         Notification::make()
-                            ->title('A new comment posted by ' . $comment->user->name . ' on a task ' . $comment->subject->title)
+                            ->title($comment->user->name . ' commented on ' . $comment->subject->title)
                             ->body($comment->comment)
-                            // ->actions([
-                            //     clone $replyBtn
-                            // ])
                             ->sendToDatabase($user);
-
-                        // $user->notify(new NewCommentPostedOnTaskNotification($comment));
                     }
                 }
+            } else {
+                Notification::make()
+                    ->title($comment->user->name . ' commented on ' . $comment->subject->title)
+                    ->body($comment->comment)
+                    ->sendToDatabase($comment->subject->assignee);
             }
         });
     }
