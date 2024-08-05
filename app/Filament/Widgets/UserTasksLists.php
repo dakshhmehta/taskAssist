@@ -9,6 +9,7 @@ use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Facades\Auth;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class UserTasksLists extends BaseWidget
 {
@@ -51,12 +52,14 @@ class UserTasksLists extends BaseWidget
         ->paginated(false)
         ->columns([
             TextColumn::make('assignee.name'),
-            TextColumn::make('title'),
+            TextColumn::make('display_title'),
         ])
         ->recordUrl(
             fn (Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
         )
         ->actions([
+            CommentsAction::make(),
+
             Action::make('markCompleted')
                 ->label('Complete')
                 ->action(fn(Task $task) => $task->complete())

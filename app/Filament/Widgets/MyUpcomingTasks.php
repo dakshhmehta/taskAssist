@@ -28,7 +28,8 @@ class MyUpcomingTasks extends BaseWidget
             })
             ->paginated(false)
             ->columns([
-                TextColumn::make('title'),
+                TextColumn::make('display_title')
+                    ->label('Title'),
                 TextColumn::make('due_date')
                     ->label('Due Date')
                     ->dateTime('d-m-Y h:i A'),

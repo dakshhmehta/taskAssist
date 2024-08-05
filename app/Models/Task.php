@@ -37,6 +37,26 @@ class Task extends Model
             $this->is_completed == false); // Is not a completed task
     }
 
+    public function getTagAttribute(){
+        $tag = $this->tags()->first();
+
+        if(! $tag){
+            return null;
+        }
+
+        return $tag->name;
+    }
+
+    public function getDisplayTitleAttribute(){
+        $tag = $this->tag;
+
+        if(! $tag){
+            return $this->title;
+        }
+
+        return '['.$tag.'] '.$this->title;
+    }
+
     public function getEstimateLabelAttribute()
     {
         if (!$this->estimate) return null;
