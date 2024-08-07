@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\Pages\ListActivities;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager;
 use App\Models\User;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,7 +52,7 @@ class UserResource extends Resource
                     ->searchable(),
                 TextColumn::make('work_hours')
                     ->label('Working Hours'),
-                TextColumn::make('utilization'),
+                TextColumn::make('performance'),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
@@ -70,6 +72,8 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
+                    ->color('info')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -91,6 +95,7 @@ class UserResource extends Resource
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
+            'activities' => ListActivities::route('/{record}/activities'),
         ];
     }
 }

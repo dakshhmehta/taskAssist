@@ -13,7 +13,7 @@ class ClientPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -21,7 +21,7 @@ class ClientPolicy
      */
     public function view(User $user, Client $client): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -29,7 +29,7 @@ class ClientPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -37,7 +37,7 @@ class ClientPolicy
      */
     public function update(User $user, Client $client): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -45,7 +45,7 @@ class ClientPolicy
      */
     public function delete(User $user, Client $client): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -53,7 +53,7 @@ class ClientPolicy
      */
     public function restore(User $user, Client $client): bool
     {
-        return true;
+        return $user->is_admin;
     }
 
     /**
@@ -61,6 +61,6 @@ class ClientPolicy
      */
     public function forceDelete(User $user, Client $client): bool
     {
-        return true;
+        return $user->is_admin;
     }
 }
