@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\CustomLogOptions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Timesheet extends Model
 {
     use HasFactory;
+
+    use CustomLogOptions, LogsActivity;
 
     protected $guarded = [];
 

@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use App\Actions\ReplyOnCommentAction;
+use App\Traits\CustomLogOptions;
 use Filament\Notifications\Notification;
 use Parallax\FilamentComments\Models\FilamentComment;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Comment extends FilamentComment
 {
+    use CustomLogOptions, LogsActivity;
+
     protected static function booted(): void
     {
         static::created(function (Comment $comment) {
