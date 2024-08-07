@@ -72,8 +72,8 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
-                    ->color('info')
+                // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
+                //     ->color('info')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -95,7 +95,6 @@ class UserResource extends Resource
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
-            'activities' => ListActivities::route('/{record}/activities'),
         ];
     }
 }

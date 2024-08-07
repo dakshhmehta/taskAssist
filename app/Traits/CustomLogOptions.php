@@ -1,17 +1,19 @@
 <?php
 
 namespace App\Traits;
+
 use Spatie\Activitylog\LogOptions;
 
-trait CustomLogOptions {
-    public function getActivitylogOptions(): LogOptions {
+trait CustomLogOptions
+{
+    public function getActivitylogOptions(): LogOptions
+    {
         $options = LogOptions::defaults();
 
         $options
-            ->dontSubmitEmptyLogs()
-            ->logOnlyDirty()
-            
-            ;
+            ->logAll();
+            // ->dontSubmitEmptyLogs()
+            // ->logOnlyDirty();
 
         return $options;
     }
