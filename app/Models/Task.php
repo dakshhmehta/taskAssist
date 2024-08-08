@@ -80,6 +80,8 @@ class Task extends Model
     {
         $this->completed_at = now();
         $this->save();
+
+        // TODO: Fire Event for sending notification
     }
 
     public function timesheet()

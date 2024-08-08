@@ -38,7 +38,7 @@ class NewTaskAssignedNotification extends Notification
     {
         return FilamentNotification::make()
             ->title('You have been assigned a new task "'.$this->task->title.'"')
-            ->body('in '.$this->task->tag)
+            ->body('in '.$this->task->tag.'<br/><br/>'.$this->task->description)
             ->getDatabaseMessage();
     }
 

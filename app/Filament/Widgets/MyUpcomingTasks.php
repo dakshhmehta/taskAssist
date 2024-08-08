@@ -34,6 +34,9 @@ class MyUpcomingTasks extends BaseWidget
                     ->label('Due Date')
                     ->dateTime('d-m-Y h:i A'),
             ])
+            ->recordUrl(
+                fn (Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
+            )
             ->actions([
                 Action::make('startTime')
                     ->label('Start')
@@ -48,6 +51,7 @@ class MyUpcomingTasks extends BaseWidget
                     ->color('warning'),
 
                 CommentsAction::make(),
+                
 
                 Action::make('markCompleted')
                     ->label('Complete')

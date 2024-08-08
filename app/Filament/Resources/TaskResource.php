@@ -3,9 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaskResource\Pages;
+use App\Filament\Resources\TaskResource\Pages\ViewTask;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieTagsInput;
 use Filament\Forms\Form;
@@ -13,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Filters\Filter;
@@ -47,6 +50,10 @@ class TaskResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('title')
                     ->required(),
+                Select::make('estimate')
+                    ->label('Estimate')
+                    ->options(config('options.estimate')),
+                MarkdownEditor::make('description'),
                 Forms\Components\Toggle::make('is_important')
                     ->label('Is Important?')
                     ->default(true)
@@ -55,9 +62,6 @@ class TaskResource extends Resource
                     ->label('Urgent?')
                     ->default(false)
                     ->required(),
-                Select::make('estimate')
-                    ->label('Estimate')
-                    ->options(config('options.estimate')),
                 Forms\Components\Toggle::make('auto_schedule')
                     ->live()
                     ->default(true)
@@ -65,6 +69,7 @@ class TaskResource extends Resource
                 Forms\Components\DateTimePicker::make('due_date')
                     ->hidden(fn ($get) => $get('auto_schedule')),
                 SpatieTagsInput::make('tags')
+                    ->columnSpanFull()
             ]);
     }
 
@@ -134,6 +139,9 @@ class TaskResource extends Resource
 
             ])
             ->actions([
+                ViewAction::make('view')
+                    // ->url(fn(Task $task) => route('filament.admin.resources.tasks.view', ['record' => $task]))
+                    ->slideOver(),
                 Action::make('startTime')
                     ->label('Start')
                     ->action(fn (Task $task) => $task->startTimer())
@@ -177,6 +185,7 @@ class TaskResource extends Resource
         return [
             'index' => Pages\ListTasks::route('/'),
             'create' => Pages\CreateTask::route('/create'),
+            // 'view' => ViewTask::route('/{record}'),
             'edit' => Pages\EditTask::route('/{record}/edit'),
         ];
     }
