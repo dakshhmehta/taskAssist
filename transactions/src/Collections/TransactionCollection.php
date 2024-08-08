@@ -14,7 +14,7 @@ class TransactionCollection extends Collection
         foreach (array_reverse($models, true) as &$item) {
             static::$amount += $item['amount'];
             $item->setAttribute('balance', static::$amount);
-            $item->setAttribute('balance_formatted', currency(static::$amount));
+            // $item->setAttribute('balance_formatted', currency(static::$amount));
         }
 
         parent::__construct($models);

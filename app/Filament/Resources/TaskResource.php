@@ -24,6 +24,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
@@ -52,7 +53,8 @@ class TaskResource extends Resource
                     ->required(),
                 Select::make('estimate')
                     ->label('Estimate')
-                    ->options(config('options.estimate')),
+                    ->options(config('options.estimate'))
+                    ->visible(fn(?Task $task): bool => Gate::allows('changeEstimate', $task)),
                 MarkdownEditor::make('description'),
                 Forms\Components\Toggle::make('is_important')
                     ->label('Is Important?')
@@ -67,7 +69,7 @@ class TaskResource extends Resource
                     ->default(true)
                     ->required(),
                 Forms\Components\DateTimePicker::make('due_date')
-                    ->hidden(fn ($get) => $get('auto_schedule')),
+                    ->hidden(fn($get) => $get('auto_schedule')),
                 SpatieTagsInput::make('tags')
                     ->columnSpanFull()
             ]);
@@ -121,9 +123,9 @@ class TaskResource extends Resource
                     ->falseLabel('Incomplete')
                     ->default(false)
                     ->queries(
-                        true: fn (Builder $query) => $query->whereNotNull('completed_at'),
-                        false: fn (Builder $query) => $query->whereNull('completed_at'),
-                        blank: fn (Builder $query) => $query,
+                        true: fn(Builder $query) => $query->whereNotNull('completed_at'),
+                        false: fn(Builder $query) => $query->whereNull('completed_at'),
+                        blank: fn(Builder $query) => $query,
                     ),
                 TernaryFilter::make('planned')
                     ->label('Planned?')
@@ -132,9 +134,9 @@ class TaskResource extends Resource
                     ->falseLabel('Not yet')
                     ->default(true)
                     ->queries(
-                        true: fn (Builder $query) => $query->whereNotNull('estimate'),
-                        false: fn (Builder $query) => $query->whereNull('estimate'),
-                        blank: fn (Builder $query) => $query,
+                        true: fn(Builder $query) => $query->whereNotNull('estimate'),
+                        false: fn(Builder $query) => $query->whereNull('estimate'),
+                        blank: fn(Builder $query) => $query,
                     )
 
             ])
@@ -144,22 +146,22 @@ class TaskResource extends Resource
                     ->slideOver(),
                 Action::make('startTime')
                     ->label('Start')
-                    ->action(fn (Task $task) => $task->startTimer())
-                    ->visible(fn (Task $task) => $task->canStartWork(Auth::user()->id))
+                    ->action(fn(Task $task) => $task->startTimer())
+                    ->visible(fn(Task $task) => $task->canStartWork(Auth::user()->id))
                     ->color('info'),
 
                 Action::make('stopTime')
                     ->label('Stop')
-                    ->action(fn (Task $task) => $task->endTimer())
-                    ->visible(fn (Task $task) => $task->isTimeStarted(Auth::user()->id))
+                    ->action(fn(Task $task) => $task->endTimer())
+                    ->visible(fn(Task $task) => $task->isTimeStarted(Auth::user()->id))
                     ->color('warning'),
 
                 CommentsAction::make(),
 
                 Action::make('markCompleted')
                     ->label('Complete')
-                    ->action(fn (Task $task) => $task->complete())
-                    ->visible(fn (Task $task) => $task->isCompletable())
+                    ->action(fn(Task $task) => $task->complete())
+                    ->visible(fn(Task $task) => $task->isCompletable())
                     ->color('success'),
                 // Tables\Actions\EditAction::make()
                 //     ->visible(fn(Task $task) => ! $task->is_completed),

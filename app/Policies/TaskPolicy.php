@@ -64,4 +64,17 @@ class TaskPolicy
     {
         return $user->is_admin;
     }
+
+    public function changeEstimate(User $user, Task $task)
+    {
+        // if($user->is_admin){
+        //     return true;
+        // }
+
+        if ($user->stars >= 3 and $task->id !== null) {
+            return false;
+        }
+
+        return true;
+    }
 }

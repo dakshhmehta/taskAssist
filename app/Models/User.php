@@ -117,28 +117,29 @@ class User extends Authenticatable
         return sprintf("%.2f", $performance);
     }
 
-    public function adjustStar($star, $remarks){
-        if($star == null){
+    public function adjustStar($star, $remarks)
+    {
+        if ($star == null) {
             return false;
         }
 
-        if($star > 0){
+        if ($star > 0) {
             $transaction = $this->credit($star, now(), $remarks);
             $transaction->changeType('star');
-        }
-        else if($star < 0){
+        } else if ($star < 0) {
             $transaction = $this->debit($star, now(), $remarks);
             $transaction->changeType('star');
         }
     }
 
-    public function getStarsAttribute(){
+    public function getStarsAttribute()
+    {
         return (int) $this->balance(['star']);
     }
 
     public function performanceThisWeek()
     {
-        if($this->timeWorkedThisWeek() <= 0){
+        if ($this->timeWorkedThisWeek() <= 0) {
             return 0;
         }
 
@@ -176,7 +177,8 @@ class User extends Authenticatable
         return (float) sprintf("%.2f", $performance);
     }
 
-    public function timeWorkedThisWeek(){
+    public function timeWorkedThisWeek()
+    {
         $totalTimeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
             ->whereNotNull('start_at')
             ->whereNotNull('end_at')
@@ -186,7 +188,7 @@ class User extends Authenticatable
             ->groupBy('user_id')
             ->first();
 
-        if(! $totalTimeWorked){
+        if (! $totalTimeWorked) {
             return 0;
         }
 
