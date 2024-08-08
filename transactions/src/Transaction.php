@@ -8,15 +8,19 @@ use App\Models\SalesInvoice;
 use App\Models\Transporter;
 use App\Models\Unit;
 use App\Models\Vendor;
+use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\JournalEntry;
 use Romininteractive\Transaction\Collections\TransactionCollection;
 use Romininteractive\Transaction\TransactionReference;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Transaction extends Model
 {
+    use LogsActivity, CustomLogOptions;
+
     protected $table = 'transaction__transactions';
 
     protected $fillable = ['date', 'amount', 'description', 'type'];
