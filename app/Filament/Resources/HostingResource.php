@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -16,7 +17,7 @@ class HostingResource extends Resource
 {
     protected static ?string $model = Hosting::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-server-stack';
 
     public static function form(Form $form): Form
     {
@@ -36,8 +37,12 @@ class HostingResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('expiry_date')
                     ->label('Expiry')
-                    ->dateTime('d-m-Y H:i A')
+                    ->dateTime('d-m-Y')
+                    ->searchable()
                     ->sortable(),
+                IconColumn::make('is_invoiced')
+                    ->boolean(),
+
             ])
             ->filters([
                 //

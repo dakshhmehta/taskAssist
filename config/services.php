@@ -14,6 +14,19 @@ return [
     |
     */
 
+    'whm' => [
+        'romin' => [
+            'token' => 'N17USPCRS7G41IQLMLZKC4NA1BPQ13HP',
+            'username' => 'romin',
+            'host' => 'romininteractive.com',
+        ],
+        'dristal' => [
+            'token' => 'PTT2B2QGHNH25Q5YBMSQJK4814M06Q4Y',
+            'username' => 'dristal',
+            'host' => 'dristal.com',
+        ],
+    ],
+
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),

@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Models\Domain;
 use App\Models\Hosting;
 use App\ResellerClub;
+use App\WHM;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class SyncDomainsFromResellerClubCommand extends Command
@@ -29,6 +31,18 @@ class SyncDomainsFromResellerClubCommand extends Command
     public function handle()
     {
         // Domains
+        $this->getDomains();
+
+        // Hostings
+        $this->getLinuxHostingsIN();
+        $this->getLinuxHostingsUS();
+
+        $this->getWHMHostings('romin');
+        $this->getWHMHostings('dristal');
+    }
+
+    public function getDomains()
+    {
         $domains = ResellerClub::getDomains();
 
         if (is_string($domains)) {
@@ -51,8 +65,43 @@ class SyncDomainsFromResellerClubCommand extends Command
 
         $this->info('Domains');
         $this->table($domainTableHeader, $domainTableData);
+    }
 
-        // Hostings
+    public function getWHMHostings($server)
+    {
+        $whm = new WHM();
+        $whm->server($server);
+
+        $hostings = $whm->listAccounts();
+
+        if (is_string($hostings)) {
+            $this->error($hostings);
+        }
+
+        $hostingTableHeader = ['Domain', 'Expiry Date'];
+
+        $hostingTableData = [];
+        for ($i = 0; $i < count($hostings); $i++) {
+            $hosting = Hosting::firstOrCreate([
+                'domain' => $hostings[$i]['domain'],
+            ]);
+            if (! $hosting->expiry_date) {
+                // Only update expiry date if record is being created and hence does not have default expiry date
+                $hosting->expiry_date = Carbon::parse($hostings[$i]['startdate'])->setYear(date('Y'));
+            }
+
+            $hosting->server = $server;
+            $hosting->save();
+
+            $hostingTableData[] = [$hosting->domain, $hosting->expiry_date];
+        }
+
+        $this->info('Linux Hostings - ' . $server);
+        $this->table($hostingTableHeader, $hostingTableData);
+    }
+
+    public function getLinuxHostingsIN()
+    {
         $hostings = ResellerClub::getHostings('in');
 
         if (is_string($hostings)) {
@@ -75,7 +124,10 @@ class SyncDomainsFromResellerClubCommand extends Command
 
         $this->info('Linux Hostings - India');
         $this->table($hostingTableHeader, $hostingTableData);
+    }
 
+    public function getLinuxHostingsUS()
+    {
         $hostings = ResellerClub::getHostings('us');
 
         if (is_string($hostings)) {

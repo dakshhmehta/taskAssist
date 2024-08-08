@@ -9,13 +9,14 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Table;
 
 class DomainResource extends Resource
 {
     protected static ?string $model = Domain::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-at-symbol';
 
     public static function form(Form $form): Form
     {
@@ -34,8 +35,11 @@ class DomainResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('expiry_date')
                     ->label('Expiry')
-                    ->dateTime('d-m-Y H:i A')
+                    ->searchable()
+                    ->dateTime('d-m-Y')
                     ->sortable(),
+                IconColumn::make('is_invoiced')
+                    ->boolean(),
             ])
             ->filters([
                 //
