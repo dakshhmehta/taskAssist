@@ -56,6 +56,7 @@ class UserPerformance extends BaseWidget
 
         if ($totalTasks > 0) {
             $widgets[] = Stat::make('Completed Tasks', $totalTasks)
+                ->icon('heroicon-o-rectangle-stack')
                 ->description('in this week');
         }
 
@@ -66,11 +67,19 @@ class UserPerformance extends BaseWidget
 
         if ($totalTimeWorked) {
             $widgets[] = Stat::make('Total Time Worked', Timesheet::toHMS($totalTimeWorked))
+                ->icon('heroicon-o-clock')
                 ->description('in this week');
         }
 
         $widgets[] = Stat::make('Performance Rating', $user->performanceThisWeek())
+            ->icon('heroicon-o-sparkles')
             ->description('in this week');
+
+        $stars = $user->stars;
+        if ($stars > 0) {
+            $widgets[] = Stat::make('Stars', $stars)
+                ->icon('heroicon-o-star');
+        }
 
         return $widgets;
     }

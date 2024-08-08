@@ -9,6 +9,7 @@ use App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -50,9 +51,10 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
+                TextColumn::make('performance'),
+                TextColumn::make('stars'),
                 TextColumn::make('work_hours')
                     ->label('Working Hours'),
-                TextColumn::make('performance'),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
@@ -71,6 +73,26 @@ class UserResource extends Resource
                 //
             ])
             ->actions([
+                Action::make('star')
+                    ->label('Adjust Star')
+                    ->color('info')
+                    ->form([
+                        Grid::make()
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('star')
+                                    ->label('Rating')
+                                    ->numeric(true)
+                                    ->rules(['integer'])
+                                    ->required(),
+                                TextInput::make('remarks')
+                                    ->label('Remarks')
+                                    ->required(),
+                            ])
+                    ])
+                    ->action(function (array $data, User $record): void {
+                        $record->adjustStar($data['star'], $data['remarks']);
+                    }),
                 Tables\Actions\EditAction::make(),
                 // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
                 //     ->color('info')

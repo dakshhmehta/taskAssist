@@ -9,12 +9,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Romininteractive\Transaction\Traits\HasTransactions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class User extends Authenticatable
 {
     use CustomLogOptions;
     use HasFactory, Notifiable, LogsActivity;
+
+    use HasTransactions;
 
     /**
      * The attributes that are mass assignable.
@@ -112,6 +115,25 @@ class User extends Authenticatable
         }
 
         return sprintf("%.2f", $performance);
+    }
+
+    public function adjustStar($star, $remarks){
+        if($star == null){
+            return false;
+        }
+
+        if($star > 0){
+            $transaction = $this->credit($star, now(), $remarks);
+            $transaction->changeType('star');
+        }
+        else if($star < 0){
+            $transaction = $this->debit($star, now(), $remarks);
+            $transaction->changeType('star');
+        }
+    }
+
+    public function getStarsAttribute(){
+        return (int) $this->balance(['star']);
     }
 
     public function performanceThisWeek()
