@@ -11,9 +11,9 @@ trait CustomLogOptions
         $options = LogOptions::defaults();
 
         $options
-            ->logAll();
-            // ->dontSubmitEmptyLogs()
-            // ->logOnlyDirty();
+            ->logAll()
+            ->dontSubmitEmptyLogs()
+            ->logOnlyDirty();
 
         return $options;
     }
