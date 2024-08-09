@@ -25,7 +25,8 @@ class HostingResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\DatePicker::make('expiry_date')
+                    ->displayFormat('d-m-Y'),
             ]);
     }
 
