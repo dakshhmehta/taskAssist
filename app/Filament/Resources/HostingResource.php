@@ -11,7 +11,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class HostingResource extends Resource
 {
@@ -42,10 +44,21 @@ class HostingResource extends Resource
                     ->sortable(),
                 IconColumn::make('is_invoiced')
                     ->boolean(),
-
+                IconColumn::make('is_suspended')
+                    ->boolean(),
             ])
             ->filters([
-                //
+                TernaryFilter::make('suspended')
+                    ->label('Suspended?')
+                    ->placeholder('All')
+                    ->trueLabel('Yes')
+                    ->falseLabel('No')
+                    ->default(false)
+                    ->queries(
+                        true: fn(Builder $query) => $query->whereNotNull('suspended_at'),
+                        false: fn(Builder $query) => $query->whereNull('suspended_at'),
+                        blank: fn(Builder $query) => $query,
+                    ),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),

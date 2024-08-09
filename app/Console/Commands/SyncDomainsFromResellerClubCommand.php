@@ -85,9 +85,16 @@ class SyncDomainsFromResellerClubCommand extends Command
             $hosting = Hosting::firstOrCreate([
                 'domain' => $hostings[$i]['domain'],
             ]);
+
             if (! $hosting->expiry_date) {
                 // Only update expiry date if record is being created and hence does not have default expiry date
                 $hosting->expiry_date = Carbon::parse($hostings[$i]['startdate'])->setYear(date('Y'));
+            }
+            if ($hostings[$i]['suspended'] == 1) {
+                $hosting->suspended_at = now();
+            }
+            else {
+                $hosting->suspended_at = null;
             }
 
             $hosting->server = $server;

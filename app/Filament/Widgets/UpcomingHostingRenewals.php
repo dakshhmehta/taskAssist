@@ -30,7 +30,7 @@ class UpcomingHostingRenewals extends BaseWidget
             ->query(
                 function () use (&$upcomingRenewalDate) {
                     $hostings = Hosting::where('expiry_date', '<=', $upcomingRenewalDate->format('Y-m-d H:i:s'))
-                        ->where('expiry_date', '>=', '2024-08-01 00:00:00');
+                        ->where('expiry_date', '>=', '2024-08-01 00:00:00')->active();
 
                     return $hostings;
                 }

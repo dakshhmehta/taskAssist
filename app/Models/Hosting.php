@@ -14,6 +14,7 @@ class Hosting extends Model
 
     protected $casts = [
         'expiry_date' => 'datetime',
+        'suspended_at' => 'datetime',
     ];
 
     public function invoiceItems()
@@ -42,5 +43,15 @@ class Hosting extends Model
         $invoice = $this->invoices()->where('date', 'LIKE', $this->expiry_date->format('Y') . '%')->exists();
 
         return $invoice;
+    }
+
+    public function getIsSuspendedAttribute($val)
+    {
+        return $this->suspended_at !== null;
+    }
+
+    public function scopeActive($q)
+    {
+        return $q->whereNull('suspended_at');
     }
 }
