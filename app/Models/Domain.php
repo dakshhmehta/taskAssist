@@ -3,13 +3,17 @@
 namespace App\Models;
 
 use App\ResellerClub;
+use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Domain extends Model
 {
     use HasFactory;
+
+    use LogsActivity, CustomLogOptions;
 
     protected $guarded = [];
 
