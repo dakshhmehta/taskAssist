@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('hosting_packages', function (Blueprint $table) {
             $table->id();
+            $table->integer('storage');
+            $table->string('server')->nullable();
+            $table->integer('emails')->nullable();
+
+            $table->decimal('price', 10, 2);
             $table->timestamps();
         });
     }

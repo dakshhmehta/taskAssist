@@ -171,6 +171,7 @@
 
         @php
             $domains = $invoice->items()->where('itemable_type', App\Models\Domain::class)->get();
+            $hostings = $invoice->items()->where('itemable_type', App\Models\Hosting::class)->get();
         @endphp
 
         <!-- <div id="items" class="abs">
@@ -223,6 +224,42 @@
                 <div class="col amount">
                     <p>&nbsp;</p>
                     <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            @endforeach
+
+            @foreach($hostings as $i => $hosting)
+            <div class="row">
+                <div class="col sr"><p>{{ $i+1 }}.</p></div>
+                <div class="col item">
+                    <p><b>WEB HOSTING: {{ $hosting->itemable->domain }}</b></p>
+                    <table style="text-align: left;">
+                        <tr>
+                            <th style="padding-right: 50px;">Web Space:</th>
+                            <td>{{ $hosting->itemable->package->storage }}</td>
+                        </tr>
+                        <tr>
+                            <th>Server:</th>
+                            <td>Shared Linux SSD Hosting</td>
+                        </tr>
+                        <tr>
+                            <th>Emails:</th>
+                            <td>{{ (($hosting->itemable->package->emails == -1) ? 'unlimited' :  $hosting->itemable->package->emails) }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col duration">
+                    <p>&nbsp;</p>
+                    <p>1 year</p>
+                </div>
+                <div class="col price">
+                    <p>&nbsp;</p>
+                    <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
+                </div>
+                <div class="col amount">
+                    <p>&nbsp;</p>
+                    <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
                 </div>
                 <div class="clearfix"></div>
             </div>

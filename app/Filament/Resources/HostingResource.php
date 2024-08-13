@@ -5,12 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\HostingResource\Pages;
 use App\Filament\Resources\HostingResource\RelationManagers;
 use App\Models\Hosting;
+use App\Models\HostingPackage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -38,6 +40,8 @@ class HostingResource extends Resource
                     ->searchable(),
                 TextColumn::make('server')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('package.storage')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('expiry_date')
                     ->label('Expiry')
                     ->dateTime('d-m-Y')
@@ -60,6 +64,9 @@ class HostingResource extends Resource
                         false: fn(Builder $query) => $query->whereNull('suspended_at'),
                         blank: fn(Builder $query) => $query,
                     ),
+                SelectFilter::make('package_id')
+                    ->label('Package')
+                    ->options(HostingPackage::all()->pluck('storage', 'id')),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),

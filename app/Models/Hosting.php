@@ -26,6 +26,11 @@ class Hosting extends Model
         return $this->morphMany(InvoiceItem::class, 'itemable');
     }
 
+    public function package()
+    {
+        return $this->belongsTo(HostingPackage::class);
+    }
+
     public function invoices()
     {
         return $this->hasManyThrough(

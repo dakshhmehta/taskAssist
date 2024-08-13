@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Domain;
 use App\Models\Hosting;
+use App\Models\HostingPackage;
 use App\ResellerClub;
 use App\WHM;
 use Carbon\Carbon;
@@ -92,11 +93,11 @@ class SyncDomainsFromResellerClubCommand extends Command
             }
             if ($hostings[$i]['suspended'] == 1) {
                 $hosting->suspended_at = now();
-            }
-            else {
+            } else {
                 $hosting->suspended_at = null;
             }
 
+            $hosting->package_id = $this->getHostingPackage($hostings[$i]);
             $hosting->server = $server;
             $hosting->save();
 
@@ -105,6 +106,27 @@ class SyncDomainsFromResellerClubCommand extends Command
 
         $this->info('Linux Hostings - ' . $server);
         $this->table($hostingTableHeader, $hostingTableData);
+    }
+
+    public function getHostingPackage($hosting)
+    {
+        $storage = str_replace('M', '', $hosting['disklimit']);
+
+        $storage = (($storage == 'unlimited') ? -1 : $storage);
+
+        $package = HostingPackage::where('storage', $storage)->first();
+
+        if (! $package) {
+            $package = HostingPackage::create([
+                'storage' => $storage,
+                'price' => 0,
+            ]);
+        }
+
+        $package->emails = (($hosting['max_emailacct_quota'] == 'unlimited') ? -1 : $hosting['max_emailacct_quota']);
+        $package->save();
+
+        return $package->id;
     }
 
     public function getLinuxHostingsIN()
