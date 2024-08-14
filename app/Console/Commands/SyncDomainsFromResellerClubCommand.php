@@ -35,11 +35,11 @@ class SyncDomainsFromResellerClubCommand extends Command
         $this->getDomains();
 
         // Hostings
-        // $this->getLinuxHostingsIN();
-        // $this->getLinuxHostingsUS();
+        $this->getLinuxHostingsIN();
+        $this->getLinuxHostingsUS();
 
-        // $this->getWHMHostings('romin');
-        // $this->getWHMHostings('dristal');
+        $this->getWHMHostings('romin');
+        $this->getWHMHostings('dristal');
     }
 
     public function getDomains()

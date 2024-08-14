@@ -64,8 +64,16 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->topNavigation(true)
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->navigationItems([
+                \Filament\Navigation\NavigationItem::make('Add Task') // TODO: Implement user policy validation to hide if dont have access to create task
+                ->sort(5)
+                ->group('Tasks')
+                ->url('/admin/tasks/create') // The URL you want the link to go to
+                ->icon('heroicon-o-plus'),    // Optionally, add an icon
             ]);
     }
 }

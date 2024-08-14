@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 class ClientResource extends Resource
 {
     protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationGroup = 'Masters';
 
     protected static ?string $model = Client::class;
 

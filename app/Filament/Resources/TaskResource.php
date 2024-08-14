@@ -33,6 +33,7 @@ class TaskResource extends Resource
     protected static ?string $model = Task::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Tasks';
 
     public static function form(Form $form): Form
     {
@@ -141,9 +142,9 @@ class TaskResource extends Resource
 
             ])
             ->actions([
-                ViewAction::make('view')
-                    // ->url(fn(Task $task) => route('filament.admin.resources.tasks.view', ['record' => $task]))
-                    ->slideOver(),
+                // ViewAction::make('view')
+                //     // ->url(fn(Task $task) => route('filament.admin.resources.tasks.view', ['record' => $task]))
+                //     ->slideOver(),
                 
                 Action::make('startTime')
                     ->label('Start')
