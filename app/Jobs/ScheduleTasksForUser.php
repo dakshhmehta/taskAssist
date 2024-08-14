@@ -70,10 +70,10 @@ class ScheduleTasksForUser implements ShouldQueue
         $dailyLimit = $user->work_hours * 60;
         $date = now();
 
-        if($date->isWeekend()){
+        if ($date->isWeekend() || Holiday::isHoliday($date) || $user->isOnLeave($date)) {
             do {
                 $date = $date->addDay();
-            } while ($date->isWeekend() || Holiday::isHoliday($date));
+            } while ($date->isWeekend() || Holiday::isHoliday($date) || $user->isOnLeave($date));
         }
 
         do {
@@ -96,7 +96,7 @@ class ScheduleTasksForUser implements ShouldQueue
 
                     do {
                         $date = $date->addDay();
-                    } while ($date->isWeekend());
+                    } while ($date->isWeekend() || Holiday::isHoliday($date) || $user->isOnLeave($date));
                 }
 
                 $allTasks = $allTasks->splice(1);
@@ -106,7 +106,7 @@ class ScheduleTasksForUser implements ShouldQueue
                 $dailyLimit = $user->work_hours * 60;
                 do {
                     $date = $date->addDay();
-                } while ($date->isWeekend() || Holiday::isHoliday($date));
+                } while ($date->isWeekend() || Holiday::isHoliday($date) || $user->isOnLeave($date));
             }
         } while ($allTasks->count() > 0);
     }

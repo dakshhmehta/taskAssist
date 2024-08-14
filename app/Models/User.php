@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Traits\CustomLogOptions;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -55,6 +56,10 @@ class User extends Authenticatable
         ];
     }
 
+    public function leaves()
+    {
+        return $this->hasMany(UserLeave::class);
+    }
 
     public function tasks()
     {
@@ -188,5 +193,16 @@ class User extends Authenticatable
         }
 
         return (int) $totalTimeWorked->time;
+    }
+
+    public function isOnLeave(Carbon $date)
+    {
+        $leave =  $this->leaves()
+            ->where('status', 'APPROVED')
+            ->where('from_date', '<=', $date->format('Y-m-d'))
+            ->where('to_date', '>=', $date->format('Y-m-d'))
+            ->exists();
+
+        return $leave;
     }
 }
