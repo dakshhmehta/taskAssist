@@ -35,11 +35,11 @@ class SyncDomainsFromResellerClubCommand extends Command
         $this->getDomains();
 
         // Hostings
-        $this->getLinuxHostingsIN();
-        $this->getLinuxHostingsUS();
+        // $this->getLinuxHostingsIN();
+        // $this->getLinuxHostingsUS();
 
-        $this->getWHMHostings('romin');
-        $this->getWHMHostings('dristal');
+        // $this->getWHMHostings('romin');
+        // $this->getWHMHostings('dristal');
     }
 
     public function getDomains()
@@ -52,6 +52,8 @@ class SyncDomainsFromResellerClubCommand extends Command
 
         $domainTableHeader = ['Domain', 'Expiry Date'];
 
+        $_tlds = [];
+
         $domainTableData = [];
         for ($i = 1; $i <= $domains['recsonpage']; $i++) {
             // Update in database
@@ -61,10 +63,25 @@ class SyncDomainsFromResellerClubCommand extends Command
             $domain->expiry_date = date('Y-m-d H:i:s', $domains[$i]['orders.endtime']);
             $domain->save();
 
+            $_tlds[] = $domain->tld;
+
             $domainTableData[] = [$domain->tld, $domain->expiry_date->format('d-m-Y')];
         }
 
         $this->info('Domains');
+        $this->table($domainTableHeader, $domainTableData);
+
+        $domains = Domain::whereNotIn('tld', $_tlds)->get();
+
+        $domainTableData = [];
+
+        foreach($domains as &$domain){
+            $domain->sync();
+
+            $domainTableData[] = [$domain->tld, $domain->expiry_date->format('d-m-Y')];
+        }
+
+        $this->info('Domains - Renewed');
         $this->table($domainTableHeader, $domainTableData);
     }
 
