@@ -19,6 +19,8 @@ class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
 
+    protected static ?string $navigationGroup = 'Domain & Hosting';
+
     protected static ?string $navigationIcon = 'heroicon-o-document';
 
     public static function form(Form $form): Form
@@ -98,7 +100,7 @@ class InvoiceResource extends Resource
                 Action::make('print')
                     // ->icon('printer')
                     ->label('Print')
-                    ->url(fn(Invoice $invoice):string => route('invoices.print', [$invoice->id, 'force' => 1]), true)
+                    ->url(fn(Invoice $invoice): string => route('invoices.print', [$invoice->id, 'force' => 1]), true)
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

@@ -17,6 +17,8 @@ class DomainResource extends Resource
 {
     protected static ?string $model = Domain::class;
 
+    protected static ?string $navigationGroup = 'Domain & Hosting';
+
     protected static ?string $navigationIcon = 'heroicon-o-at-symbol';
 
     protected static ?string $recordTitleAttribute = 'tld';
@@ -58,7 +60,7 @@ class DomainResource extends Resource
                 // Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('sync')
                     ->label('Refresh')
-                    ->action(fn (Domain $domain) => $domain->sync())
+                    ->action(fn(Domain $domain) => $domain->sync())
                     ->color('success'),
             ])
             ->bulkActions([

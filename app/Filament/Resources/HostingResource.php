@@ -22,6 +22,8 @@ class HostingResource extends Resource
 {
     protected static ?string $model = Hosting::class;
 
+    protected static ?string $navigationGroup = 'Domain & Hosting';
+
     protected static ?string $navigationIcon = 'heroicon-o-server-stack';
 
     protected static ?string $recordTitleAttribute = 'domain';
