@@ -11,12 +11,22 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class DomainResource extends Resource
 {
     protected static ?string $model = Domain::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-at-symbol';
+
+    protected static ?string $recordTitleAttribute = 'tld';
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Expiry' => $record->expiry_date->format(config('app.date_format')),
+        ];
+    }
 
     public static function form(Form $form): Form
     {

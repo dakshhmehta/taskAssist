@@ -23,6 +23,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
@@ -34,6 +35,17 @@ class TaskResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationGroup = 'Tasks';
+
+    protected static ?string $recordTitleAttribute = 'title';
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Tag'=> $record->tag,
+            'Assignee' => $record->assignee->name,
+            'Estimate' => $record->estimate_label,
+        ];
+    }
 
     public static function form(Form $form): Form
     {
@@ -145,7 +157,7 @@ class TaskResource extends Resource
                 // ViewAction::make('view')
                 //     // ->url(fn(Task $task) => route('filament.admin.resources.tasks.view', ['record' => $task]))
                 //     ->slideOver(),
-                
+
                 Action::make('startTime')
                     ->label('Start')
                     ->action(fn(Task $task) => $task->startTimer())

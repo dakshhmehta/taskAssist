@@ -16,12 +16,24 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class HostingResource extends Resource
 {
     protected static ?string $model = Hosting::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-server-stack';
+
+    protected static ?string $recordTitleAttribute = 'domain';
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Expiry' => $record->expiry_date->format(config('app.date_format')),
+            'Server' => $record->server,
+            'Web Space (in MB)' => optional($record->package)->space,
+        ];
+    }
 
     public static function form(Form $form): Form
     {
