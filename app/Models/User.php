@@ -66,11 +66,6 @@ class User extends Authenticatable
         return $this->hasMany(Timesheet::class);
     }
 
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['password'] = Hash::make($value);
-    }
-
     public function getUtilizationAttribute()
     {
         $tasks = $this->tasks()
