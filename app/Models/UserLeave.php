@@ -52,9 +52,11 @@ class UserLeave extends Model
         $this->approved_by_user_id = Auth::user()->id;
         $this->admin_remarks = null;
 
+        $saved = $this->save();
+
         dispatch(new ScheduleTasksForUser($this->user_id));
 
-        return $this->save();
+        return $saved;
     }
 
     public function reject($reason)

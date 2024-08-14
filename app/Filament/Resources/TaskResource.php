@@ -9,6 +9,7 @@ use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\SpatieTagsInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
+use TomatoPHP\FilamentMediaManager\Form\MediaManagerInput;
 
 class TaskResource extends Resource
 {
@@ -41,7 +43,7 @@ class TaskResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return [
-            'Tag'=> $record->tag,
+            'Tag' => $record->tag,
             'Assignee' => $record->assignee->name,
             'Estimate' => $record->estimate_label,
         ];
@@ -84,7 +86,12 @@ class TaskResource extends Resource
                 Forms\Components\DateTimePicker::make('due_date')
                     ->hidden(fn($get) => $get('auto_schedule')),
                 SpatieTagsInput::make('tags')
-                    ->columnSpanFull()
+                    ->columnSpanFull(),
+
+                MediaManagerInput::make('files')
+                    ->folderTitleFieldName('title')
+                    ->disk('public')
+                    ->schema([]),
             ]);
     }
 

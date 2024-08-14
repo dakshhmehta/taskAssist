@@ -9,12 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Parallax\FilamentComments\Models\Traits\HasFilamentComments;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Tags\HasTags;
+use TomatoPHP\FilamentMediaManager\Traits\InteractsWithMediaFolders;
 
-class Task extends Model
+class Task extends Model implements HasMedia
 {
+    use InteractsWithMedia;
     use HasFactory;
     use HasTags;
+
+    use InteractsWithMediaFolders;
 
     use CustomLogOptions;
     use LogsActivity;
@@ -27,7 +33,7 @@ class Task extends Model
         'due_date' => 'datetime',
     ];
 
-    protected $guarded = [];
+    protected $guarded = ['files'];
 
     public function assignee()
     {
