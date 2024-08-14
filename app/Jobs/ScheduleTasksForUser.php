@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Holiday;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -72,7 +73,7 @@ class ScheduleTasksForUser implements ShouldQueue
         if($date->isWeekend()){
             do {
                 $date = $date->addDay();
-            } while ($date->isWeekend());
+            } while ($date->isWeekend() || Holiday::isHoliday($date));
         }
 
         do {
@@ -105,7 +106,7 @@ class ScheduleTasksForUser implements ShouldQueue
                 $dailyLimit = $user->work_hours * 60;
                 do {
                     $date = $date->addDay();
-                } while ($date->isWeekend());
+                } while ($date->isWeekend() || Holiday::isHoliday($date));
             }
         } while ($allTasks->count() > 0);
     }
