@@ -144,6 +144,7 @@ class TaskResource extends Resource
                 ViewAction::make('view')
                     // ->url(fn(Task $task) => route('filament.admin.resources.tasks.view', ['record' => $task]))
                     ->slideOver(),
+                
                 Action::make('startTime')
                     ->label('Start')
                     ->action(fn(Task $task) => $task->startTimer())
