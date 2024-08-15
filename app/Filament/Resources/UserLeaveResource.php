@@ -48,10 +48,10 @@ class UserLeaveResource extends Resource
                     ->default($user->id)
                     ->hidden(fn(): bool => !$user->is_admin)
                     ->required(),
-                Forms\Components\DateTimePicker::make('from_date')
+                Forms\Components\DatePicker::make('from_date')
                     ->displayFormat(config('app.date_format'))
                     ->required(),
-                Forms\Components\DateTimePicker::make('to_date')
+                Forms\Components\DatePicker::make('to_date')
                     ->displayFormat(config('app.date_format'))
                     ->required(),
                 Select::make('code')

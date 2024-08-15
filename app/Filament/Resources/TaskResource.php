@@ -132,6 +132,7 @@ class TaskResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('due_date', 'ASC')
             ->filters([
                 SelectFilter::make('assignee_id')
                     ->options(User::all()->pluck('name', 'id'))
