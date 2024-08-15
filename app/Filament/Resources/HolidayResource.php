@@ -28,7 +28,7 @@ class HolidayResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('occasion')
                     ->required(),
-                Forms\Components\DateTimePicker::make('date')
+                Forms\Components\DatePicker::make('date')
                     ->required(),
             ]);
     }
