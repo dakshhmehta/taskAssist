@@ -23,8 +23,7 @@ class TagResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-            ]);
+            ->schema([]);
     }
 
     public static function table(Table $table): Table
@@ -34,6 +33,10 @@ class TagResource extends Resource
                 TextColumn::make('name'),
                 TextColumn::make('incomplete_tasks_count')
                     ->label('Incomplete #'),
+                TextColumn::make('performance')
+                    ->label('Performance'),
+                TextColumn::make('hms')
+                    ->label('Time Taken'),
                 TextColumn::make('due_date')
                     ->dateTime('d-m-Y'),
             ])
