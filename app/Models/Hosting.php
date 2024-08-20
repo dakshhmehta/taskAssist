@@ -63,4 +63,23 @@ class Hosting extends Model
     {
         return $q->whereNull('suspended_at');
     }
+
+    public function renew($years = 1)
+    {
+        if ($this->expiry_date == null) {
+            $this->expiry_date = now()->addYears($years);
+            $this->save();
+
+            return true;
+        }
+
+        $this->expiry_date = $this->expiry_date->addYears($years);
+
+        return $this->save();
+    }
+
+    public function isRenewable()
+    {
+        return ($this->expiry_date->subDays(15)->lte(now()->endOfDay()));
+    }
 }

@@ -10,6 +10,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -84,6 +85,11 @@ class HostingResource extends Resource
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
+                Action::make('renew')
+                    ->label('Renew')
+                    ->icon('heroicon-o-arrow-path')
+                    ->visible(fn(Hosting $hosting) => $hosting->isRenewable())
+                    ->action(fn(Hosting $hosting) => $hosting->renew())
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
