@@ -98,7 +98,7 @@ class UserLeaveResource extends Resource
                     ->label('Approve')
                     ->requiresConfirmation()
                     ->action(fn(UserLeave $leave) => $leave->approve())
-                    ->visible(fn(UserLeave $leave) => Auth::user()->is_admin && $leave->status == 'NEW')
+                    ->visible(fn(UserLeave $leave) => (Auth::user()->is_admin && $leave->user_id != Auth::user()->id) && $leave->status == 'NEW')
                     ->color('success'),
                 Action::make('reject')
                     ->label('Reject')
@@ -110,7 +110,7 @@ class UserLeaveResource extends Resource
                     ->action(function ($data, UserLeave $leave) {
                         $leave->reject($data['admin_remarks']);
                     })
-                    ->visible(fn(UserLeave $leave) => Auth::user()->is_admin && $leave->status == 'NEW')
+                    ->visible(fn(UserLeave $leave) => (Auth::user()->is_admin && $leave->user_id != Auth::user()->id) && $leave->status == 'NEW')
                     ->color('danger'),
                 Tables\Actions\EditAction::make(),
             ])
