@@ -140,7 +140,7 @@ class SyncDomainsFromResellerClubCommand extends Command
             ]);
         }
 
-        $package->emails = (($hosting['max_emailacct_quota'] == 'unlimited') ? -1 : $hosting['max_emailacct_quota']);
+        $package->emails = (($hosting['maxpop'] == 'unlimited') ? -1 : $hosting['maxpop']);
         $package->save();
 
         return $package->id;
