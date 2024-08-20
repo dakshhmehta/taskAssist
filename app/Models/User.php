@@ -150,32 +150,21 @@ class User extends Authenticatable
             ->where('completed_at', '<=', now()->endOfWeek())
             ->get();
 
-        $efficiencies = [];
+        $performances = [];
         foreach ($tasks as $task) {
-            $e = $task->efficiency;
+            $e = $task->performance;
 
             if ($e > -1) {
-                $efficiencies[] = $e;
+                $performances[] = $e;
             }
         }
 
-        if (count($efficiencies) == 0) {
+        if (count($performances) == 0) {
             return 0;
         }
 
-        $efficiencyThisWeek = sprintf("%.2f", array_sum($efficiencies) / count($efficiencies));
-
-        if ($efficiencyThisWeek <= 100) {
-            return 10;
-        }
-
-        $performance = ((100 - ($efficiencyThisWeek - 100)) / 10);
-
-        if ($performance < 0) {
-            $performance = 0;
-        }
-
-        return (float) sprintf("%.2f", $performance);
+        // \Log::debug([count($performances)]);
+        return sprintf("%.2f", array_sum($performances) / count($performances));
     }
 
     public function timeWorkedThisWeek()
