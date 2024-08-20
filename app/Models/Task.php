@@ -104,7 +104,7 @@ class Task extends Model implements HasMedia
             }
         }
 
-        return $performance * 10;
+        return sprintf("%.2f", $performance * 10);
     }
 
     public function complete()
