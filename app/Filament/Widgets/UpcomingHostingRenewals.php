@@ -38,6 +38,7 @@ class UpcomingHostingRenewals extends BaseWidget
             ->columns([
                 TextColumn::make('domain')
                     ->label('Domain')
+                    ->description(fn(Hosting $hosting) => optional($hosting->expiry_date)->format(config('app.date_format')))
             ])
             ->paginated(false);
     }

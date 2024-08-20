@@ -35,28 +35,28 @@ class MyUpcomingTasks extends BaseWidget
                     ->dateTime('d-m-Y h:i A'),
             ])
             ->recordUrl(
-                fn (Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
+                fn(Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
             )
             ->actions([
                 Action::make('startTime')
                     ->label('Start')
-                    ->action(fn (Task $task) => $task->startTimer())
-                    ->visible(fn (Task $task) => $task->canStartWork(\Auth::user()->id))
+                    ->action(fn(Task $task) => $task->startTimer())
+                    ->visible(fn(Task $task) => $task->canStartWork(\Auth::user()->id))
                     ->color('info'),
 
                 Action::make('stopTime')
                     ->label('Stop')
-                    ->action(fn (Task $task) => $task->endTimer())
-                    ->visible(fn (Task $task) => $task->isTimeStarted(\Auth::user()->id))
+                    ->action(fn(Task $task) => $task->endTimer())
+                    ->visible(fn(Task $task) => $task->isTimeStarted(\Auth::user()->id))
                     ->color('warning'),
 
                 CommentsAction::make(),
-                
+
 
                 Action::make('markCompleted')
                     ->label('Complete')
-                    ->action(fn (Task $task) => $task->complete())
-                    ->visible(fn (Task $task) => !$task->is_completed)
+                    ->action(fn(Task $task) => $task->complete())
+                    ->visible(fn(Task $task) => $task->isCompletable())
                     ->color('success'),
             ]);
     }

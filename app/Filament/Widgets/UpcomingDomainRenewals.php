@@ -38,6 +38,7 @@ class UpcomingDomainRenewals extends BaseWidget
             ->columns([
                 TextColumn::make('tld')
                     ->label('Domain')
+                    ->description(fn(Domain $domain) => optional($domain->expiry_date)->format(config('app.date_format')))
             ])
             ->paginated(false);
     }
