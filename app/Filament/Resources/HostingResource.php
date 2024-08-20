@@ -33,7 +33,7 @@ class HostingResource extends Resource
         return [
             'Expiry' => $record->expiry_date->format(config('app.date_format')),
             'Server' => $record->server,
-            'Web Space (in MB)' => optional($record->package)->space,
+            'Web Space' => optional($record->package)->storage_formatted,
         ];
     }
 

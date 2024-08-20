@@ -18,4 +18,12 @@ class HostingPackage extends Model
     public function hostings(){
         return $this->hasMany(Hosting::class);
     }
+
+    public function getStorageFormattedAttribute(){
+        if($this->storage >= 1000){
+            return ((int) $this->storage / 1000).' GB';
+        }
+
+        return $this->storage.' MB';
+    }
 }
