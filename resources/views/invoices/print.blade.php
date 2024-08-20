@@ -237,7 +237,7 @@
                     <table style="text-align: left;">
                         <tr>
                             <th style="padding-right: 50px;">Web Space:</th>
-                            <td>{{ $hosting->itemable->package->storage }}</td>
+                            <td>{{ $hosting->itemable->package->storage_formatted }}</td>
                         </tr>
                         <tr>
                             <th>Server:</th>
