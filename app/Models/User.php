@@ -71,7 +71,7 @@ class User extends Authenticatable
         return $this->hasMany(Timesheet::class);
     }
 
-    public function getUtilizationAttribute()
+    public function getPerformanceAttribute()
     {
         $tasks = $this->tasks()
             ->where('assignee_id', $this->id)
@@ -80,21 +80,21 @@ class User extends Authenticatable
             ->where('due_date', '<=', now()->endOfDay())
             ->get();
 
-        $efficiencies = [];
+        $performances = [];
         foreach ($tasks as $task) {
-            $minutes = $task->minutes_taken;
-            if ($minutes > 0) {
-                \Log::debug([$task->title . ' ', $minutes . ' - ' . $task->estimate]);
-                $efficiencies[] = (($minutes * 100) / $task->estimate);
+            $e = $task->performance;
+
+            if ($e > -1) {
+                $performances[] = $e;
             }
         }
 
-        if (count($efficiencies) == 0) {
+        if (count($performances) == 0) {
             return 0;
         }
 
-        \Log::debug([count($efficiencies)]);
-        return sprintf("%.2f", array_sum($efficiencies) / count($efficiencies));
+        // \Log::debug([count($performances)]);
+        return sprintf("%.2f", array_sum($performances) / count($performances));
     }
 
     public function getIsAdminAttribute()
@@ -102,20 +102,20 @@ class User extends Authenticatable
         return $this->id == 1;
     }
 
-    public function getPerformanceAttribute()
-    {
-        if ($this->utilization <= 100) {
-            return 10;
-        }
+    // public function getPerformanceAttribute()
+    // {
+    //     if ($this->utilization <= 100) {
+    //         return 10;
+    //     }
 
-        $performance = ((100 - ($this->utilization - 100)) / 10);
+    //     $performance = ((100 - ($this->utilization - 100)) / 10);
 
-        if ($performance < 0) {
-            $performance = 0;
-        }
+    //     if ($performance < 0) {
+    //         $performance = 0;
+    //     }
 
-        return sprintf("%.2f", $performance);
-    }
+    //     return sprintf("%.2f", $performance);
+    // }
 
     public function adjustStar($star, $remarks)
     {
@@ -152,9 +152,10 @@ class User extends Authenticatable
 
         $efficiencies = [];
         foreach ($tasks as $task) {
-            $minutes = $task->minutes_taken;
-            if ($minutes > 0) {
-                $efficiencies[] = (($minutes * 100) / $task->estimate);
+            $e = $task->efficiency;
+
+            if ($e > -1) {
+                $efficiencies[] = $e;
             }
         }
 

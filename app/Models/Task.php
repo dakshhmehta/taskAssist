@@ -48,24 +48,26 @@ class Task extends Model implements HasMedia
             $this->is_completed == false); // Is not a completed task
     }
 
-    public function getTagAttribute(){
+    public function getTagAttribute()
+    {
         $tag = $this->tags()->first();
 
-        if(! $tag){
+        if (! $tag) {
             return null;
         }
 
         return $tag->name;
     }
 
-    public function getDisplayTitleAttribute(){
+    public function getDisplayTitleAttribute()
+    {
         $tag = $this->tag;
 
-        if(! $tag){
+        if (! $tag) {
             return $this->title;
         }
 
-        return '['.$tag.'] '.$this->title;
+        return '[' . $tag . '] ' . $this->title;
     }
 
     public function getEstimateLabelAttribute()
@@ -82,6 +84,29 @@ class Task extends Model implements HasMedia
         return ($this->completed_at != null);
     }
 
+    public function getPerformanceAttribute($val)
+    {
+        $minutes = $this->minutes_taken;
+
+        if ($minutes == 0) {
+            return -1;
+        }
+
+        $utilization =  ($minutes / $this->estimate);
+
+        if ($utilization <= 1) {
+            $performance = 1;
+        } else {
+            $performance = ((1 - ($utilization - 1)));
+
+            if ($performance < 0) {
+                $performance = 0;
+            }
+        }
+
+        return $performance * 10;
+    }
+
     public function complete()
     {
         $this->completed_at = now();
@@ -95,11 +120,13 @@ class Task extends Model implements HasMedia
         return $this->hasMany(Timesheet::class);
     }
 
-    public function getInProgressAttribute(){
+    public function getInProgressAttribute()
+    {
         return ((bool) $this->timesheet()->working()->count() == 1);
     }
 
-    public function isCompletable(){
+    public function isCompletable()
+    {
         return !$this->is_completed &&  // Is not completed
             ($this->assignee_id == Auth::user()->id || Auth::user()->is_admin) && // Or is admin
             $this->in_progress == false // Task is not being worked upon
@@ -151,19 +178,21 @@ class Task extends Model implements HasMedia
         return false;
     }
 
-    public function getMinutesTakenAttribute(){
+    public function getMinutesTakenAttribute()
+    {
         $timesheet = $this->timesheet()->whereNotNull('end_at')->get();
 
         $minutes = 0;
 
-        foreach($timesheet as $entry){
+        foreach ($timesheet as $entry) {
             $minutes += $entry->end_at->diffInMinutes($entry->start_at);
         }
 
         return $minutes;
     }
 
-    public function getHmsAttribute(){
+    public function getHmsAttribute()
+    {
         return Timesheet::toHMS($this->minutes_taken);
     }
 }

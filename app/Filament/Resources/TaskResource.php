@@ -88,10 +88,10 @@ class TaskResource extends Resource
                 SpatieTagsInput::make('tags')
                     ->columnSpanFull(),
 
-                MediaManagerInput::make('files')
-                    ->folderTitleFieldName('title')
-                    ->disk('public')
-                    ->schema([]),
+                // MediaManagerInput::make('files')
+                //     ->schema([])
+                //     ->folderTitleFieldName('title')
+                //     ->disk('public'),
             ]);
     }
 
@@ -107,6 +107,7 @@ class TaskResource extends Resource
                     ->sortable(),
                 TextColumn::make('hms')
                     ->label('Time Taken'),
+                TextColumn::make('performance'),
                 Tables\Columns\IconColumn::make('is_important')
                     ->label('Important?')
                     ->boolean(),
