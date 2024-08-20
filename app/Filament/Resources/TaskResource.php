@@ -107,7 +107,8 @@ class TaskResource extends Resource
                     ->sortable(),
                 TextColumn::make('hms')
                     ->label('Time Taken'),
-                TextColumn::make('performance'),
+                TextColumn::make('performance')
+                    ->visible(Auth::user()->is_admin),
                 Tables\Columns\IconColumn::make('is_important')
                     ->label('Important?')
                     ->boolean(),
