@@ -67,7 +67,7 @@ class TaskPolicy
 
     public function changeEstimate(User $user, Task $task)
     {
-        if($user->is_admin){
+        if($user->is_admin || $task->estimate == null){
             return true;
         }
 
