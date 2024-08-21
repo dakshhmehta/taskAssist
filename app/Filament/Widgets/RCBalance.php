@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class RCBalance extends BaseWidget
 {
     protected int | string | array $columnSpan = 6;
+
     protected static ?int $sort = 2;
 
     protected static ?string $pollingInterval = '1h';

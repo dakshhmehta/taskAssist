@@ -40,6 +40,7 @@ class UpcomingHostingRenewals extends BaseWidget
                     ->label('Domain')
                     ->description(fn(Hosting $hosting) => optional($hosting->expiry_date)->format(config('app.date_format')))
             ])
-            ->paginated(false);
+            ->defaultPaginationPageOption(5)
+            ->paginated();
     }
 }

@@ -40,6 +40,7 @@ class UpcomingDomainRenewals extends BaseWidget
                     ->label('Domain')
                     ->description(fn(Domain $domain) => optional($domain->expiry_date)->format(config('app.date_format')))
             ])
-            ->paginated(false);
+            ->defaultPaginationPageOption(5)
+            ->paginated();
     }
 }
