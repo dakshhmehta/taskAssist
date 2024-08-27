@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -52,6 +53,8 @@ class DomainResource extends Resource
                     ->sortable(),
                 IconColumn::make('is_invoiced')
                     ->boolean(),
+                TextColumn::make('last_invoiced_date')
+                    ->dateTime('d-m-Y'),
             ])
             ->filters([
                 //

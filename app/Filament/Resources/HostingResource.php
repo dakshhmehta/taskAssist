@@ -64,6 +64,8 @@ class HostingResource extends Resource
                     ->sortable(),
                 IconColumn::make('is_invoiced')
                     ->boolean(),
+                TextColumn::make('last_invoiced_date')
+                    ->dateTime('d-m-Y'),
                 IconColumn::make('is_suspended')
                     ->boolean(),
             ])

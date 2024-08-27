@@ -82,4 +82,9 @@ class Hosting extends Model
     {
         return ($this->expiry_date->subDays(15)->lte(now()->endOfDay()));
     }
+
+    public function getLastInvoicedDateAttribute()
+    {
+        return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+    }
 }

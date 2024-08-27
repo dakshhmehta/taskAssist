@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Timesheet;
 use App\Models\User;
 use Illuminate\Console\Command;
 
@@ -43,7 +44,7 @@ class ListPastPerformersCommand extends Command
         });
 
         foreach ($users as $i => $user) {
-            $data[] = [$i + 1, $user->name, $user->_performance, $user->_time_worked];
+            $data[] = [$i + 1, $user->name, $user->_performance, Timesheet::toHMS($user->_time_worked)];
         }
 
         $this->table($heading, $data);
@@ -62,7 +63,7 @@ class ListPastPerformersCommand extends Command
         });
 
         foreach ($users as $i => $user) {
-            $data[] = [$i + 1, $user->name, $user->_performance, $user->_time_worked];
+            $data[] = [$i + 1, $user->name, $user->_performance, Timesheet::toHMS($user->_time_worked)];
         }
 
         $this->table($heading, $data);

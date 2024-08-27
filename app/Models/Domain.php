@@ -55,4 +55,8 @@ class Domain extends Model
 
         return $invoice;
     }
+
+    public function getLastInvoicedDateAttribute(){
+        return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+    }
 }
