@@ -137,7 +137,7 @@ class User extends Authenticatable
         return (int) $this->balance(['star']);
     }
 
-    public function performanceThisWeek()
+    public function performanceThisWeek($offset = 0)
     {
         if ($this->timeWorkedThisWeek() <= 0) {
             return 0;
@@ -146,8 +146,8 @@ class User extends Authenticatable
         $tasks = $this->tasks()
             ->where('assignee_id', $this->id)
             ->whereNotNull('estimate')
-            ->where('completed_at', '>=', now()->startOfWeek())
-            ->where('completed_at', '<=', now()->endOfWeek())
+            ->where('completed_at', '>=', now()->addWeeks($offset)->startOfWeek())
+            ->where('completed_at', '<=', now()->addWeeks($offset)->endOfWeek())
             ->get();
 
         $performances = [];
@@ -167,13 +167,13 @@ class User extends Authenticatable
         return sprintf("%.2f", array_sum($performances) / count($performances));
     }
 
-    public function timeWorkedThisWeek()
+    public function timeWorkedThisWeek($offset = 0)
     {
         $totalTimeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
             ->whereNotNull('start_at')
             ->whereNotNull('end_at')
-            ->where('end_at', '>=', now()->startOfWeek())
-            ->where('end_at', '<=', now()->endOfWeek())
+            ->where('end_at', '>=', now()->addWeeks($offset)->startOfWeek())
+            ->where('end_at', '<=', now()->addWeeks($offset)->endOfWeek())
             ->where('user_id', $this->id)
             ->groupBy('user_id')
             ->first();
