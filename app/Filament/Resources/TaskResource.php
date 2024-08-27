@@ -100,11 +100,14 @@ class TaskResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
+                    ->description(fn(Task $task) => $task->tag)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('due_date')
                     ->label('Due Date')
                     ->dateTime('d-m-Y H:i A')
                     ->sortable(),
+                TextColumn::make('estimate_label')
+                    ->label('Estimate'),
                 TextColumn::make('hms')
                     ->label('Time Taken'),
                 TextColumn::make('performance')
@@ -118,8 +121,6 @@ class TaskResource extends Resource
                 Tables\Columns\IconColumn::make('is_completed')
                     ->label('Completed?')
                     ->boolean(),
-                TextColumn::make('estimate_label')
-                    ->label('Estimate'),
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('auto_schedule')
