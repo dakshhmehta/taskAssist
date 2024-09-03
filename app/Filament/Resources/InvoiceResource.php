@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\Invoice;
 use App\Models\Domain;
+use App\Models\Email;
 use App\Models\Hosting;
 use App\Models\Timesheet;
 use Filament\Forms\Form;
@@ -52,6 +53,7 @@ class InvoiceResource extends Resource
                             ->options([
                                 Domain::class => 'Domain',
                                 Hosting::class => 'Hosting',
+                                Email::class => 'Emails',
                                 // Timesheet::class => 'Timesheet',
                             ])
                             ->required()
@@ -65,6 +67,9 @@ class InvoiceResource extends Resource
                                 }
                                 if ($type === Hosting::class) {
                                     return Hosting::all()->pluck('domain', 'id');
+                                }
+                                if ($type === Email::class) {
+                                    return Email::all()->pluck('domain_accounts', 'id');
                                 }
                                 // if ($type === Timesheet::class) {
                                 //     return Timesheet::all()->pluck('name', 'id');

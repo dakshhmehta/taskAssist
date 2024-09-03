@@ -172,6 +172,7 @@
         @php
             $domains = $invoice->items()->where('itemable_type', App\Models\Domain::class)->get();
             $hostings = $invoice->items()->where('itemable_type', App\Models\Hosting::class)->get();
+            $emails = $invoice->items()->where('itemable_type', App\Models\Email::class)->get();
         @endphp
 
         <!-- <div id="items" class="abs">
@@ -260,6 +261,34 @@
                 <div class="col amount">
                     <p>&nbsp;</p>
                     <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            @endforeach
+
+            @foreach($emails as $i => $email)
+            <div class="row">
+                <div class="col sr"><p>{{ $i+1 }}.</p></div>
+                <div class="col item">
+                    <p><b>Google Workspace: {{ $email->itemable->domain }}</b></p>
+                    <table style="text-align: left;">
+                        <tr>
+                            <th style="padding-right: 50px;">Email Accounts:</th>
+                            <td>{{ $email->itemable->accounts_count }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col duration">
+                    <p>&nbsp;</p>
+                    <p>1 year</p>
+                </div>
+                <div class="col price">
+                    <p>&nbsp;</p>
+                    <p>Rs. {{ number_format($email->price, 2) }}/-</p>
+                </div>
+                <div class="col amount">
+                    <p>&nbsp;</p>
+                    <p>Rs. {{ number_format($email->price, 2) }}/-</p>
                 </div>
                 <div class="clearfix"></div>
             </div>
