@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Domain;
+use App\Models\Email;
 use App\Models\Hosting;
 use App\Models\HostingPackage;
 use App\ResellerClub;
@@ -32,14 +33,40 @@ class SyncDomainsFromResellerClubCommand extends Command
     public function handle()
     {
         // Domains
-        $this->getDomains();
+        // $this->getDomains();
+
+        // Get Gsuite
+        $this->getGsuites();
 
         // Hostings
-        $this->getLinuxHostingsIN();
-        $this->getLinuxHostingsUS();
+        // $this->getLinuxHostingsIN();
+        // $this->getLinuxHostingsUS();
 
-        $this->getWHMHostings('romin');
-        $this->getWHMHostings('dristal');
+        // $this->getWHMHostings('romin');
+        // $this->getWHMHostings('dristal');
+    }
+
+    public function getGSuites()
+    {
+        $accounts = ResellerClub::getGSuites();
+
+        $tableHeader = ['Domain', 'Expiry Date', '# of Accounts'];
+        $tableData = [];
+
+        for ($i = 1; $i <= $accounts['recsonpage']; $i++) {
+            // Update in database
+            $email = Email::firstOrCreate([
+                'domain' => $accounts[$i]['entity.description'],
+                'provider' => 'gappsin',
+            ]);
+            $email->accounts_count = $accounts[$i]['accounts_count'];
+            $email->expiry_date = date('Y-m-d H:i:s', $accounts[$i]['orders.endtime']);
+            $email->save();
+
+            $tableData[] = [$email->domain, $email->expiry_date->format('d-m-Y'), $email->accounts_count];
+        }
+
+        $this->table($tableHeader, $tableData);
     }
 
     public function getDomains()
@@ -75,7 +102,7 @@ class SyncDomainsFromResellerClubCommand extends Command
 
         $domainTableData = [];
 
-        foreach($domains as &$domain){
+        foreach ($domains as &$domain) {
             $domain->sync();
 
             $domainTableData[] = [$domain->tld, $domain->expiry_date->format('d-m-Y')];

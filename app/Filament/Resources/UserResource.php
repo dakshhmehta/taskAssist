@@ -15,6 +15,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -95,6 +96,7 @@ class UserResource extends Resource
                         $record->adjustStar($data['star'], $data['remarks']);
                     }),
                 Tables\Actions\EditAction::make(),
+                ViewAction::make('view'),
                 // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
                 //     ->color('info')
             ])
@@ -118,6 +120,7 @@ class UserResource extends Resource
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
+            'view' => Pages\ViewUser::route('/{record}'),
         ];
     }
 }
