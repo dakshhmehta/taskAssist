@@ -69,6 +69,7 @@ class HostingResource extends Resource
                 IconColumn::make('is_suspended')
                     ->boolean(),
             ])
+            ->defaultSort('expiry_date', 'ASC')
             ->filters([
                 TernaryFilter::make('suspended')
                     ->label('Suspended?')

@@ -51,6 +51,7 @@ class EmailResource extends Resource
                 TextColumn::make('last_invoiced_date')
                     ->dateTime('d-m-Y'),
             ])
+            ->defaultSort('expiry_date', 'ASC')
             ->filters([
                 //
             ])
