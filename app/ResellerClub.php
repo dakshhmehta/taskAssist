@@ -67,7 +67,7 @@ class ResellerClub
             'no-of-records' => 50,  // Number of records to fetch
             'page-no' => 1,         // Page number to fetch
             'order-by' => 'entity.endtime asc',
-            'expiry-date-start' => strtotime(now()->startOfYear()->format('Y-m-d H:i:s')),
+            'expiry-date-start' => strtotime(now()->format('Y-m-d H:i:s')),
         ];
 
         // Initialize cURL session
