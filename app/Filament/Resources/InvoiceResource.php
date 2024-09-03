@@ -98,7 +98,7 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('client.billing_name')->label('Client'),
                 Tables\Columns\TextColumn::make('total')->label('Total'),
             ])
-            ->defaultSort('date', 'ASC')
+            ->defaultSort('date', 'DESC')
             ->filters([
                 //
             ])
