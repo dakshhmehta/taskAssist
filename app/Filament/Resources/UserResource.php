@@ -40,6 +40,9 @@ class UserResource extends Resource
                 TextInput::make('password')
                     ->password()
                     ->revealable(),
+                TextInput::make('salary')
+                    ->required()
+                    ->numeric(),
                 TextInput::make('work_hours')
                     ->label('Working Hours / Day')
                     ->rules(['numeric', 'integer', 'gte:1'])
