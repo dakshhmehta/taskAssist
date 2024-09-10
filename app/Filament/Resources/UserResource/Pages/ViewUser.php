@@ -55,7 +55,7 @@ class ViewUser extends Page
         return [
             TasksCount::make($data),
             SalaryDetails::make($data),
-            // UserTaskUtilization::make($data),
+            UserTaskUtilization::make($data),
         ];
     }
 

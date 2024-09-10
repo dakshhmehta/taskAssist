@@ -27,7 +27,7 @@ class SalaryDetails extends BaseWidget
         $allowedLeaves = config('settings.monthly_allowed_leaves');
 
         $workingDays = config('settings.working_days');
-        $payableDays = $workingDays - ($leavesCount - $allowedLeaves);
+        $payableDays = $workingDays - (($leavesCount > 0) ? ($leavesCount - $allowedLeaves) : 0);
 
         $payableSalary = ($this->user->salary / $workingDays) * $payableDays;
 
