@@ -72,7 +72,7 @@ class UserTaskUtilization extends BaseWidget
                 'estimate' => $estimate,
             ]);
             $task->no_tasks = count($tasks);
-            $task->time_taken = (float) sprintf("%.2f", $averageTimePerTask->time);
+            $task->time_taken = (float) sprintf("%.2f", (($averageTimePerTask) ? $averageTimePerTask->time : 0));
             $task->utilization = (float) sprintf("%.2f", (($task->time_taken / $estimate) * 100));
 
             $data[] = $task;
