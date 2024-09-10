@@ -30,7 +30,8 @@ class UserTaskUtilization extends BaseWidget
                 TextColumn::make('no_tasks')
                     ->label('No. of Tasks'),
                 TextColumn::make('time_taken')
-                    ->label('Avg. Time Taken / Task'),
+                    ->label('Avg. Time Taken / Task')
+                    ->formatStateUsing(fn(Task $task) => Timesheet::toHMS($task->time_taken)),
                 TextColumn::make('utilization')
                     ->label('Utilization %'),
             ]);
@@ -59,7 +60,7 @@ class UserTaskUtilization extends BaseWidget
                 ->whereDate('completed_at', '<=', $this->filterData['endDate'])
                 ->get();
 
-            $averageTimePerTask = Timesheet::select('user_id', \DB::raw('AVG(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
+            $averageTimePerTask = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
                 ->whereNotNull('start_at')
                 ->whereNotNull('end_at')
                 ->where('user_id', $this->user->id)
@@ -72,7 +73,7 @@ class UserTaskUtilization extends BaseWidget
                 'estimate' => $estimate,
             ]);
             $task->no_tasks = count($tasks);
-            $task->time_taken = (float) sprintf("%.2f", (($averageTimePerTask) ? $averageTimePerTask->time : 0));
+            $task->time_taken = (float) sprintf("%.2f", (($averageTimePerTask) ? $averageTimePerTask->time : 0)) / $task->no_tasks;
             $task->utilization = (float) sprintf("%.2f", (($task->time_taken / $estimate) * 100));
 
             $data[] = $task;
