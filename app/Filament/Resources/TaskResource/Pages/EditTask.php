@@ -8,6 +8,7 @@ use App\Models\Task;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Auth;
 use Parallax\FilamentComments\Actions\CommentsAction;
 
 class EditTask extends EditRecord
@@ -25,6 +26,18 @@ class EditTask extends EditRecord
                 ->action(fn(Task $task) => $task->complete())
                 ->visible(fn(Task $task) => $task->isCompletable())
                 ->color('success'),
+
+            Action::make('startTime')
+                ->label('Start')
+                ->action(fn(Task $task) => $task->startTimer())
+                ->visible(fn(Task $task) => $task->canStartWork(Auth::user()->id))
+                ->color('info'),
+
+            Action::make('stopTime')
+                ->label('Stop')
+                ->action(fn(Task $task) => $task->endTimer())
+                ->visible(fn(Task $task) => $task->isTimeStarted(Auth::user()->id))
+                ->color('warning'),
         ];
     }
 
