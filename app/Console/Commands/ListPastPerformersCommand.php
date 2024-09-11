@@ -38,8 +38,8 @@ class ListPastPerformersCommand extends Command
             $user->week_performance = (float) $user->performanceThisWeek(-1);
             $user->week_time_worked = $user->timeWorkedThisWeek(-1);
 
-            $user->time_base_performance = (float) $user->performanceThisWeekTimeBased();
-            $user->task_base_performance = (float) $user->performanceThisWeekTaskBased();
+            $user->time_base_performance = (float) $user->performanceThisWeekTimeBased(-1);
+            $user->task_base_performance = (float) $user->performanceThisWeekTaskBased(-1);
         }
 
         $users = $users->sortByDesc(function ($user) {
@@ -59,6 +59,9 @@ class ListPastPerformersCommand extends Command
         foreach ($users as $i => $user) {
             $user->week_performance = (float) $user->performanceThisWeek();
             $user->week_time_worked = $user->timeWorkedThisWeek();
+
+            $user->time_base_performance = (float) $user->performanceThisWeekTimeBased();
+            $user->task_base_performance = (float) $user->performanceThisWeekTaskBased();
         }
 
         $users = $users->sortByDesc(function ($user) {

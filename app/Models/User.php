@@ -150,7 +150,7 @@ class User extends Authenticatable
 
     public function performanceThisWeekTaskBased($offset = 0)
     {
-        if ($this->timeWorkedThisWeek() <= 0) {
+        if ($this->timeWorkedThisWeek($offset) <= 0) {
             return 0;
         }
 
