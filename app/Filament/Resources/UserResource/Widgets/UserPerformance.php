@@ -66,7 +66,13 @@ class UserPerformance extends BaseWidget
         }
 
         if ($totalTimeWorked) {
+            $timeWorkedChart = [];
+            for($i = -8; $i <= -1; $i++){
+                $timeWorkedChart[] = $user->timeWorkedThisWeek($i);
+            }
+
             $widgets[] = Stat::make('Total Time Worked', Timesheet::toHMS($totalTimeWorked))
+                ->chart($timeWorkedChart)
                 ->icon('heroicon-o-clock')
                 ->description('in this week');
         }

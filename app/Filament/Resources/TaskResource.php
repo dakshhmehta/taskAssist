@@ -49,6 +49,13 @@ class TaskResource extends Resource
         ];
     }
 
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with(['assignee'])
+            ->orderByRaw('ISNULL(completed_at) DESC')
+                ->orderBy('completed_at', 'DESC');
+        }
+
     public static function form(Form $form): Form
     {
         $userId = \Auth::user()->id;
