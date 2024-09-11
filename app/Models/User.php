@@ -138,6 +138,16 @@ class User extends Authenticatable
         return (int) $this->balance(['star']);
     }
 
+    public function performanceThisWeekTimeBased($offset = 0)
+    {
+        $timeWorked = $this->timeWorkedThisWeek($offset);
+        $expectedWorkingHrs = $this->work_hours * 5;
+
+        $performance = (float) sprintf("%.2f", (($timeWorked / $expectedWorkingHrs) * 10));
+
+        return $performance;
+    }
+
     public function performanceThisWeek($offset = 0)
     {
         if ($this->timeWorkedThisWeek() <= 0) {
@@ -164,8 +174,12 @@ class User extends Authenticatable
             return 0;
         }
 
+        $taskBasedPerformance = array_sum($performances) / count($performances);
+        $timeBasedPerformance = $this->performanceThisWeekTimeBased($offset);
+        $performance = ($taskBasedPerformance + $timeBasedPerformance) / 2;
+
         // \Log::debug([count($performances)]);
-        return sprintf("%.2f", array_sum($performances) / count($performances));
+        return sprintf("%.2f", $performance);
     }
 
     public function timeWorkedThisWeek($offset = 0)
