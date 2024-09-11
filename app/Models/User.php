@@ -148,7 +148,7 @@ class User extends Authenticatable
         return $performance;
     }
 
-    public function performanceThisWeek($offset = 0)
+    public function performanceThisWeekTaskBased($offset = 0)
     {
         if ($this->timeWorkedThisWeek() <= 0) {
             return 0;
@@ -175,6 +175,13 @@ class User extends Authenticatable
         }
 
         $taskBasedPerformance = array_sum($performances) / count($performances);
+
+        return $taskBasedPerformance;
+    }
+
+    public function performanceThisWeek($offset = 0)
+    {
+        $taskBasedPerformance = $this->performanceThisWeekTaskBased($offset);
         $timeBasedPerformance = $this->performanceThisWeekTimeBased($offset);
         $performance = ($taskBasedPerformance + $timeBasedPerformance) / 2;
 
