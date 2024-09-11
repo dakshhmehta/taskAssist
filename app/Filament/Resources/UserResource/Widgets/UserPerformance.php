@@ -71,13 +71,32 @@ class UserPerformance extends BaseWidget
                 $timeWorkedChart[] = $user->timeWorkedThisWeek($i);
             }
 
+            $timeChartColor = 'success';
+            if($totalTimeWorked < end($timeWorkedChart)){
+                $timeChartColor = 'danger';
+            }
+
             $widgets[] = Stat::make('Total Time Worked', Timesheet::toHMS($totalTimeWorked))
                 ->chart($timeWorkedChart)
+                ->chartColor($timeChartColor)
                 ->icon('heroicon-o-clock')
                 ->description('in this week');
         }
 
-        $widgets[] = Stat::make('Performance Rating', $user->performanceThisWeek())
+        $userPerformance = $user->performanceThisWeek();
+        $performanceChart = [];
+        for($i = -8; $i <= -1; $i++){
+            $performanceChart[] = $user->performanceThisWeek($i);
+        }
+
+        $performanceChartColor = 'success';
+        if($userPerformance < end($performanceChart)){
+            $performanceChartColor = 'danger';
+        }
+
+        $widgets[] = Stat::make('Performance Rating', $userPerformance)
+            ->chart($performanceChart)
+            ->chartColor($performanceChartColor)
             ->icon('heroicon-o-sparkles')
             ->description('in this week, Task Based = ' . $user->performanceThisWeekTaskBased() . ', Time Based = ' . $user->performanceThisWeekTimeBased());
 
