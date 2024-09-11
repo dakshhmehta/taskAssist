@@ -29,7 +29,7 @@ class ListPastPerformersCommand extends Command
     {
         $users = User::all();
 
-        $heading = ['#', 'User', 'Performance', 'Time Worked'];
+        $heading = ['#', 'User', 'Time Worked', 'Time Base - Performance', 'Task Base - Performance', 'Performance'];
         $data = [];
 
         $this->warn('Last Week');
@@ -37,6 +37,9 @@ class ListPastPerformersCommand extends Command
         foreach ($users as $i => $user) {
             $user->week_performance = (float) $user->performanceThisWeek(-1);
             $user->week_time_worked = $user->timeWorkedThisWeek(-1);
+
+            $user->time_base_performance = (float) $user->performanceThisWeekTimeBased();
+            $user->task_base_performance = (float) $user->performanceThisWeekTaskBased();
         }
 
         $users = $users->sortByDesc(function ($user) {
@@ -44,7 +47,7 @@ class ListPastPerformersCommand extends Command
         });
 
         foreach ($users as $i => $user) {
-            $data[] = [$i + 1, $user->name, $user->week_performance, Timesheet::toHMS($user->week_time_worked)];
+            $data[] = [$i + 1, $user->name, Timesheet::toHMS($user->week_time_worked), $user->time_base_performance, $user->task_base_performance, $user->week_performance];
         }
 
         $this->table($heading, $data);
@@ -63,7 +66,7 @@ class ListPastPerformersCommand extends Command
         });
 
         foreach ($users as $i => $user) {
-            $data[] = [$i + 1, $user->name, $user->week_performance, Timesheet::toHMS($user->week_time_worked)];
+            $data[] = [$i + 1, $user->name, Timesheet::toHMS($user->week_time_worked), $user->time_base_performance, $user->task_base_performance, $user->week_performance];
         }
 
         $this->table($heading, $data);
