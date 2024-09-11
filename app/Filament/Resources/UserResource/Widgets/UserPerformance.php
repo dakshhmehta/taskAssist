@@ -73,7 +73,7 @@ class UserPerformance extends BaseWidget
 
         $widgets[] = Stat::make('Performance Rating', $user->performanceThisWeek())
             ->icon('heroicon-o-sparkles')
-            ->description('in this week');
+            ->description('in this week, Task Based ' . $user->performanceThisWeekTaskBased() . ', Time Based = ' . $user->performanceThisWeekTimeBased());
 
         $stars = $user->stars;
         if ($stars > 0) {
