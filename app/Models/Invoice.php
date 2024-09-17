@@ -105,4 +105,33 @@ class Invoice extends Model
 
         return $result . "" . ($points ? "and " . $points . " paise" : "only");
     }
+
+    public static function nextInvoiceNumber()
+    {
+        // Define the prefix and the current year
+        $prefix = 'DH-';
+        $suffix = '\/2024';
+
+        // Find the latest invoice number using the prefix and suffix
+        $latestInvoice = self::where('invoice_no', 'LIKE', "{$prefix}%{$suffix}")
+            ->orderBy('date', 'desc')
+            ->first();
+
+        if ($latestInvoice) {
+            // Extract the number from the latest invoice
+            preg_match("/{$prefix}(\d+){$suffix}/", $latestInvoice->invoice_no, $matches);
+            $lastNumber = isset($matches[1]) ? (int)$matches[1] : 0;
+        } else {
+            // If no invoice found, start from 0
+            $lastNumber = 0;
+        }
+
+        // Increment the number
+        $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+        
+        $number = stripslashes("{$prefix}{$newNumber}{$suffix}");
+
+        // Generate the new invoice number
+        return $number;
+    }
 }

@@ -115,10 +115,15 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('invoice_no'),
+                Tables\Columns\TextColumn::make('invoice_no')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('date')
+                    ->sortable()
+                    ->searchable()
                     ->dateTime('d-m-Y'),
-                Tables\Columns\TextColumn::make('client.billing_name')->label('Client'),
+                Tables\Columns\TextColumn::make('client.billing_name')->label('Client')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('total')->label('Total'),
             ])
             ->defaultSort('date', 'DESC')
