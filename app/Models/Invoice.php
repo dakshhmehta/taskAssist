@@ -12,7 +12,8 @@ class Invoice extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'date' => 'datetime',
+        'date' => 'date',
+        'paid_date' => 'date',
     ];
 
     public function items()
@@ -28,6 +29,13 @@ class Invoice extends Model
     public function getTotalAttribute()
     {
         return $this->items()->sum('price');
+    }
+
+    public function markAsPaid($date = null, $remarks = null){
+        $this->paid_date = $date;
+        $this->payment_remarks = $remarks;
+
+        $this->save();
     }
 
     public function inWords()

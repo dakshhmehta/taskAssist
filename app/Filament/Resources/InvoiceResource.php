@@ -11,10 +11,14 @@ use App\Models\Timesheet;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Gate;
 
 class InvoiceResource extends Resource
 {
@@ -100,9 +104,28 @@ class InvoiceResource extends Resource
             ])
             ->defaultSort('date', 'DESC')
             ->filters([
-                //
+                
             ])
             ->actions([
+                Action::make('mark_paid')
+                    ->label('Mark as Paid')
+                    ->color('success')
+                    ->form([
+                        Grid::make()
+                            ->columns(2)
+                            ->schema([
+                                DatePicker::make('date')
+                                    ->label('Date')
+                                    ->default(now())
+                                    ->required(),
+                                Textarea::make('remarks')
+                                    ->label('Remarks'),
+                            ])
+                    ])
+                    ->visible(fn(?Invoice $invoice): bool => Gate::allows('markAsPaid', $invoice))
+                    ->action(function (array $data, Invoice $record): void {
+                        $record->markAsPaid($data['date'], $data['remarks']);
+                    }),
                 Tables\Actions\EditAction::make(),
                 Action::make('print')
                     // ->icon('printer')

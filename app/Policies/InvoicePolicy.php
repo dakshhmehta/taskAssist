@@ -62,4 +62,9 @@ class InvoicePolicy
     {
         return $user->is_admin;
     }
+
+    public function markAsPaid(User $user, Invoice $invoice): bool
+    {
+        return $user->is_admin && $invoice->paid_date == null;
+    }
 }
