@@ -88,7 +88,26 @@ class InvoiceResource extends Resource
                     ])
                     ->columns(3)
                     ->columnSpan(12)
-                    ->addActionLabel('Add Invoice Item')
+                    ->addActionLabel('Add Invoice Item'),
+
+                    Forms\Components\Repeater::make('extras')
+                    ->relationship('extras')
+                    ->schema([
+                        TextInput::make('line_title')
+                            ->required()
+                            ->label('Title'),
+                        TextInput::make('line_description')
+                            ->label('Description'),
+                        TextInput::make('line_duration')
+                            ->label('Duration'),
+                        Forms\Components\TextInput::make('price')
+                            ->label('Price')
+                            ->numeric()
+                            ->required(),
+                    ])
+                    ->columns(4)
+                    ->columnSpan(12)
+                    ->addActionLabel('Add Extra')
             ]);
     }
 

@@ -67,7 +67,7 @@
         }
 
         #items {
-            top: 850px;
+            top: 800px;
             left: 275px;
             width: 2965px;
             /* background-color: black; */
@@ -158,11 +158,20 @@
             color: red;
             width: 1785px;
         }
+        .paid-stamp {
+            top: 1990px;
+            left: 2700px;
+            width: 500px;
+            height: 500px;
+        }
     </style>
 </head>
 
 <body>
     <div id="invoice">
+        @if($invoice->paid_date != null)
+            <img class="abs paid-stamp" src="{{ asset('invoice/paid_stamp.png') }}" />
+        @endif
         <div class="abs invoice-no">{{ $invoice->invoice_no }}</div>
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>
 
@@ -173,43 +182,15 @@
             $domains = $invoice->items()->where('itemable_type', App\Models\Domain::class)->get();
             $hostings = $invoice->items()->where('itemable_type', App\Models\Hosting::class)->get();
             $emails = $invoice->items()->where('itemable_type', App\Models\Email::class)->get();
-        @endphp
+            $extras = $invoice->extras;
 
-        <!-- <div id="items" class="abs">
-            <div class="row">
-                <div class="col sr"><p>1.</p></div>
-                <div class="col item">
-                    <p><b>DOMAINS/s:</b></p>
-                    @foreach($domains as $i => $domain)
-                        <p>{{ $domain->itemable->tld }}</p>
-                    @endforeach
-                </div>
-                <div class="col duration">
-                    <p>&nbsp;</p>
-                    @foreach($domains as $i => $domain)
-                        <p>1 year</p>
-                    @endforeach
-                </div>
-                <div class="col price">
-                    <p>&nbsp;</p>
-                    @foreach($domains as $i => $domain)
-                        <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
-                    @endforeach
-                </div>
-                <div class="col amount">
-                    <p>&nbsp;</p>
-                    @foreach($domains as $i => $domain)
-                        <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
-                    @endforeach
-                </div>
-                <div class="clearfix"></div>
-            </div>
-        </div> -->
+            $rowCount = 1;
+        @endphp
 
         <div id="items" class="abs">
             @foreach($domains as $i => $domain)
             <div class="row">
-                <div class="col sr"><p>{{ $i+1 }}.</p></div>
+                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
                 <div class="col item">
                     <p><b>DOMAIN:</b></p>
                     <p>{{ $domain->itemable->tld }}</p>
@@ -232,13 +213,14 @@
 
             @foreach($hostings as $i => $hosting)
             <div class="row">
-                <div class="col sr"><p>{{ $i+1 }}.</p></div>
+                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
                 <div class="col item">
                     <p><b>WEB HOSTING: {{ $hosting->itemable->domain }}</b></p>
+                    @if($hosting->itemable->package)
                     <table style="text-align: left;">
                         <tr>
                             <th style="padding-right: 50px;">Web Space:</th>
-                            <td>{{ $hosting->itemable->package->storage_formatted }}</td>
+                            <td>{{ optional($hosting->itemable->package)->storage_formatted }}</td>
                         </tr>
                         <tr>
                             <th>Server:</th>
@@ -249,6 +231,7 @@
                             <td>{{ (($hosting->itemable->package->emails == -1) ? 'unlimited' :  $hosting->itemable->package->emails) }}</td>
                         </tr>
                     </table>
+                    @endif
                 </div>
                 <div class="col duration">
                     <p>&nbsp;</p>
@@ -268,7 +251,7 @@
 
             @foreach($emails as $i => $email)
             <div class="row">
-                <div class="col sr"><p>{{ $i+1 }}.</p></div>
+                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
                 <div class="col item">
                     <p><b>Google Workspace: {{ $email->itemable->domain }}</b></p>
                     <table style="text-align: left;">
@@ -289,6 +272,34 @@
                 <div class="col amount">
                     <p>&nbsp;</p>
                     <p>Rs. {{ number_format($email->price, 2) }}/-</p>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            @endforeach
+
+            @foreach($extras as $extra)
+            <div class="row">
+                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
+                <div class="col item">
+                    <p><b>{{ $extra->line_title }}</b></p>
+                    <p>{{ $extra->line_description }}</p>
+                </div>
+                <div class="col duration">
+                    @if($extra->line_duration)
+                    <p>&nbsp;</p>
+                    <p>{{ $extra->line_duration }}</p>
+                    @else
+                    <p>&nbsp;</p>
+                    <p>&nbsp;</p>
+                    @endif
+                </div>
+                <div class="col price">
+                    <p>&nbsp;</p>
+                    <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
+                </div>
+                <div class="col amount">
+                    <p>&nbsp;</p>
+                    <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
                 </div>
                 <div class="clearfix"></div>
             </div>

@@ -138,6 +138,24 @@ class User extends Authenticatable
         return (int) $this->balance(['star']);
     }
 
+    public function timeWorkedThisWeek($offset = 0)
+    {
+        $totalTimeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
+            ->whereNotNull('start_at')
+            ->whereNotNull('end_at')
+            ->where('end_at', '>=', now()->addWeeks($offset)->startOfWeek())
+            ->where('end_at', '<=', now()->addWeeks($offset)->endOfWeek())
+            ->where('user_id', $this->id)
+            ->groupBy('user_id')
+            ->first();
+
+        if (! $totalTimeWorked) {
+            return 0;
+        }
+
+        return (int) $totalTimeWorked->time;
+    }
+
     public function performanceThisWeekTimeBased($offset = 0)
     {
         $timeWorked = $this->timeWorkedThisWeek($offset);
@@ -187,24 +205,6 @@ class User extends Authenticatable
 
         // \Log::debug([count($performances)]);
         return sprintf("%.2f", $performance);
-    }
-
-    public function timeWorkedThisWeek($offset = 0)
-    {
-        $totalTimeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
-            ->whereNotNull('start_at')
-            ->whereNotNull('end_at')
-            ->where('end_at', '>=', now()->addWeeks($offset)->startOfWeek())
-            ->where('end_at', '<=', now()->addWeeks($offset)->endOfWeek())
-            ->where('user_id', $this->id)
-            ->groupBy('user_id')
-            ->first();
-
-        if (! $totalTimeWorked) {
-            return 0;
-        }
-
-        return (int) $totalTimeWorked->time;
     }
 
     public function isOnLeave(Carbon $date)

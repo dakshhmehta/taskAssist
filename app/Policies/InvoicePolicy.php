@@ -36,7 +36,7 @@ class InvoicePolicy
      */
     public function update(User $user, Invoice $invoice): bool
     {
-        return $user->is_admin;
+        return $user->is_admin && $invoice->paid_date == null;
     }
 
     /**
