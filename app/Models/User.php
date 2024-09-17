@@ -32,6 +32,8 @@ class User extends Authenticatable
 
         'work_hours',
         'salary',
+
+        'salary_type',
     ];
 
     /**

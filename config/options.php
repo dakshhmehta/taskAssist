@@ -7,4 +7,9 @@ return [
         120 => '2 Hours',
         240 => '4 Hours',
     ],
+
+    'salary_type' => [
+        'hourly' => 'Hourly',
+        'monthly' => 'Monthly',
+    ]
 ];

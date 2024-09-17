@@ -10,6 +10,7 @@ use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -43,6 +44,9 @@ class UserResource extends Resource
                 TextInput::make('salary')
                     ->required()
                     ->numeric(),
+                Select::make('salary_type')
+                    ->required()
+                    ->options(config('options.salary_type')),
                 TextInput::make('work_hours')
                     ->label('Working Hours / Day')
                     ->rules(['numeric', 'integer', 'gte:1'])
