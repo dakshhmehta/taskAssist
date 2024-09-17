@@ -82,6 +82,10 @@
             font-size: 50px;
         }
 
+        .items-6 .row {
+            font-size: 30px;
+        }
+
         .row .col {
             /* background-color: red; */
             float: left;
@@ -184,10 +188,12 @@
             $emails = $invoice->items()->where('itemable_type', App\Models\Email::class)->get();
             $extras = $invoice->extras;
 
+            $totalRows = count($domains) + count($hostings) + count($emails);
+
             $rowCount = 1;
         @endphp
 
-        <div id="items" class="abs">
+        <div id="items" class="abs {{ 'items-'.$totalRows }}">
             @foreach($domains as $i => $domain)
             <div class="row">
                 <div class="col sr"><p>{{ $rowCount++ }}.</p></div>

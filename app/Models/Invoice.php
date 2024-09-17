@@ -115,6 +115,7 @@ class Invoice extends Model
         // Find the latest invoice number using the prefix and suffix
         $latestInvoice = self::where('invoice_no', 'LIKE', "{$prefix}%{$suffix}")
             ->orderBy('date', 'desc')
+            ->orderBy('id', 'desc')
             ->first();
 
         if ($latestInvoice) {
