@@ -27,7 +27,9 @@ class SyncDomainsDNSCommand extends Command
      */
     public function handle()
     {
-        $domains = Hosting::all();
+        $domains = Hosting::
+            orderBy('domain', 'asc')
+            ->get();
 
         $data = [];
 
@@ -36,10 +38,15 @@ class SyncDomainsDNSCommand extends Command
 
             if (!empty($records)) {
                 foreach ($records as $record) {
-                    if ($record['type'] == 'NS') {
-                        $data[$i]['i'] = $i + 1;
-                        $data[$i]['domain'] = $domain->domain;
-                        $data[$i++]['ns'] = $record['target'];
+                    $hasHosting = Hosting::where('domain', $domain->domain)
+                        ->where('server', 'romin')
+                        ->exists();
+                    if ($record['type'] == 'NS' && $hasHosting) {
+                        if(strpos($record['target'], 'seodns') > 0 || strpos($record['target'], 'romin.in') > 0){
+                            $data[$i]['i'] = $i + 1;
+                            $data[$i]['domain'] = $domain->domain;
+                            $data[$i++]['ns'] = $record['target'];
+                        }
                     }
                 }
             }

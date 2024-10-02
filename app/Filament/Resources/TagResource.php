@@ -40,6 +40,7 @@ class TagResource extends Resource
                 TextColumn::make('due_date')
                     ->dateTime('d-m-Y'),
             ])
+            ->defaultSort('updated_at', 'desc')
             ->filters([
                 //
             ])

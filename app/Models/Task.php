@@ -33,6 +33,8 @@ class Task extends Model implements HasMedia
         'due_date' => 'datetime',
     ];
 
+    protected $touches = ['tags'];
+
     protected $guarded = ['files'];
 
     public function assignee()
@@ -194,5 +196,11 @@ class Task extends Model implements HasMedia
     public function getHmsAttribute()
     {
         return Timesheet::toHMS($this->minutes_taken);
+    }
+
+    public function getCostAttribute(){
+        $cost = ($this->minutes_taken  * config('settings.company_hourly_rate')) / 60;
+
+        return sprintf("%.2f", $cost);
     }
 }
