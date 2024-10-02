@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -144,15 +145,16 @@ class TasksRelationManager extends RelationManager
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
+                                ->askForFilename()
                                 ->withColumns([
-                                    Column::make('title'),
-                                    Column::make('completed_at'),
-                                    Column::make('hms'),
-                                    Column::make('minutes_taken'),
-                                    Column::make('cost'),
+                                    Column::make('title')->heading('Task'),
+                                    Column::make('completed_at')->heading('Completed On'),
+                                    Column::make('hms')->heading('H:M:S'),
+                                    Column::make('minutes_taken')->heading('Time Taken'),
+                                    Column::make('cost')->heading('Amount'),
                                 ])
                         ])
-                ]),
+                ])->visible(Auth::user()->is_admin),
             ]);
     }
 }
