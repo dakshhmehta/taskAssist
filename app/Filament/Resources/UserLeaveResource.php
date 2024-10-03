@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -91,7 +92,17 @@ class UserLeaveResource extends Resource
                 TextColumn::make('code'),
             ])
             ->filters([
-                //
+                SelectFilter::make('user_id')
+                    ->label('User')
+                    ->options(User::all()->pluck('name', 'id')),
+                SelectFilter::make('code')
+                    ->options(config('leave_types')),
+                SelectFilter::make('status')
+                    ->options([
+                        'NEW' => 'New',
+                        'APPROVED' => 'Approved',
+                        'REJECTED' => 'Rejected',
+                    ]),
             ])
             ->actions([
                 Action::make('approve')
