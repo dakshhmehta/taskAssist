@@ -17,7 +17,7 @@ class SalaryDetails extends BaseWidget
 
         $leaves =  $this->user->leaves()
             ->where('status', 'APPROVED')
-            ->where('code', 'CL')
+            ->whereIn('code', ['CL', 'SL'])
             ->whereDate('from_date', '>=', $this->filterData['startDate'])
             ->whereDate('to_date', '<=', $this->filterData['endDate'])
             ->get();
@@ -28,7 +28,7 @@ class SalaryDetails extends BaseWidget
         $allowedLeaves = config('settings.monthly_allowed_leaves');
 
         $widgets[] = (new Stat('Leaves', $leavesCount))
-            ->description($allowedLeaves . ' monthly leave allowed');
+            ->description($allowedLeaves . ' monthly leave allowed. This includes CL/SL both');
 
         // Salary Count
         if ($this->user->salary_type == 'monthly') {
