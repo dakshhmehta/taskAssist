@@ -18,6 +18,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 
 class InvoiceResource extends Resource
@@ -124,11 +128,33 @@ class InvoiceResource extends Resource
                     ->dateTime('d-m-Y'),
                 Tables\Columns\TextColumn::make('client.billing_name')->label('Client')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('total')->label('Total'),
+                Tables\Columns\TextColumn::make('total')
+                    ->label('Total'),
+                TextColumn::make('paid_date')
+                    ->dateTime('d-m-Y')
+                    ->label('Paid On'),
             ])
             ->defaultSort('date', 'DESC')
             ->filters([
-                
+                Filter::make('paid_date_range')
+                    ->form([
+                        Forms\Components\DatePicker::make('paid_date_from')
+                            ->label('Paid Date - From')
+                            ->placeholder('Paid Date - From'),
+                        Forms\Components\DatePicker::make('paid_date_to')
+                            ->label('Paid Date - To')
+                            ->placeholder('Paid Date - To'),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return $query
+                            ->when($data['paid_date_from'], function (Builder $query, $date) {
+                                return $query->whereDate('paid_date', '>=', $date);
+                            })
+                            ->when($data['paid_date_to'], function (Builder $query, $date) {
+                                return $query->whereDate('paid_date', '<=', $date);
+                            });
+                    })
+                    ->label('Paid Date Range'),
             ])
             ->actions([
                 Action::make('mark_paid')
