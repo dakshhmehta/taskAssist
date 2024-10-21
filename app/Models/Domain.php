@@ -25,6 +25,8 @@ class Domain extends Model
     {
         $rc = ResellerClub::fetch($this->tld);
 
+        dd($rc);
+
         $this->expiry_date = date('Y-m-d H:i:s', $rc[1]['orders.endtime']);
         $this->save();
     }
@@ -47,6 +49,10 @@ class Domain extends Model
     }
 
     public function getIsInvoicedAttribute(){
+        if($this->expiry_date == null){
+            return null;
+        }
+
         if($this->expiry_date->lte(Carbon::parse('2024-08-01'))){
             return true;
         }
