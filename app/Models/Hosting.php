@@ -3,16 +3,20 @@
 namespace App\Models;
 
 use App\Traits\CustomLogOptions;
+use App\Traits\IgnorableTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Parallax\FilamentComments\Models\Traits\HasFilamentComments;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Hosting extends Model
 {
     use HasFactory;
 
-    use LogsActivity, CustomLogOptions;
+    use LogsActivity, CustomLogOptions, IgnorableTrait;
+
+    use HasFilamentComments;
 
     protected $guarded = [];
 

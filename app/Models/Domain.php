@@ -4,28 +4,31 @@ namespace App\Models;
 
 use App\ResellerClub;
 use App\Traits\CustomLogOptions;
+use App\Traits\IgnorableTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Parallax\FilamentComments\Models\Traits\HasFilamentComments;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Domain extends Model
 {
     use HasFactory;
 
-    use LogsActivity, CustomLogOptions;
+    use LogsActivity, CustomLogOptions, IgnorableTrait;
+
+    use HasFilamentComments;
 
     protected $guarded = [];
 
     protected $casts = [
         'expiry_date' => 'datetime',
+        'ignored_at' => 'datetime',
     ];
 
     public function sync()
     {
         $rc = ResellerClub::fetch($this->tld);
-
-        dd($rc);
 
         $this->expiry_date = date('Y-m-d H:i:s', $rc[1]['orders.endtime']);
         $this->save();

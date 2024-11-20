@@ -71,10 +71,10 @@ class InvoiceResource extends Resource
                             ->options(function (callable $get) {
                                 $type = $get('itemable_type');
                                 if ($type === Domain::class) {
-                                    return Domain::all()->pluck('tld', 'id');
+                                    return Domain::all()->excludeIgnored()->pluck('tld', 'id');
                                 }
                                 if ($type === Hosting::class) {
-                                    return Hosting::all()->pluck('domain', 'id');
+                                    return Hosting::all()->excludeIgnored()->pluck('domain', 'id');
                                 }
                                 if ($type === Email::class) {
                                     return Email::all()->pluck('domain_accounts', 'id');
@@ -94,7 +94,7 @@ class InvoiceResource extends Resource
                     ->columnSpan(12)
                     ->addActionLabel('Add Invoice Item'),
 
-                    Forms\Components\Repeater::make('extras')
+                Forms\Components\Repeater::make('extras')
                     ->relationship('extras')
                     ->schema([
                         TextInput::make('line_title')

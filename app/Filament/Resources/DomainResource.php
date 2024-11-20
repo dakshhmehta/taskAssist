@@ -9,10 +9,14 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class DomainResource extends Resource
 {
@@ -58,14 +62,32 @@ class DomainResource extends Resource
             ])
             ->defaultSort('expiry_date', 'ASC')
             ->filters([
-                //
+                TernaryFilter::make('ignored')
+                    ->label('Ignore')
+                    ->trueLabel('Include Ignored')
+                    ->falseLabel('Unignored Only')
+                    ->default(false)
+                    ->queries(
+                        true: fn(Builder $query) => $query->includeIgnored(),
+                        false: fn(Builder $query) => $query->excludeIgnored(),
+                        blank: fn(Builder $query) => $query->excludeIgnored(),
+                    ),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('sync')
+                Action::make('sync')
                     ->label('Refresh')
                     ->action(fn(Domain $domain) => $domain->sync())
                     ->color('success'),
+
+                CommentsAction::make(),
+
+                Action::make('doIgnore')
+                    ->label('Ignore')
+                    ->icon('heroicon-o-x-circle')
+                    ->action(fn(Domain $domain) => $domain->ignore())
+                    ->visible(fn(Domain $domain) => !$domain->isIgnored())
+                    ->color('danger'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
