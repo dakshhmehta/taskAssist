@@ -71,10 +71,10 @@ class InvoiceResource extends Resource
                             ->options(function (callable $get) {
                                 $type = $get('itemable_type');
                                 if ($type === Domain::class) {
-                                    return Domain::all()->excludeIgnored()->pluck('tld', 'id');
+                                    return Domain::excludeIgnored()->get()->pluck('tld', 'id');
                                 }
                                 if ($type === Hosting::class) {
-                                    return Hosting::all()->excludeIgnored()->pluck('domain', 'id');
+                                    return Hosting::excludeIgnored()->get()->pluck('domain', 'id');
                                 }
                                 if ($type === Email::class) {
                                     return Email::all()->pluck('domain_accounts', 'id');
