@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: Custom API for Site Info
+Plugin Name: TaskAssist by Romin Interactive
 Description: Exposes PHP version, WordPress version, and plugin list via a custom REST API endpoint.
 Version: 1.0
-Author: Your Name
+Author: Romin Interactive
 */
 
 function custom_api_register_routes() {
