@@ -180,7 +180,6 @@
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>
 
         <div class="abs client">Name: <span>{{ $invoice->client->billing_name }}</span></div>
-        <div class="abs work">Work: <span>Registration/renewal of domain and hosting for the year {{ $invoice->date->format('Y').' - '.($invoice->date->format('Y')+1) }}</span></div>
 
         @php
             $domains = $invoice->items()->where('itemable_type', App\Models\Domain::class)->get();
@@ -192,6 +191,10 @@
 
             $rowCount = 1;
         @endphp
+
+        @if($totalRows > 0)
+        <div class="abs work">Work: <span>Registration/renewal of domain and hosting for the year {{ $invoice->date->format('Y').' - '.($invoice->date->format('Y')+1) }}</span></div>
+        @endif
 
         <div id="items" class="abs {{ 'items-'.$totalRows }}">
             @foreach($domains as $i => $domain)
@@ -313,7 +316,9 @@
         </div>
 
         <div class="abs total">Rs. {{ number_format($invoice->total, 2) }}/-</div>
+        @if($totalRows > 0)
         <div class="abs footnote">Next domain and hosting renewal: {{ $invoice->date->format('F') }}, {{ $invoice->date->format('Y')+1 }}</div>
+        @endif
 
         <div class="abs in-words"><b>Rupees: </b> {{ ucfirst($invoice->inWords()) }}</div>
 

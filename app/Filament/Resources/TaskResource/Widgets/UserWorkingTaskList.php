@@ -38,7 +38,7 @@ class UserWorkingTaskList extends BaseWidget
             ->paginated(false)
             ->columns([
                 TextColumn::make('assignee.name'),
-                TextColumn::make('title'),    
+                TextColumn::make('display_title'),    
             ]);
     }
 }
