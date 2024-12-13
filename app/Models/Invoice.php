@@ -11,6 +11,8 @@ class Invoice extends Model
 
     protected $guarded = [];
 
+    protected $touches = ['client'];
+
     protected $casts = [
         'date' => 'date',
         'paid_date' => 'date',
@@ -34,6 +36,10 @@ class Invoice extends Model
     public function getTotalAttribute()
     {
         return $this->items()->sum('price') + $this->extras()->sum('price');
+    }
+
+    public function scopeUnpaid($q){
+        return $q->whereNull('paid_date');
     }
 
     public function markAsPaid($date = null, $remarks = null)
