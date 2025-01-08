@@ -165,7 +165,7 @@ class ResellerClub
         if ($mode == 'expiring') {
             $params['expiry-date-start'] = strtotime(now()->format('Y-m-d H:i:s'));
         } else {
-            $params['creation-date-start'] = strtotime(now()->subDays(7)->format('Y-m-d H:i:s'));
+            $params['creation-date-start'] = strtotime(now()->subDays(90)->format('Y-m-d H:i:s'));
         }
 
         // Initialize cURL session
