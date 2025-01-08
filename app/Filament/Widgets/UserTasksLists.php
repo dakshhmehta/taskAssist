@@ -32,14 +32,14 @@ class UserTasksLists extends BaseWidget
     {
         $date = now();
 
-        if($date->isWeekend()){
+        if ($date->isWeekend()) {
             do {
                 $date = $date->addDay();
-            } while($date->isWeekend());
+            } while ($date->isWeekend());
         }
 
         return $table
-        ->query(function() use($date) {
+        ->query(function () use ($date) {
             $tasks = Task::where('due_date', '<=', $date->endOfDay()->format('Y-m-d H:i:s'))
                 ->whereNotNull('due_date')
                 ->whereNull('completed_at')

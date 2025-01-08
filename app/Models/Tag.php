@@ -14,11 +14,13 @@ class Tag extends BaseTag
         return $this->morphedByMany(Task::class, 'taggable');
     }
 
-    public function getIncompleteTasksCountAttribute(){
+    public function getIncompleteTasksCountAttribute()
+    {
         return $this->tasks()->whereNull('completed_at')->count();
     }
 
-    public function getDueDateAttribute(){
+    public function getDueDateAttribute()
+    {
         return Carbon::parse($this->tasks()->whereNull('completed_at')->max('due_date'))->addDays(3);
     }
 

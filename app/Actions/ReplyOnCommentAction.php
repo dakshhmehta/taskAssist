@@ -16,7 +16,8 @@ class ReplyOnCommentAction extends Action implements HasRecord
     use InteractsWithRecord;
     use CanOpenModal;
 
-    public function setRecord(Model $model){
+    public function setRecord(Model $model)
+    {
         $this->record($model);
 
         $this

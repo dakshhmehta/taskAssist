@@ -23,6 +23,8 @@ class Hosting extends Model
     protected $casts = [
         'expiry_date' => 'datetime',
         'suspended_at' => 'datetime',
+
+        'ssl_expiry_date' => 'datetime',
     ];
 
     public function invoiceItems()

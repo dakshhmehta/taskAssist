@@ -140,6 +140,15 @@ class User extends Authenticatable
         return (int) $this->balance(['star']);
     }
 
+    public function stars($since)
+    {
+        $stars = $this->transactions(['star'])
+            ->where('date', '>=', $since)
+            ->sum('amount');
+
+        return (int) $stars;
+    }
+
     public function timeWorkedThisWeek($offset = 0)
     {
         $totalTimeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))

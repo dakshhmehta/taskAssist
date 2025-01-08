@@ -42,7 +42,7 @@ class SyncDomainsDNSCommand extends Command
                         ->where('server', 'romin')
                         ->exists();
                     if ($record['type'] == 'NS' && $hasHosting) {
-                        if(strpos($record['target'], 'seodns') > 0 || strpos($record['target'], 'romin.in') > 0){
+                        if (strpos($record['target'], 'seodns') > 0 || strpos($record['target'], 'romin.in') > 0) {
                             $data[$i]['i'] = $i + 1;
                             $data[$i]['domain'] = $domain->domain;
                             $data[$i++]['ns'] = $record['target'];

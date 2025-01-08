@@ -25,7 +25,8 @@ class Email extends Model
         return $this->morphMany(InvoiceItem::class, 'itemable');
     }
 
-    public function getDomainAccountsAttribute(){
+    public function getDomainAccountsAttribute()
+    {
         return $this->domain.' ('.$this->accounts_count.' accounts)';
     }
 

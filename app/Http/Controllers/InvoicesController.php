@@ -9,16 +9,17 @@ use Spatie\Browsershot\Browsershot;
 
 class InvoicesController extends Controller
 {
-    public function getPrint($id, Request $request){
+    public function getPrint($id, Request $request)
+    {
         $invoice = Invoice::findOrFail($id);
 
-        if($request->has('view')){
+        if ($request->has('view')) {
             return view('invoices.print', compact('invoice'));
         }
 
         $invoicePath = storage_path('app/public/invoice_'.$invoice->id.'.pdf');
 
-        if(file_exists($invoicePath) && !$request->has('force')){
+        if (file_exists($invoicePath) && !$request->has('force')) {
             return redirect()->to('storage/invoice_'.$invoice->id.'.pdf');
         }
 

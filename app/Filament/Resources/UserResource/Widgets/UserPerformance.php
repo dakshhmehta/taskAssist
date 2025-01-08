@@ -100,7 +100,7 @@ class UserPerformance extends BaseWidget
             ->icon('heroicon-o-sparkles')
             ->description('in this week, Task Based = ' . $user->performanceThisWeekTaskBased() . ', Time Based = ' . $user->performanceThisWeekTimeBased());
 
-        $stars = $user->stars;
+        $stars = $user->stars(Carbon::now()->startOfYear());
         if ($stars > 0) {
             $widgets[] = Stat::make('Stars', $stars)
                 ->icon('heroicon-o-star');

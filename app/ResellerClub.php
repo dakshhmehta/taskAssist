@@ -16,7 +16,8 @@ class ResellerClub
     protected static $apiKey = 'iHw8T69SKedmkoeYjGBSMAHlAhCVH80Y';
     protected $resellerId = '433839';
 
-    public static function getOrderDetails($orderId){
+    public static function getOrderDetails($orderId)
+    {
         // API endpoint for listing domains
         $apiEndpoint = static::$endpoints['gsuites-details'];
 
@@ -55,7 +56,8 @@ class ResellerClub
         return 'Error: Undefined!';
     }
 
-    public static function getGSuites(){
+    public static function getGSuites()
+    {
         // API endpoint for listing domains
         $apiEndpoint = static::$endpoints['gsuites'];
 
@@ -91,8 +93,8 @@ class ResellerClub
             // Close the cURL session
             curl_close($ch);
 
-            foreach($responseData as $key => $order){
-                if(is_numeric($key)){
+            foreach ($responseData as $key => $order) {
+                if (is_numeric($key)) {
                     $details = static::getOrderDetails($order['orders.orderid']);
                     $responseData[$key]['accounts_count'] = $details['noofaccounts'];
                 }
@@ -145,7 +147,7 @@ class ResellerClub
         return 'Error: Undefined!';
     }
 
-    public static function getDomains()
+    public static function getDomains($mode = 'expiring')
     {
         // API endpoint for listing domains
         $apiEndpoint = static::$endpoints['domains'];
@@ -158,8 +160,13 @@ class ResellerClub
             'no-of-records' => 50,  // Number of records to fetch
             'page-no' => 1,         // Page number to fetch
             'order-by' => 'endtime asc',
-            'expiry-date-start' => strtotime(now()->format('Y-m-d H:i:s')),
         ];
+
+        if ($mode == 'expiring') {
+            $params['expiry-date-start'] = strtotime(now()->format('Y-m-d H:i:s'));
+        } else {
+            $params['creation-date-start'] = strtotime(now()->subDays(7)->format('Y-m-d H:i:s'));
+        }
 
         // Initialize cURL session
         $ch = curl_init();

@@ -33,13 +33,13 @@ class ScheduleTasksCommand extends Command
         // Update all the dates to unset if its not yet to be planned.
         $tasks = Task::whereNull('estimate')->get();
 
-        foreach($tasks as &$task){
+        foreach ($tasks as &$task) {
             $this->info($task->title);
             $task->due_date = null;
             $task->save();
         }
 
-        foreach($users as &$user){
+        foreach ($users as &$user) {
             $this->info('Re-prioritizing tasks for '.$user->name);
             dispatch(new ScheduleTasksForUser($user->id));
         }

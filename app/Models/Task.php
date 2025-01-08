@@ -74,7 +74,9 @@ class Task extends Model implements HasMedia
 
     public function getEstimateLabelAttribute()
     {
-        if (!$this->estimate) return null;
+        if (!$this->estimate) {
+            return null;
+        }
 
         $options = config('options.estimate');
 
@@ -198,7 +200,8 @@ class Task extends Model implements HasMedia
         return Timesheet::toHMS($this->minutes_taken);
     }
 
-    public function getCostAttribute(){
+    public function getCostAttribute()
+    {
         $cost = ($this->minutes_taken  * config('settings.company_hourly_rate')) / 60;
 
         return sprintf("%.2f", $cost);

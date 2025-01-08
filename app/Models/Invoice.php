@@ -38,7 +38,8 @@ class Invoice extends Model
         return $this->items()->sum('price') + $this->extras()->sum('price');
     }
 
-    public function scopeUnpaid($q){
+    public function scopeUnpaid($q)
+    {
         return $q->whereNull('paid_date');
     }
 
@@ -103,7 +104,9 @@ class Invoice extends Model
                     $words[floor($number / 10) * 10]
                     . " " . $words[$number % 10] . " "
                     . $digits[$counter] . $plural . " " . $hundred;
-            } else $str[] = null;
+            } else {
+                $str[] = null;
+            }
         }
         $str = array_reverse($str);
         $result = implode('', $str);

@@ -8,8 +8,9 @@ class WHM {
     protected $server = [];
     protected $client;
 
-    public function server($name){
-        $this->server = config('services.whm.'.$name);   
+    public function server($name)
+    {
+        $this->server = config('services.whm.'.$name);
         
         $this->client = new Client([
             'base_uri' => 'https://' . $this->server['host'] . ':2087/',
@@ -35,7 +36,6 @@ class WHM {
             }
 
             return $responseData['data']['acct'] ?? [];
-
         } catch (\Exception $e) {
             echo 'Request Error: ' . $e->getMessage();
             return [];

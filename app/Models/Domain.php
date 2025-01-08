@@ -51,21 +51,23 @@ class Domain extends Model
         )->where('itemable_type', self::class);
     }
 
-    public function getIsInvoicedAttribute(){
-        if($this->expiry_date == null){
+    public function getIsInvoicedAttribute()
+    {
+        if ($this->expiry_date == null) {
             return null;
         }
 
-        if($this->expiry_date->lte(Carbon::parse('2024-08-01'))){
+        if ($this->expiry_date->lte(Carbon::parse('2024-08-01'))) {
             return true;
         }
 
-        $invoice = $this->invoices()->where('date', 'LIKE', $this->expiry_date->format('Y').'%')->exists();
+        $invoice = $this->invoices()->where('date', 'LIKE', $this->expiry_date->format('Y') . '%')->exists();
 
         return $invoice;
     }
 
-    public function getLastInvoicedDateAttribute(){
+    public function getLastInvoicedDateAttribute()
+    {
         return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
     }
 }

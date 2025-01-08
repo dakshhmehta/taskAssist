@@ -34,6 +34,7 @@ class AddRCDomainCommand extends Command
             $domain = Domain::firstOrCreate([
                 'tld' => $domain,
             ]);
+
             $domain->sync();
         }
     }

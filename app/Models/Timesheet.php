@@ -30,7 +30,8 @@ class Timesheet extends Model
         return $this->belongsTo(Task::class);
     }
 
-    public function scopeWorking($query){
+    public function scopeWorking($query)
+    {
         $query->whereNotNull('start_at')->whereNull('end_at');
     }
 

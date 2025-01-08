@@ -8,16 +8,17 @@ use Illuminate\Http\Request;
 
 class WeeklyPlanController extends Controller
 {
-    public function get(Request $request){
+    public function get(Request $request)
+    {
         $startDate = now();
 
-        while(! $startDate->isMonday()){
+        while (! $startDate->isMonday()) {
             $startDate = $startDate->addDay();
         }
 
         $users = User::all();
 
-        foreach($users as &$user){
+        foreach ($users as &$user) {
             $user->_performance = (float) $user->performanceThisWeek();
             $user->_time_worked = $user->timeWorkedThisWeek();
         }
@@ -38,7 +39,8 @@ class WeeklyPlanController extends Controller
         return view('weekly_sheet', compact('tasks', 'startDate', 'endDate', 'starPerformer'));
     }
 
-    public function getStandupsheet(Request $request){
+    public function getStandupsheet(Request $request)
+    {
         $startDate = now();
 
         $tasks = Task::where('due_date', '>=', $startDate->startOfDay()->format('Y-m-d H:i:s'))

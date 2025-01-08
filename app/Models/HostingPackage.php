@@ -15,12 +15,14 @@ class HostingPackage extends Model
 
     protected $guarded = [];
 
-    public function hostings(){
+    public function hostings()
+    {
         return $this->hasMany(Hosting::class);
     }
 
-    public function getStorageFormattedAttribute(){
-        if($this->storage >= 1000){
+    public function getStorageFormattedAttribute()
+    {
+        if ($this->storage >= 1000) {
             return ((int) $this->storage / 1000).' GB';
         }
 

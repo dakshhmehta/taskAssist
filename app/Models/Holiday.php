@@ -15,7 +15,8 @@ class Holiday extends Model
 
     protected $guarded = [];
 
-    public static function isHoliday(Carbon $date){
+    public static function isHoliday(Carbon $date)
+    {
         $holiday = static::where('date', $date->format('Y-m-d'))->exists();
 
         return $holiday;

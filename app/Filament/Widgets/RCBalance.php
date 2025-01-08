@@ -21,7 +21,8 @@ class RCBalance extends BaseWidget
     }
 
 
-    protected function getColumns(): int {
+    protected function getColumns(): int
+    {
         return 6;
     }
 

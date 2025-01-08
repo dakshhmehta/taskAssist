@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:sync-rc')->dailyAt('07:00');
+        $schedule->command('app:sync-rc')->everyTwoHours();
         $schedule->command('make:tasks-schedule')->dailyAt('08:00');
     }
 
