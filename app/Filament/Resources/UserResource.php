@@ -3,11 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\Pages\ListActivities;
-use App\Filament\Resources\UserResource\RelationManagers;
-use App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager;
 use App\Models\User;
-use Filament\Actions\DeleteAction;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
@@ -19,8 +15,6 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
 {

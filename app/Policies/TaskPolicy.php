@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\Auth;
 
@@ -71,7 +72,7 @@ class TaskPolicy
             return true;
         }
 
-        if ($user->stars >= 3 and $task->id !== null) {
+        if ($user->stars(Carbon::now()->startOfYear()) >= 3 and $task->id !== null) {
             return false;
         }
 

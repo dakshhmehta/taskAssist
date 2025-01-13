@@ -3,9 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\DomainResource\Pages;
-use App\Filament\Resources\DomainResource\RelationManagers;
 use App\Models\Domain;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;

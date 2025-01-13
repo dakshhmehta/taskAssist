@@ -67,12 +67,12 @@ class UserPerformance extends BaseWidget
 
         if ($totalTimeWorked) {
             $timeWorkedChart = [];
-            for($i = -8; $i <= -1; $i++){
+            for ($i = -8; $i <= -1; $i++) {
                 $timeWorkedChart[] = $user->timeWorkedThisWeek($i);
             }
 
             $timeChartColor = 'success';
-            if($totalTimeWorked < end($timeWorkedChart)){
+            if ($totalTimeWorked < end($timeWorkedChart)) {
                 $timeChartColor = 'danger';
             }
 
@@ -85,12 +85,12 @@ class UserPerformance extends BaseWidget
 
         $userPerformance = $user->performanceThisWeek();
         $performanceChart = [];
-        for($i = -8; $i <= -1; $i++){
+        for ($i = -8; $i <= -1; $i++) {
             $performanceChart[] = $user->performanceThisWeek($i);
         }
 
         $performanceChartColor = 'success';
-        if($userPerformance < end($performanceChart)){
+        if ($userPerformance < end($performanceChart)) {
             $performanceChartColor = 'danger';
         }
 

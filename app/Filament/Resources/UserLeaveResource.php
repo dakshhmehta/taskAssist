@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserLeaveResource\Pages;
-use App\Filament\Resources\UserLeaveResource\RelationManagers;
 use App\Models\User;
 use App\Models\UserLeave;
 use Filament\Forms;
@@ -16,9 +15,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
 class UserLeaveResource extends Resource

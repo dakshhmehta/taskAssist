@@ -7,7 +7,6 @@ use App\Models\Invoice;
 use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
-use App\Models\Timesheet;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Forms;
@@ -20,7 +19,6 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 

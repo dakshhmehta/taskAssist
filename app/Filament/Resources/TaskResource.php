@@ -3,23 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaskResource\Pages;
-use App\Filament\Resources\TaskResource\Pages\ViewTask;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\SpatieTagsInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\ActionsPosition;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
@@ -29,7 +24,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
-use TomatoPHP\FilamentMediaManager\Form\MediaManagerInput;
 
 class TaskResource extends Resource
 {
