@@ -37,6 +37,11 @@ class Task extends Model implements HasMedia
 
     protected $guarded = ['files'];
 
+    protected static function boot()
+    {
+        parent::boot();
+    }
+
     public function assignee()
     {
         return $this->belongsTo(User::class, 'assignee_id');

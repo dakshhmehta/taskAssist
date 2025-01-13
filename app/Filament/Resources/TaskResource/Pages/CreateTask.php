@@ -19,7 +19,7 @@ class CreateTask extends CreateRecord
 
         dispatch(new ScheduleTasksForUser($this->record->assignee_id));
 
-        if($this->record->assignee_id != Auth::user()->id){
+        if ($this->record->assignee_id != Auth::user()->id) {
             $this->record->assignee->notify(new NewTaskAssignedNotification($this->record));
         }
     }

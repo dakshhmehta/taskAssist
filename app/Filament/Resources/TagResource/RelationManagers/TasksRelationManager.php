@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TagResource\RelationManagers;
 
+use App\Jobs\ScheduleTasksForUser;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
@@ -134,7 +135,12 @@ class TasksRelationManager extends RelationManager
                     ->action(fn(Task $task) => $task->complete())
                     ->visible(fn(Task $task) => !$task->is_completed)
                     ->color('success'),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->using(function($record, $data){
+                        $record->update($data);
+
+                        dispatch(new ScheduleTasksForUser($record->assignee_id));
+                    }),
                 // Tables\Actions\DeleteAction::make(),
             ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
