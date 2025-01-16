@@ -8,12 +8,21 @@ use Illuminate\Support\Facades\Log;
 
 class CheckSSLCertificateExpiry extends Command
 {
-    protected $signature = 'ssl:check-expiry';
+    protected $signature = 'ssl:check-expiry {--filter=}';
     protected $description = 'Check SSL expiry date for all hosting domains and save it to the Hosting model';
 
     public function handle()
     {
-        $hostings = Hosting::all(); // Retrieve all Hosting records
+        $hostings = Hosting::excludeIgnored()
+            ->whereNull('ssl_expiry_date')
+            ->orWhere('ssl_expiry_date', '<=', now()->endOfDay()->format('Y-m-d')); // Retrieve all Hosting records
+
+        $filter = $this->option('filter');
+        if ($filter) {
+            $hostings = $hostings->where('domain', 'like', '%' . $filter . '%');
+        }
+
+        $hostings = $hostings->get();
 
         foreach ($hostings as $hosting) {
             $domain = $hosting->domain; // Assuming 'domain' is the attribute in your Hosting model
@@ -21,7 +30,7 @@ class CheckSSLCertificateExpiry extends Command
             try {
                 $expiryDate = $this->getSSLCertificateExpiryDate($domain);
                 $hosting->ssl_expiry_date = $expiryDate; // Assuming 'ssl_expiry_date' is the attribute in your Hosting model
-                // $hosting->save();
+                $hosting->save();
 
                 if ($hosting->ssl_expiry_date->lte(now())) {
                     $this->error("Updated SSL expiry date for $domain: $expiryDate");

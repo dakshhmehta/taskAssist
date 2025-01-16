@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Hosting;
 use Carbon\Carbon;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -39,6 +40,14 @@ class UpcomingHostingRenewals extends BaseWidget
                 TextColumn::make('domain')
                     ->label('Domain')
                     ->description(fn(Hosting $hosting) => optional($hosting->expiry_date)->format(config('app.date_format')))
+            ])
+            ->actions([
+                Action::make('doIgnore')
+                    ->label('Ignore')
+                    ->icon('heroicon-o-x-circle')
+                    ->action(fn(Hosting $domain) => $domain->ignore())
+                    ->visible(fn(Hosting $domain) => !$domain->isIgnored())
+                    ->color('danger'),
             ])
             ->defaultPaginationPageOption(5)
             ->paginated();

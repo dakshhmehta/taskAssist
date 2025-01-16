@@ -6,6 +6,10 @@ use App\Models\User;
 
 class UserPolicy
 {
+    public function viewSiteHealthDashboard(User $user):bool{
+        return true;
+    }
+
     public function viewAccountingDashboard(User $user): bool
     {
         return $user->is_admin;
