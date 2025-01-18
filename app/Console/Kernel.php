@@ -14,6 +14,8 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('app:sync-rc')->everyTwoHours();
         $schedule->command('make:tasks-schedule')->dailyAt('08:00');
+
+        $schedule->command('ssl:check-expiry')->dailyAt('09:00');
     }
 
     /**
