@@ -56,7 +56,7 @@
                     <td class="center">{{ $i+1 }}</td>
                     <td class="center">{{ $task->due_date->format('d/m/Y') }}</td>
                     <td class="center">{{ $task->estimate_label }}</td>
-                    <td>{{ $task->title }}</td>
+                    <td>{{ $task->display_title }}</td>
                 </tr>
             @endforeach
         @endforeach
