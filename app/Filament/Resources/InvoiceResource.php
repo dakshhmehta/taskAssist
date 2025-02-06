@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables;
@@ -98,7 +99,7 @@ class InvoiceResource extends Resource
                         TextInput::make('line_title')
                             ->required()
                             ->label('Title'),
-                        TextInput::make('line_description')
+                        RichEditor::make('line_description')
                             ->label('Description'),
                         TextInput::make('line_duration')
                             ->label('Duration'),

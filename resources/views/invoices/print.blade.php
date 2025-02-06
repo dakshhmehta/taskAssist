@@ -291,7 +291,7 @@
                 <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
                 <div class="col item">
                     <p><b>{{ $extra->line_title }}</b></p>
-                    <p>{{ $extra->line_description }}</p>
+                    <p>{!! $extra->line_description !!}</p>
                 </div>
                 <div class="col duration">
                     @if($extra->line_duration)
