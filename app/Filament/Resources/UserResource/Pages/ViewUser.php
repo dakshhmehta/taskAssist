@@ -5,6 +5,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Widgets\SalaryDetails;
 use App\Filament\Resources\UserResource\Widgets\TasksCount;
+use App\Filament\Resources\UserResource\Widgets\UserTasksTable;
 use App\Filament\Resources\UserResource\Widgets\UserTaskUtilization;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
@@ -56,6 +57,7 @@ class ViewUser extends Page
             TasksCount::make($data),
             SalaryDetails::make($data),
             UserTaskUtilization::make($data),
+            UserTasksTable::make($data),
         ];
     }
 
