@@ -3,10 +3,10 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\HostingResource\Widgets\SitesHavingSSLIssueWidget;
+use App\Filament\Resources\HostingResource\Widgets\WpSitesMissingBackup;
+use App\Filament\Resources\HostingResource\Widgets\WpSitesOutdatedVersion;
 use App\Filament\Widgets\UpcomingDomainRenewals;
 use App\Filament\Widgets\UpcomingHostingRenewals;
-use App\Filament\Widgets\WpSitesMissingBackup;
-use App\Filament\Widgets\WpSitesOutdatedVersion;
 use Filament\Pages\Page;
 
 class SiteHealthDashboard extends Page
