@@ -15,3 +15,5 @@ Route::group(['middleware' => 'auth'], function(){
 });
 
 Route::get('invoices/{id}/print', [InvoicesController::class, 'getPrint'])->name('invoices.print');
+
+Route::get('wp-plugin-info.json', [WordPressDataController::class, 'getPluginInfo']);

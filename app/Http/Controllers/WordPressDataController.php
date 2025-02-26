@@ -10,4 +10,10 @@ class WordPressDataController extends Controller
     {
         \Log::debug($request->all());
     }
+
+    public function getPluginInfo(Request $request){
+        $data = config('wp_plugin');
+
+        return $data;
+    }
 }
