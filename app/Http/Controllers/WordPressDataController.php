@@ -29,7 +29,7 @@ class WordPressDataController extends Controller
 
     public function getPluginInfo(Request $request)
     {
-        $data = config('wp_plugin');
+        $data = config('wp.plugin_info');
 
         return $data;
     }

@@ -5,6 +5,8 @@ namespace App\Filament\Pages;
 use App\Filament\Resources\HostingResource\Widgets\SitesHavingSSLIssueWidget;
 use App\Filament\Widgets\UpcomingDomainRenewals;
 use App\Filament\Widgets\UpcomingHostingRenewals;
+use App\Filament\Widgets\WpSitesMissingBackup;
+use App\Filament\Widgets\WpSitesOutdatedVersion;
 use Filament\Pages\Page;
 
 class SiteHealthDashboard extends Page
@@ -18,6 +20,8 @@ class SiteHealthDashboard extends Page
     public function getWidgets(): array
     {
         return [
+            WpSitesMissingBackup::make(),
+            WpSitesOutdatedVersion::make(),
             SitesHavingSSLIssueWidget::make(),
             UpcomingDomainRenewals::make(),
             UpcomingHostingRenewals::make(),
