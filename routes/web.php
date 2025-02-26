@@ -14,6 +14,4 @@ Route::group(['middleware' => 'auth'], function(){
     Route::get('weekly-plan', [WeeklyPlanController::class, 'get']);
 });
 
-Route::get('wp-data', [WordPressDataController::class, 'getData']);
-
 Route::get('invoices/{id}/print', [InvoicesController::class, 'getPrint'])->name('invoices.print');
