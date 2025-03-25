@@ -21,7 +21,7 @@ class AccountingDashboard extends Page
         // Update client receivables
         $clients = Client::all();
 
-        foreach($clients as $client){
+        foreach ($clients as $client) {
             $client->touch();
         }
 

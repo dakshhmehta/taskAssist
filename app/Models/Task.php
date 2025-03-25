@@ -116,7 +116,8 @@ class Task extends Model implements HasMedia
         return sprintf("%.2f", $performance * 10);
     }
 
-    public function scopeCompletedOnly($q){
+    public function scopeCompletedOnly($q)
+    {
         $q->whereNotNull('completed_at');
     }
 

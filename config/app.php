@@ -3,6 +3,7 @@
 use App\Providers\Filament\AdminPanelProvider;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
+use Ri\Accounting\Providers\Filament\AccountingPanelProvider;
 
 return [
 
@@ -172,7 +173,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-        AdminPanelProvider::class
+        AdminPanelProvider::class,
+        AccountingPanelProvider::class,
     ])->toArray(),
 
     /*

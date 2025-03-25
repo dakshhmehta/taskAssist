@@ -6,7 +6,8 @@ use App\Models\User;
 
 class UserPolicy
 {
-    public function viewSiteHealthDashboard(User $user):bool{
+    public function viewSiteHealthDashboard(User $user):bool
+    {
         return true;
     }
 

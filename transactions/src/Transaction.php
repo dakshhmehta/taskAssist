@@ -2,17 +2,10 @@
 
 namespace Romininteractive\Transaction;
 
-use App\Models\Customer;
-use App\Models\PurchaseInvoice;
-use App\Models\SalesInvoice;
-use App\Models\Transporter;
-use App\Models\Unit;
-use App\Models\Vendor;
 use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Accounting\Models\Account;
-use Modules\Accounting\Models\JournalEntry;
+use Ri\Accounting\Models\Account;
 use Romininteractive\Transaction\Collections\TransactionCollection;
 use Romininteractive\Transaction\TransactionReference;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -27,6 +20,8 @@ class Transaction extends Model
     protected $dates = ['date'];
 
     public static $dontSaveAttributes = ['balance', 'balance_formatted'];
+
+    protected $appends = ['account_id'];
 
     public function getDateFormattedAttribute($value)
     {
@@ -179,154 +174,193 @@ class Transaction extends Model
             }
         });
     }
-    public function getAccountNameByTransaction($transaction_id)
+
+    public function getAccountIdAttribute($value)
     {
-        $firstRecord = \DB::table('transaction__transaction_references')
-            ->where('transaction_id', $transaction_id)
-            ->first();
+        $account = $this->account;
 
-        // $cacheKey = md5($firstRecord->updated_at.$firstRecord->id);
-
-        // if($label = cache()->get($cacheKey, false)){
-        //     return $label;
-        // }
-
-        if ($firstRecord) {
-            switch ($firstRecord->related_type) {
-                case 'Modules\Accounting\Models\Account':
-                    $account = Account::find($firstRecord->related_id);
-                    $label = $account ? $account->account_name : null;
-                    break;
-                case 'App\Models\Vendor':
-                    $vendor = Vendor::find($firstRecord->related_id);
-                    $label = $vendor ? $vendor->print_name : null;
-                    break;
-                case 'App\Models\Customer':
-                    $customer = Customer::find($firstRecord->related_id);
-                    $label = $customer ? $customer->customer_name : null;
-                    break;
-                case 'App\Models\Unit':
-                    $unit = Unit::find($firstRecord->related_id);
-                    $label = $unit ? $unit->print_name : null;
-                    break;
-                default:
-                    $label = null;
-            }
+        if ($account) {
+            return $account->id;
         }
 
-        // cache()->put($cacheKey, $label, now()->addYear());
-
-        return $label;
-    }
-    public function getTypeAttribute()
-    {
-        if ($this->relatedAccount instanceof SalesInvoice) {
-            if ($this->relatedAccount->invoice_type == "Sales Invoice") {
-                return 'DC';
-            } else if ($this->relatedAccount->invoice_type == "Transfer") {
-                return 'UTS';
-            } else {
-                return 'DC';
-            }
-        } elseif ($this->relatedAccount instanceof PurchaseInvoice) {
-            if ($this->relatedAccount->purchase_type == "Direct Purchase" || $this->relatedAccount->purchase_type == "Unit Purchase") {
-                return 'BP';
-            } else if ($this->relatedAccount->purchase_type == "Transfer") {
-                return 'UTP';
-            } else {
-                return 'BPU';
-            }
-            return 'BP';
-        } elseif ($this->relatedAccount instanceof JournalEntry) {
-            return $this->relatedAccount->voucher->code;
-        } else {
-            return 'Unit';
-        }
-    }
-    public function getRefNoAttribute()
-    {
-        if (!$this->relatedAccount) {
-            return null; // Or you can return a default value or throw an exception, depending on your requirements.
-        }
-
-        if ($this->relatedAccount instanceof SalesInvoice) {
-            if ($this->relatedAccount->invoice_number) {
-                $refNo = explode('/', $this->relatedAccount->invoice_number)[1];
-                return $refNo;
-            } else {
-                $refNo = explode('-', $this->relatedAccount->delivery_challan_number)[1];
-                return $refNo;
-            }
-        } elseif ($this->relatedAccount instanceof PurchaseInvoice) {
-            $refNo = explode('/', $this->relatedAccount->invoice_number)[1];
-            return $refNo;
-        } elseif ($this->relatedAccount instanceof JournalEntry) {
-            $refNo = explode($this->relatedAccount->voucher->code, $this->relatedAccount->ref_id)[1];
-            return $refNo;
-        } else {
-            return $this->relatedAccount->id;
-        }
-    }
-    public function getOtherReferences($transaction_id, $relatedAccount)
-    {
-        $relatedAccountClass = get_class($relatedAccount);
-        $records = \DB::table('transaction__transaction_references')
-            ->where('transaction_id', $transaction_id)
-            ->where('related_type', $relatedAccountClass)
-            ->where('related_type', '!=', 'Romininteractive\Transaction\Transaction')
-            ->get();
-
-        $results = [];
-        foreach ($records as $record) {
-            switch ($record->related_type) {
-                case 'Modules\Accounting\Models\Account':
-                    $account = Account::find($record->related_id);
-                    $results[] = $account ? $account->account_name : null;
-                    break;
-                case 'App\Models\Vendor':
-                    $vendor = Vendor::find($record->related_id);
-                    $results[] = $vendor ? $vendor->print_name : null;
-                    break;
-                case 'App\Models\Customer':
-                    $customer = Customer::find($record->related_id);
-                    $results[] = $customer ? $customer->customer_name : null;
-                    break;
-                case 'App\Models\Unit':
-                    $unit = Unit::find($record->related_id);
-                    $results[] = $unit ? $unit->print_name : null;
-                    break;
-                case 'App\Models\SalesInvoice':
-                    $salesInvoice = SalesInvoice::find($record->related_id);
-                    $results[] = $salesInvoice ? $salesInvoice->invoice_number : null;
-                    break;
-                case 'Modules\Accounting\Models\JournalEntry':
-                    $journalENtry = JournalEntry::find($record->related_id);
-                    $results[] = $journalENtry ? $journalENtry->ref_id : null;
-                    break;
-                default:
-                    $results[] = null;
-                    break;
-            }
-        }
-
-        return $results;
-    }
-
-    public function relatedModel()
-    {
-        $references = $this->references()->get();
-        if ($references) {
-            foreach ($references as $reference) {
-                $relatedType = $reference->related_type;
-                $relatedId = $reference->related_id;
-                if (class_exists($relatedType)) {
-                    $relatedAccount = $relatedType::find($relatedId);
-                    if ($relatedAccount && $relatedType != 'App\Models\Material' && $relatedType != 'App\Models\Unit' && $relatedType != 'App\Models\Batch' && $relatedType != 'Romininteractive\Transaction\Transaction') {
-                        return $relatedType::find($relatedId);
-                    }
-                }
-            }
-        }
         return null;
     }
+
+    public function getAccountAttribute()
+    {
+        $reference = $this->references()->first();
+
+        if ($reference->related instanceof Account) {
+            return $reference->related;
+        }
+
+        return null;
+    }
+
+    public function getCreditAttribute()
+    {
+        if ($this->amount > 0) return $this->amount;
+
+        return null;
+    }
+
+    public function getDebitAttribute()
+    {
+        if ($this->amount < 0) return $this->amount;
+
+        return null;
+    }
+
+    // public function getAccountNameByTransaction($transaction_id)
+    // {
+    //     $firstRecord = \DB::table('transaction__transaction_references')
+    //         ->where('transaction_id', $transaction_id)
+    //         ->first();
+
+    //     // $cacheKey = md5($firstRecord->updated_at.$firstRecord->id);
+
+    //     // if($label = cache()->get($cacheKey, false)){
+    //     //     return $label;
+    //     // }
+
+    //     if ($firstRecord) {
+    //         switch ($firstRecord->related_type) {
+    //             case 'Modules\Accounting\Models\Account':
+    //                 $account = Account::find($firstRecord->related_id);
+    //                 $label = $account ? $account->account_name : null;
+    //                 break;
+    //             case 'App\Models\Vendor':
+    //                 $vendor = Vendor::find($firstRecord->related_id);
+    //                 $label = $vendor ? $vendor->print_name : null;
+    //                 break;
+    //             case 'App\Models\Customer':
+    //                 $customer = Customer::find($firstRecord->related_id);
+    //                 $label = $customer ? $customer->customer_name : null;
+    //                 break;
+    //             case 'App\Models\Unit':
+    //                 $unit = Unit::find($firstRecord->related_id);
+    //                 $label = $unit ? $unit->print_name : null;
+    //                 break;
+    //             default:
+    //                 $label = null;
+    //         }
+    //     }
+
+    //     // cache()->put($cacheKey, $label, now()->addYear());
+
+    //     return $label;
+    // }
+    // public function getTypeAttribute()
+    // {
+    //     if ($this->relatedAccount instanceof SalesInvoice) {
+    //         if ($this->relatedAccount->invoice_type == "Sales Invoice") {
+    //             return 'DC';
+    //         } else if ($this->relatedAccount->invoice_type == "Transfer") {
+    //             return 'UTS';
+    //         } else {
+    //             return 'DC';
+    //         }
+    //     } elseif ($this->relatedAccount instanceof PurchaseInvoice) {
+    //         if ($this->relatedAccount->purchase_type == "Direct Purchase" || $this->relatedAccount->purchase_type == "Unit Purchase") {
+    //             return 'BP';
+    //         } else if ($this->relatedAccount->purchase_type == "Transfer") {
+    //             return 'UTP';
+    //         } else {
+    //             return 'BPU';
+    //         }
+    //         return 'BP';
+    //     } elseif ($this->relatedAccount instanceof JournalEntry) {
+    //         return $this->relatedAccount->voucher->code;
+    //     } else {
+    //         return 'Unit';
+    //     }
+    // }
+
+    // public function getRefNoAttribute()
+    // {
+    //     if (!$this->relatedAccount) {
+    //         return null; // Or you can return a default value or throw an exception, depending on your requirements.
+    //     }
+
+    //     if ($this->relatedAccount instanceof SalesInvoice) {
+    //         if ($this->relatedAccount->invoice_number) {
+    //             $refNo = explode('/', $this->relatedAccount->invoice_number)[1];
+    //             return $refNo;
+    //         } else {
+    //             $refNo = explode('-', $this->relatedAccount->delivery_challan_number)[1];
+    //             return $refNo;
+    //         }
+    //     } elseif ($this->relatedAccount instanceof PurchaseInvoice) {
+    //         $refNo = explode('/', $this->relatedAccount->invoice_number)[1];
+    //         return $refNo;
+    //     } elseif ($this->relatedAccount instanceof JournalEntry) {
+    //         $refNo = explode($this->relatedAccount->voucher->code, $this->relatedAccount->ref_id)[1];
+    //         return $refNo;
+    //     } else {
+    //         return $this->relatedAccount->id;
+    //     }
+    // }
+
+    // public function getOtherReferences($transaction_id, $relatedAccount)
+    // {
+    //     $relatedAccountClass = get_class($relatedAccount);
+    //     $records = \DB::table('transaction__transaction_references')
+    //         ->where('transaction_id', $transaction_id)
+    //         ->where('related_type', $relatedAccountClass)
+    //         ->where('related_type', '!=', 'Romininteractive\Transaction\Transaction')
+    //         ->get();
+
+    //     $results = [];
+    //     foreach ($records as $record) {
+    //         switch ($record->related_type) {
+    //             case 'Modules\Accounting\Models\Account':
+    //                 $account = Account::find($record->related_id);
+    //                 $results[] = $account ? $account->account_name : null;
+    //                 break;
+    //             case 'App\Models\Vendor':
+    //                 $vendor = Vendor::find($record->related_id);
+    //                 $results[] = $vendor ? $vendor->print_name : null;
+    //                 break;
+    //             case 'App\Models\Customer':
+    //                 $customer = Customer::find($record->related_id);
+    //                 $results[] = $customer ? $customer->customer_name : null;
+    //                 break;
+    //             case 'App\Models\Unit':
+    //                 $unit = Unit::find($record->related_id);
+    //                 $results[] = $unit ? $unit->print_name : null;
+    //                 break;
+    //             case 'App\Models\SalesInvoice':
+    //                 $salesInvoice = SalesInvoice::find($record->related_id);
+    //                 $results[] = $salesInvoice ? $salesInvoice->invoice_number : null;
+    //                 break;
+    //             case 'Modules\Accounting\Models\JournalEntry':
+    //                 $journalENtry = JournalEntry::find($record->related_id);
+    //                 $results[] = $journalENtry ? $journalENtry->ref_id : null;
+    //                 break;
+    //             default:
+    //                 $results[] = null;
+    //                 break;
+    //         }
+    //     }
+
+    //     return $results;
+    // }
+
+    // public function relatedModel()
+    // {
+    //     $references = $this->references()->get();
+    //     if ($references) {
+    //         foreach ($references as $reference) {
+    //             $relatedType = $reference->related_type;
+    //             $relatedId = $reference->related_id;
+    //             if (class_exists($relatedType)) {
+    //                 $relatedAccount = $relatedType::find($relatedId);
+    //                 if ($relatedAccount && $relatedType != 'App\Models\Material' && $relatedType != 'App\Models\Unit' && $relatedType != 'App\Models\Batch' && $relatedType != 'Romininteractive\Transaction\Transaction') {
+    //                     return $relatedType::find($relatedId);
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return null;
+    // }
 }

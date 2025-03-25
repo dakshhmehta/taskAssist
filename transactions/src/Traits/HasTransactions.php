@@ -20,6 +20,10 @@ trait HasTransactions
     {
         $query = $this->morphToMany(Transaction::class, 'related', 'transaction__transaction_references');
 
+        if($type == null){
+            return $query;
+        }
+
         if (is_array($type)) {
             // $query->whereIn('type', $type);
             $query->where(function ($q) use ($type) {
@@ -34,6 +38,7 @@ trait HasTransactions
         } else {
             $query->where('type', $type);
         }
+
         return $query;
     }
 
@@ -193,77 +198,4 @@ trait HasTransactions
             $q->whereNull('type');
         });
     }
-
-    // public function openingBalance($date = null, $isUnitCapital = false)
-    // {
-    //     if ($date === null) {
-    //         return $this->transactions()->where('description', 'Opening Balance')->sum('amount');
-    //     } else {
-    //         $startDate = Carbon::parse($date);
-    //         $currentYear = Carbon::now()->year;
-    //         $financialYearStart = Carbon::create($currentYear, 4, 1);
-    //         if ($startDate->lt($financialYearStart)) {
-    //             $endDate = $financialYearStart;
-    //         } else {
-    //             $endDate = $startDate;
-    //             $startDate = $financialYearStart;
-    //         }
-    //         if (Auth::user()->isAdmin() || $isUnitCapital) {
-    //             return ($this->transactions()->whereDate('date', '>=', $startDate)->whereDate('date', '<', $endDate)->sum('amount'));
-    //         } else {
-    //             return ($this->transactions([null, 'unit'])->whereDate('date', '>=', $startDate)->whereDate('date', '<', $endDate)->sum('amount'));
-    //         }
-    //     }
-    // }
-
-    // public function stockPurchase($net_weight, $material, $batch, $invoice)
-    // {
-    //     $transaction = $this->transactions()->create([
-    //         'date' => Carbon::now(),
-    //         'amount' => $net_weight,
-    //         'description' => $material->name . ' stock added with purchase #' . $invoice->id,
-    //         'type' => 'stock'
-    //     ]);
-    //     $transaction->associate([
-    //         Auth::user()->unit,
-    //         $material,
-    //         $batch,
-    //         $invoice
-    //     ]);
-    //     return;
-    // }
-
-    // public function stockProduction($charcoalWeight, $batch, $production)
-    // {
-    //     $woodWeight = $charcoalWeight / 0.20;
-    //     $material = Material::where('name', 'Wood')->first();
-    //     $woodTransaction = $this->transactions()->create([
-    //         'date' => now(),
-    //         'amount' => -$woodWeight,
-    //         'description' => 'Wood consumed for production in batch ' . $batch->name,
-    //         'type' => 'stock'
-    //     ]);
-    //     $woodTransaction->associate([
-    //         Auth::user()->unit,
-    //         $material,
-    //         $batch,
-    //         $production
-    //     ]);
-    //     $charcoalMaterial = Material::where('name', 'CHARCOAL')->first();
-
-    //     $charcoalTransaction = $this->transactions()->create([
-    //         'date' => now(),
-    //         'amount' => $charcoalWeight,
-    //         'description' => 'Charcoal produced in batch ' . $batch->name,
-    //         'type' => 'stock'
-    //     ]);
-    //     $charcoalTransaction->associate([
-    //         Auth::user()->unit,
-    //         $charcoalMaterial,
-    //         $batch,
-    //         $production
-    //     ]);
-
-    //     return;
-    // }
 }

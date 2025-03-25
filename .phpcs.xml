@@ -5,6 +5,7 @@
 
     <!-- 2. General -->
     <file>app/</file>
+    <file>accounting/</file>
 
     <arg name="colors" />
     <arg name="ignore" value="database/migrations/,resources/,public/" />
