@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\ClientResource\Widgets\ClientReceivablesTable;
 use App\Filament\Resources\UserResource;
+use App\Models\Client;
 use Filament\Pages\Page;
 
 class AccountingDashboard extends Page
@@ -17,6 +18,13 @@ class AccountingDashboard extends Page
 
     public function getWidgets(): array
     {
+        // Update client receivables
+        $clients = Client::all();
+
+        foreach($clients as $client){
+            $client->touch();
+        }
+
         return [
             ClientReceivablesTable::make(),
         ];
