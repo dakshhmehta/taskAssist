@@ -20,6 +20,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Ri\Accounting\Helper;
 use Ri\Accounting\Models\Account;
 use Ri\Accounting\Models\JournalEntry;
 use Ri\Accounting\Models\JournalEntryType;
@@ -56,12 +57,12 @@ class JournalEntryResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('account_id')
                             ->label('Account')
-                            ->options(Account::pluck('name', 'id'))
+                            ->options(Account::all()->pluck('dropdown_name', 'id'))
                             ->searchable()
                             ->required(),
                         Forms\Components\TextInput::make('amount')
                             ->label('Credit/Debit Amount')
-                            ->helperText('Negetive amount for Dr, Positive amount for Cr')
+                            ->helperText('Negetive amount for Cr, Positive amount for Dr')
                             ->numeric()
                             ->required(),
                     ])
@@ -86,10 +87,8 @@ class JournalEntryResource extends Resource
                 TextColumn::make('remarks')
                     ->searchable()
                     ->wrap(),
-                TextColumn::make('amount'),
-            ])
-            ->filters([
-                //
+                TextColumn::make('amount')
+                    ->formatStateUsing(fn($state) => Helper::indianNumberingFormat(abs($state))),
             ])
             ->defaultSort('date', 'desc')
             ->actions([

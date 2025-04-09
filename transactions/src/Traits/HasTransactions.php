@@ -76,51 +76,6 @@ trait HasTransactions
         return $transaction;
     }
 
-    // public function setOpeningBalance($type, $balance)
-    // {
-    //     // $openingBalance = $this->transactions()->where('type', 'opening_balance')->first();
-    //     // if (!$openingBalance) {
-    //     //     $openingBalance = $this->transactions()->create([
-    //     //         'date'   => Carbon::now(),
-    //     //         'amount' => $balance,
-    //     //         'description' => 'Opening Balance',
-    //     //         'type' => 'opening_balance',
-    //     //     ]);
-    //     // } else {
-    //     //     $openingBalance->amount = $balance;
-    //     //     $openingBalance->save();
-    //     // }
-
-    //     // return $openingBalance;
-    //     $account = Account::firstOrCreate([
-    //         'account_name' => 'Difference In Openings',
-    //         'is_system' => true,
-    //         'opening_balance' => 0.00,
-    //         'account_type' => 'asset',
-    //         'enable' => true,
-    //     ]);
-    //     $currentDate = Carbon::now();
-
-    //     if ($currentDate->month < 4) {
-    //         $currentDate->subYear();
-    //     }
-
-    //     $date = Carbon::create($currentDate->year, 4, 1, 0, 0, 0);
-    //     if ($type === 'credit') {
-    //         $transaction1 = $account->debit($balance, $date, 'Opening Balance');
-    //         $transaction2 =  $this->credit($balance, $date, 'Opening Balance');
-    //     } elseif ($type === 'debit') {
-    //         $transaction1 = $account->credit($balance, $date, 'Opening Balance');
-    //         $transaction2 =  $this->debit($balance, $date, 'Opening Balance');
-    //     }
-    //     $transaction1->associate([
-    //         $transaction2
-    //     ]);
-    //     $transaction2->associate([
-    //         $transaction1
-    //     ]);
-    // }
-
 
     public function balance($types = [])
     {
@@ -139,12 +94,12 @@ trait HasTransactions
 
     public function totalCredit()
     {
-        return $this->transactions->where('amount', '>', 0)->sum('amount');
+        return $this->transactions->where('amount', '<', 0)->sum('amount');
     }
 
     public function totalDebit()
     {
-        return $this->transactions->where('amount', '<', 0)->sum('amount');
+        return $this->transactions->where('amount', '>', 0)->sum('amount');
     }
 
     public function totalBalance()

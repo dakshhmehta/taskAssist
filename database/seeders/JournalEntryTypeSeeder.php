@@ -11,6 +11,8 @@ class JournalEntryTypeSeeder extends Seeder
     public function run()
     {
         $types = [
+            ['Journal Entry', 'JE', '#FFA500'], // Orange
+            ['Adjusting Entry', 'AE', '#FF6347'], // Tomato
             ['Cash Receipt', 'CR', '#FFB6C1'], // Light Pink
             ['Bank Receipt', 'BR', '#FFD700'], // Gold
             ['Cash Payment', 'CP', '#90EE90'], // Light Green
@@ -29,11 +31,14 @@ class JournalEntryTypeSeeder extends Seeder
         ];
 
         foreach ($types as $type) {
-            DB::table('journal_entry_types')->updateOrInsert([
-                'label' => $type[0],
-                'code' => $type[1],
-                'color' => $type[2],
-            ]);
+            try {
+                DB::table('journal_entry_types')->updateOrInsert([
+                    'label' => $type[0],
+                    'code' => $type[1],
+                    'color' => $type[2],
+                ]);
+            }
+            catch(\Exception $e){}
         }
     }
 }

@@ -16,6 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Ri\Accounting\Filament\Accounting\Resources\AccountResource\RelationManagers\TransactionsRelationManager;
 use Ri\Accounting\Models\Account;
 
 class AccountResource extends Resource
@@ -40,10 +41,6 @@ class AccountResource extends Resource
                         'Expense' => 'Expense',
                     ])
                     ->required(),
-                TextInput::make('opening')
-                    ->helperText('Positive value for Cr balance and Negetive value for Dr balance')
-                    ->numeric()
-                    ->default(0),
             ]);
     }
 
@@ -53,7 +50,9 @@ class AccountResource extends Resource
             ->columns([
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('type')->sortable(),
-                TextColumn::make('opening')->sortable(),
+                TextColumn::make('balance_formatted')
+                    ->label('Balance')
+                    ->sortable(),
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([
@@ -68,7 +67,7 @@ class AccountResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            TransactionsRelationManager::class,
         ];
     }
 

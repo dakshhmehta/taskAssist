@@ -6,6 +6,7 @@ use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Ri\Accounting\Models\Account;
+use Ri\Accounting\Models\JournalEntry;
 use Romininteractive\Transaction\Collections\TransactionCollection;
 use Romininteractive\Transaction\TransactionReference;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -300,6 +301,26 @@ class Transaction extends Model
     //         return $this->relatedAccount->id;
     //     }
     // }
+
+    public function getRelatedAccount(Account $thisAccount): Account
+    {
+        $reference = $this->references()
+            ->where('related_type', '!=', get_class($thisAccount))
+            ->first();
+
+        $transaction = Transaction::relatedTo($reference->related)
+            ->whereDoesntHave('references', function ($q) use ($thisAccount) {
+                $q->where('related_type', get_class($thisAccount));
+                $q->where('related_id', $thisAccount->id);
+            })
+            ->first();
+
+        $reference = $transaction->references()
+            ->where('related_type', '!=', $thisAccount)
+            ->first();
+
+        return $reference->related;
+    }
 
     // public function getOtherReferences($transaction_id, $relatedAccount)
     // {

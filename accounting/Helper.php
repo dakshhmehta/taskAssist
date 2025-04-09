@@ -6,11 +6,11 @@ class Helper
 {
     public static function accountBalance($balance)
     {
-        if ($balance > 0) {
-            return static::indianNumberingFormat($balance, 2) . ' Cr.';
+        if ($balance > 0) { // 
+            return static::indianNumberingFormat($balance, 2) . ' Dr.';
         }
 
-        return static::indianNumberingFormat(abs($balance), 2) . ' Dr.';
+        return static::indianNumberingFormat(abs($balance), 2) . ' Cr.';
     }
 
     public static function indianNumberingFormat($number, $precision = 2)

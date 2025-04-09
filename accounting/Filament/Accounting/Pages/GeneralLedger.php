@@ -15,6 +15,7 @@ class GeneralLedger extends Page implements HasTable
 {
     use InteractsWithTable;
 
+    protected static ?string $navigationGroup = 'Reports';
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     protected static string $view = 'ri.accounting.filament.accounting.pages.general-ledger';
@@ -28,8 +29,10 @@ class GeneralLedger extends Page implements HasTable
                 TextColumn::make('date')
                     ->date('d-m-Y'),
                 TextColumn::make('debit')
+                    ->formatStateUsing(fn($state) => abs($state))
                     ->extraAttributes(['class' => 'dr-cell']),
                 TextColumn::make('credit')
+                    ->formatStateUsing(fn($state) => abs($state))
                     ->extraAttributes(['class' => 'cr-cell']),
             ])
             ->filters([
