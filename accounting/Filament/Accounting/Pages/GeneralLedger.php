@@ -17,6 +17,7 @@ class GeneralLedger extends Page implements HasTable
 
     protected static ?string $navigationGroup = 'Reports';
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?int $navigationSort = 1;
 
     protected static string $view = 'ri.accounting.filament.accounting.pages.general-ledger';
 

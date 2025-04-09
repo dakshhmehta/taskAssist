@@ -23,6 +23,7 @@ class PLStatement extends Page implements HasTable
     protected static ?string $title = 'P&L Statement';
     protected static ?string $navigationGroup = 'Reports';
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'ri.accounting.filament.accounting.pages.pl-statement';
 

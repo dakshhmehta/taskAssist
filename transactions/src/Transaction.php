@@ -302,24 +302,30 @@ class Transaction extends Model
     //     }
     // }
 
-    public function getRelatedAccount(Account $thisAccount): Account
+    public function getRelateds(): string | null
     {
-        $reference = $this->references()
-            ->where('related_type', '!=', get_class($thisAccount))
-            ->first();
+        $relatedAccounts = [];
 
-        $transaction = Transaction::relatedTo($reference->related)
-            ->whereDoesntHave('references', function ($q) use ($thisAccount) {
-                $q->where('related_type', get_class($thisAccount));
-                $q->where('related_id', $thisAccount->id);
-            })
-            ->first();
+        $references = $this->references()->with('related')->get();
 
-        $reference = $transaction->references()
-            ->where('related_type', '!=', $thisAccount)
-            ->first();
+        foreach ($references as &$ref) {
+            switch ($ref->related_type) {
+                case JournalEntry::class:
+                    $relatedAccounts[] = $ref->related?->sr_no;
+                    break;
 
-        return $reference->related;
+                case Account::class:
+                    $relatedAccounts[] = $ref->related?->name;
+                    break;
+            }
+        }
+
+        return implode(', ', $relatedAccounts);
+    }
+
+    public function getRelatedsAttribute()
+    {
+        return $this->getRelateds();
     }
 
     // public function getOtherReferences($transaction_id, $relatedAccount)

@@ -5,6 +5,7 @@ namespace Ri\Accounting\Filament\Accounting\Resources\AccountResource\RelationMa
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Romininteractive\Transaction\Transaction;
 
 class TransactionsRelationManager extends RelationManager
 {
@@ -14,18 +15,16 @@ class TransactionsRelationManager extends RelationManager
     {
         return $table
             ->columns([
+                TextColumn::make('date')
+                    ->sortable()
+                    ->searchable()
+                    ->dateTime('d/m/Y'),
+                TextColumn::make('relateds'),
                 TextColumn::make('description')
                     ->searchable(),
-                TextColumn::make('related_acount')
-                ->formatStateUsing(function ($state, $record) {
-                    dd($state, $record);
-                    /** @var \App\Models\Transaction $record */
-                    return $record->getRelatedAccount($this->getOwnerRecord())?->name;
-                }), 
                 TextColumn::make('amount')
+                    ->sortable()
                     ->money('INR'),
-                TextColumn::make('created_at')
-                    ->dateTime('d/m/Y H:i:s'),
             ])
             ->filters([
                 //
