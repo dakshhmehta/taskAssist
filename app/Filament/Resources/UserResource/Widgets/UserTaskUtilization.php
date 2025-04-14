@@ -4,6 +4,7 @@ namespace App\Filament\Resources\UserResource\Widgets;
 
 use App\Models\Task;
 use App\Models\Timesheet;
+use Error;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -73,7 +74,12 @@ class UserTaskUtilization extends BaseWidget
                 'estimate' => $estimate,
             ]);
             $task->no_tasks = count($tasks);
-            $task->time_taken = (float) sprintf("%.2f", (($averageTimePerTask) ? $averageTimePerTask->time : 0)) / $task->no_tasks;
+            try {
+                $task->time_taken = (float) sprintf("%.2f", (($averageTimePerTask) ? $averageTimePerTask->time : 0)) / $task->no_tasks;
+            }
+            catch (Error $e) {
+                $task->time_taken = 0;
+            }
             $task->utilization = (float) sprintf("%.2f", (($task->time_taken / $estimate) * 100));
 
             $data[] = $task;
