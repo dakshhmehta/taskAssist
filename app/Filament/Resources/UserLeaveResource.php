@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -49,6 +50,7 @@ class UserLeaveResource extends Resource
                     ->options(User::all()->pluck('name', 'id'))
                     ->default($user->id)
                     ->hidden(fn(): bool => !$user->is_admin)
+                    ->reactive()
                     ->required(),
                 Forms\Components\DatePicker::make('from_date')
                     ->displayFormat(config('app.date_format'))
@@ -57,7 +59,17 @@ class UserLeaveResource extends Resource
                     ->displayFormat(config('app.date_format'))
                     ->required(),
                 Select::make('code')
-                    ->options($leaveTypes)
+                    ->options(function(Get $get){
+                        $leaveTypes = config('leave_types');
+
+                        $u = $get('user_id');
+
+                        $user = User::find($u);
+
+                        $leaveTypes['CL'] = 'CL (Available: '.$user->balance('cl').')';
+
+                        return $leaveTypes;
+                    })
                     ->required(),
                 Textarea::make('remarks')
                     ->required(),
