@@ -25,13 +25,20 @@
         }
 
         .invoice-no {
-            top: 402px;
+            top: 430px;
             left: 1950px;
             font-size: 40px;
         }
 
+        .invoice-type {
+            font-weight: bold;
+            font-size: 52px;
+            top: 100px;
+            left: 330px;
+        }
+
         .invoice-date {
-            top: 402px;
+            top: 430px;
             left: 2655px;
             font-size: 40px;
         }
@@ -42,13 +49,16 @@
             font-size: 50px;
         }
 
-        .client span {
-            font-size: 62px;
-            position: absolute;
-            margin-top: -5px;
-            margin-left: 25px;
-            /* font-weight: bold; */
-            width: 2000px;
+        .address {
+            top: 585px;
+            left: 625px;
+            font-size: 50px;
+        }
+
+        .gstin {
+            top: 490px;
+            left: 2400px;
+            font-size: 50px;
         }
 
         .work {
@@ -131,7 +141,7 @@
         }
 
         .total {
-            top: 1935px;
+            top: 1955px;
             left: 2670px;
             font-size: 50px;
             width: 571px;
@@ -147,8 +157,24 @@
             font-weight: bold;
         }
 
+        .tax-area {
+            top: 1700px;
+            left: 1770px;
+            font-size: 50px;
+            line-height: 80px;
+        }
+
+        .tax-value {
+            top: 1700px;
+            left: 2670px;
+            font-size: 50px;
+            width: 571px;
+            text-align: center;
+            line-height: 80px;
+        }
+
         .in-words {
-            top: 1945px;
+            top: 1955px;
             left: 590px;
             font-size: 40px;
             text-align: center;
@@ -176,10 +202,17 @@
         @if($invoice->paid_date != null)
             <img class="abs paid-stamp" src="{{ asset('invoice/paid_stamp.png') }}" />
         @endif
+
+        <div class="abs invoice-type">
+            PROFOMA INVOICE
+        </div>
         <div class="abs invoice-no">{{ $invoice->invoice_no }}</div>
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>
 
-        <div class="abs client">Name: <span>{{ $invoice->client->billing_name }}</span></div>
+        <div class="abs client"><b>Name:</b> <span>{{ $invoice->client->billing_name }}</span></div>
+        <div class="abs address"><b>Address:</b> <span>{{ $invoice->client->billing_name }}</span></div>
+
+        <div class="abs gstin"><b>GSTIN:</b> <span>24AIOP9078R1Z6</span></div>
 
         @php
             $domains = $invoice->items()->where('itemable_type', App\Models\Domain::class)->get();
@@ -210,11 +243,11 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -248,11 +281,11 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -276,11 +309,11 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($email->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($email->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -304,21 +337,35 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
+                    <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
                 </div>
                 <div class="clearfix"></div>
             </div>
             @endforeach
+
         </div>
 
         <div class="abs total">Rs. {{ number_format($invoice->total, 2) }}/-</div>
         @if($totalRows > 0)
         <div class="abs footnote">Next domain and hosting renewal: {{ $invoice->date->format('F') }}, {{ $invoice->date->format('Y')+1 }}</div>
         @endif
+
+        <div class="abs tax-area">
+            <p>
+                <span class="tax">CGST (9%):</span><br/>
+                <span class="tax">SGST (9%):</span>
+            </p>
+        </div>
+        <div class="abs tax-value">
+            <p>
+            Rs. {{ number_format($invoice->gst_amount / 2, 2) }}/-<br/>
+            Rs. {{ number_format($invoice->gst_amount / 2, 2) }}/-
+            </p>
+        </div>
 
         <div class="abs in-words"><b>Rupees: </b> {{ ucfirst($invoice->inWords()) }}</div>
 

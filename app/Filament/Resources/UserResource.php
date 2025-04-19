@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\Pages\UserLeaveLedger;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
@@ -98,6 +99,10 @@ class UserResource extends Resource
                     }),
                 Tables\Actions\EditAction::make(),
                 ViewAction::make('view'),
+                Action::make('leave-ledger')
+                    ->label('Leave Ledger')
+                    ->color('info')
+                    ->url(fn ($record) => UserResource::getUrl('leave-ledger', ['record' => $record]))
                 // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
                 //     ->color('info')
             ])
@@ -122,6 +127,7 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
             'view' => Pages\ViewUser::route('/{record}'),
+            'leave-ledger' => UserLeaveLedger::route('/{record}/leave-ledger'),
         ];
     }
 }

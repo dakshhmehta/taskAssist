@@ -228,4 +228,28 @@ class User extends Authenticatable
 
         return $leave;
     }
+
+    public function hasCreditedCLForMonth(Carbon $date)
+    {
+        $hasCLCredited = $this->transactions(['cl'])
+            ->where('date', '=', $date->format('Y-m-d'))
+            ->exists();
+
+        return $hasCLCredited;
+    }
+
+    public function creditCLForMonth(Carbon $date)
+    {
+        if($this->hasCreditedCLForMonth($date)){
+            return false;
+        }
+
+        $clTxn = $this->credit(1, $date, 'CL');
+        $clTxn->changeType('cl');
+    }
+
+    public function getCLAttribute()
+    {
+        return (int) $this->balance(['cl']);
+    }
 }

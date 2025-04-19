@@ -138,10 +138,20 @@ class Invoice extends Model
 
         // Increment the number
         $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
-        
+
         $number = stripslashes("{$prefix}{$newNumber}{$suffix}");
 
         // Generate the new invoice number
         return $number;
+    }
+
+    public function getGstAmountAttribute()
+    {
+        return ($this->total / 1.18) * 0.18;
+    }
+
+    public function getNetTotalAttribute()
+    {
+        return $this->total + $this->gst_amount;
     }
 }

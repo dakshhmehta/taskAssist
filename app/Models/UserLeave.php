@@ -7,11 +7,12 @@ use App\Traits\CustomLogOptions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Romininteractive\Transaction\Traits\HasTransactions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class UserLeave extends Model
 {
-    use HasFactory, LogsActivity, CustomLogOptions;
+    use HasFactory, LogsActivity, CustomLogOptions, HasTransactions;
 
     protected $guarded = [];
 
@@ -26,6 +27,16 @@ class UserLeave extends Model
         static::saving(function (UserLeave $leave) {
             if ($leave->user_id == null) {
                 $leave->user_id = Auth::user()->id;
+            }
+        });
+
+        static::saved(function (UserLeave $leave) {
+            $leave->transactions()->delete();
+
+            if ($leave->status == 'APPROVED') {
+                $txn = $leave->user->debit($leave->leave_days, $leave->from_date, 'Leave application accepted from ' . $leave->from_date->format('d-m-Y') . ' to ' . $leave->to_date->format('d-m-Y'));
+                $txn->changeType('cl');
+                $txn->associate($leave);
             }
         });
     }

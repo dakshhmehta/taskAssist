@@ -25,6 +25,8 @@ class SalaryDetails extends BaseWidget
         $leavesCount = $leaves->map(function ($leave) {
             return $leave->leave_days;
         })->sum();
+
+        // TODO: Allowed leavs formula to change?
         $allowedLeaves = config('settings.monthly_allowed_leaves');
 
         $widgets[] = (new Stat('Leaves', $leavesCount))

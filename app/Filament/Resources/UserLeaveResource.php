@@ -38,6 +38,10 @@ class UserLeaveResource extends Resource
     {
         $user = \Auth::user();
 
+        $leaveTypes = config('leave_types');
+
+        $leaveTypes['CL'] = 'CL (Available: '.$user->balance('cl').')';
+
         return $form
             ->schema([
                 Select::make('user_id')
@@ -53,7 +57,7 @@ class UserLeaveResource extends Resource
                     ->displayFormat(config('app.date_format'))
                     ->required(),
                 Select::make('code')
-                    ->options(config('leave_types'))
+                    ->options($leaveTypes)
                     ->required(),
                 Textarea::make('remarks')
                     ->required(),
@@ -106,7 +110,7 @@ class UserLeaveResource extends Resource
                     ->label('Approve')
                     ->requiresConfirmation()
                     ->action(fn(UserLeave $leave) => $leave->approve())
-                    ->visible(fn(UserLeave $leave) => (Auth::user()->is_admin && $leave->user_id != Auth::user()->id) && $leave->status == 'NEW')
+                    ->visible(fn(UserLeave $leave) => (Auth::user()->is_admin) && $leave->status == 'NEW')
                     ->color('success'),
                 Action::make('reject')
                     ->label('Reject')
@@ -118,10 +122,11 @@ class UserLeaveResource extends Resource
                     ->action(function ($data, UserLeave $leave) {
                         $leave->reject($data['admin_remarks']);
                     })
-                    ->visible(fn(UserLeave $leave) => (Auth::user()->is_admin && $leave->user_id != Auth::user()->id) && $leave->status == 'NEW')
+                    ->visible(fn(UserLeave $leave) => (Auth::user()->is_admin) && $leave->status == 'NEW')
                     ->color('danger'),
                 Tables\Actions\EditAction::make(),
             ])
+            ->defaultSort('from_date', 'desc')
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
