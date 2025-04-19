@@ -17,7 +17,7 @@ class SalaryDetails extends BaseWidget
 
         $leaves =  $this->user->leaves()
             ->where('status', 'APPROVED')
-            ->whereIn('code', ['CL', 'SL'])
+            ->whereIn('code', ['SL'])
             ->whereDate('from_date', '>=', $this->filterData['startDate'])
             ->whereDate('to_date', '<=', $this->filterData['endDate'])
             ->get();

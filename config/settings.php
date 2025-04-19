@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'monthly_allowed_leaves' => 1,
+    'monthly_allowed_leaves' => 1, // CL
     'working_days' => 26,
 
     'allowed_monthly_pl' => 1,

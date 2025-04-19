@@ -33,7 +33,7 @@ class UserLeave extends Model
         static::saved(function (UserLeave $leave) {
             $leave->transactions()->delete();
 
-            if ($leave->status == 'APPROVED') {
+            if ($leave->status == 'APPROVED' and $leave->code == 'CL') {
                 $txn = $leave->user->debit($leave->leave_days, $leave->from_date, 'Leave application accepted from ' . $leave->from_date->format('d-m-Y') . ' to ' . $leave->to_date->format('d-m-Y'));
                 $txn->changeType('cl');
                 $txn->associate($leave);
