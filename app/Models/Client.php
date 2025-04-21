@@ -33,8 +33,6 @@ class Client extends Model
 
     public function getDisplayNameAttribute()
     {
-        $this->touch();
-
         return $this->billing_name.' ('.$this->nickname.')';
     }
 

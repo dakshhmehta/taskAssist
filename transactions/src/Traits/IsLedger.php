@@ -20,7 +20,7 @@ trait IsLedger
 
     public function syncWithLedger()
     {
-        $account = $this->account;
+        $account = $this->account()->first();
 
         if ($account) {
             $account->name = $this->accountNameColumn(); // Fallback if name doesn't exist

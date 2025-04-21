@@ -188,6 +188,7 @@
             color: red;
             width: 1785px;
         }
+
         .paid-stamp {
             top: 1990px;
             left: 2700px;
@@ -200,7 +201,7 @@
 <body>
     <div id="invoice">
         @if($invoice->paid_date != null)
-            <img class="abs paid-stamp" src="{{ asset('invoice/paid_stamp.png') }}" />
+        <img class="abs paid-stamp" src="{{ asset('invoice/paid_stamp.png') }}" />
         @endif
 
         <div class="abs invoice-type">
@@ -209,30 +210,36 @@
         <div class="abs invoice-no">{{ $invoice->invoice_no }}</div>
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>
 
-        <div class="abs client"><b>Name:</b> <span>{{ $invoice->client->billing_name }}</span></div>
-        <div class="abs address"><b>Address:</b> <span>{{ $invoice->client->billing_name }}</span></div>
+        <div class="abs client"><b>Name:</b> <span>{{ $invoice->client->account->billing_name }}</span></div>
+        @if($invoice->client->account->billing_address)
+        <div class="abs address"><b>Address:</b> <span>{{ $invoice->client->account->billing_address }}</span></div>
+        @endif
 
-        <div class="abs gstin"><b>GSTIN:</b> <span>24AIOP9078R1Z6</span></div>
+        @if($invoice->client->account->gstin != null)
+        <div class="abs gstin"><b>GSTIN:</b> <span>{{ $invoice->client->account->gstin }}</span></div>
+        @endif
 
         @php
-            $domains = $invoice->items()->where('itemable_type', App\Models\Domain::class)->get();
-            $hostings = $invoice->items()->where('itemable_type', App\Models\Hosting::class)->get();
-            $emails = $invoice->items()->where('itemable_type', App\Models\Email::class)->get();
-            $extras = $invoice->extras;
+        $domains = $invoice->items()->where('itemable_type', App\Models\Domain::class)->get();
+        $hostings = $invoice->items()->where('itemable_type', App\Models\Hosting::class)->get();
+        $emails = $invoice->items()->where('itemable_type', App\Models\Email::class)->get();
+        $extras = $invoice->extras;
 
-            $totalRows = count($domains) + count($hostings) + count($emails);
+        $totalRows = count($domains) + count($hostings) + count($emails);
 
-            $rowCount = 1;
+        $rowCount = 1;
         @endphp
 
         @if($totalRows > 0)
-        <div class="abs work">Work: <span>Registration/renewal of domain and hosting for the year {{ $invoice->date->format('Y').' - '.($invoice->date->format('Y')+1) }}</span></div>
+        <!-- <div class="abs work">Work: <span>Registration/renewal of domain and hosting for the year {{ $invoice->date->format('Y').' - '.($invoice->date->format('Y')+1) }}</span></div> -->
         @endif
 
         <div id="items" class="abs {{ 'items-'.$totalRows }}">
             @foreach($domains as $i => $domain)
             <div class="row">
-                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
+                <div class="col sr">
+                    <p>{{ $rowCount++ }}.</p>
+                </div>
                 <div class="col item">
                     <p><b>DOMAIN:</b></p>
                     <p>{{ $domain->itemable->tld }}</p>
@@ -256,7 +263,9 @@
 
             @foreach($hostings as $i => $hosting)
             <div class="row">
-                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
+                <div class="col sr">
+                    <p>{{ $rowCount++ }}.</p>
+                </div>
                 <div class="col item">
                     <p><b>WEB HOSTING: {{ $hosting->itemable->domain }}</b></p>
                     <p><b>HSN/SAC:</b> 998315</p>
@@ -295,7 +304,9 @@
 
             @foreach($emails as $i => $email)
             <div class="row">
-                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
+                <div class="col sr">
+                    <p>{{ $rowCount++ }}.</p>
+                </div>
                 <div class="col item">
                     <p><b>Google Workspace: {{ $email->itemable->domain }}</b></p>
                     <p><b>HSN/SAC:</b> 998315</p>
@@ -324,7 +335,9 @@
 
             @foreach($extras as $extra)
             <div class="row">
-                <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
+                <div class="col sr">
+                    <p>{{ $rowCount++ }}.</p>
+                </div>
                 <div class="col item">
                     <p><b>{{ $extra->line_title }}</b></p>
                     <p><b>HSN/SAC:</b> 998314</p>
@@ -360,14 +373,28 @@
 
         <div class="abs tax-area">
             <p>
-                <span class="tax">CGST (9%):</span><br/>
-                <span class="tax">SGST (9%):</span>
+                @if($invoice->cgst > 0)
+                <span class="tax">CGST (9%):</span><br />
+                @endif
+                @if($invoice->sgst > 0)
+                <span class="tax">SGST (9%):</span><br />
+                @endif
+                @if($invoice->igst > 0)
+                <span class="tax">IGST (18%):</span><br />
+                @endif
             </p>
         </div>
         <div class="abs tax-value">
             <p>
-            Rs. {{ number_format($invoice->gst_amount / 2, 2) }}/-<br/>
-            Rs. {{ number_format($invoice->gst_amount / 2, 2) }}/-
+                @if($invoice->cgst > 0)
+                Rs. {{ number_format($invoice->cgst, 2) }}/-<br />
+                @endif
+                @if($invoice->sgst > 0)
+                Rs. {{ number_format($invoice->sgst, 2) }}/-<br />
+                @endif
+                @if($invoice->igst > 0)
+                Rs. {{ number_format($invoice->igst, 2) }}/-<br />
+                @endif
             </p>
         </div>
 

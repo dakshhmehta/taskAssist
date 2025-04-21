@@ -150,6 +150,47 @@ class Invoice extends Model
         return ($this->total / 1.18) * 0.18;
     }
 
+    public function getIsSameStateAttribute()
+    {
+        // TODO: Confirm with meet bhai, Accounts
+        $companyGstin = substr(config('app.gstin'), 0, 2);
+
+        $partyGstin = substr($this->client->account->gstin, 0, 2);
+
+        if ($companyGstin != $partyGstin) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getCgstAttribute()
+    {
+        if ($this->is_same_state) {
+            return ($this->total * 9) / 118;
+        }
+
+        return 0;
+    }
+
+    public function getSgstAttribute()
+    {
+        if ($this->is_same_state) {
+            return ($this->total * 9) / 118;
+        }
+
+        return 0;
+    }
+
+    public function getIgstAttribute()
+    {
+        if (! $this->is_same_state) {
+            return ($this->total * 18) / 118;
+        }
+
+        return 0;
+    }
+
     public function getNetTotalAttribute()
     {
         return $this->total + $this->gst_amount;

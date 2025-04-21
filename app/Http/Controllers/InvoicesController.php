@@ -11,7 +11,7 @@ class InvoicesController extends Controller
 {
     public function getPrint($id, Request $request)
     {
-        $invoice = Invoice::findOrFail($id);
+        $invoice = Invoice::with('client.account')->findOrFail($id);
 
         if ($request->has('view')) {
             return view('invoices.print', compact('invoice'));

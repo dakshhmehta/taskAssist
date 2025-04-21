@@ -49,7 +49,7 @@ class InvoiceResource extends Resource
                         Forms\Components\TextInput::make('invoice_no')
                             ->required()
                             ->columnSpan(4)
-                            ->unique(),
+                            ->unique(ignoreRecord:true),
                     ])
                     ->columns(12),
                 Forms\Components\Repeater::make('items')

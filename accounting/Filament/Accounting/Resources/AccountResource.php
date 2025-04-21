@@ -47,8 +47,8 @@ class AccountResource extends Resource
                 Textarea::make('billing_address')
                     ->rows(3),
                 TextInput::make('gstin')
-                        ->label('GSTIN')
-                        ->unique()
+                    ->label('GSTIN')
+                    ->unique(ignoreRecord: true)
                     ->rules('regex:/^([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1})$/i'),
             ]);
     }
