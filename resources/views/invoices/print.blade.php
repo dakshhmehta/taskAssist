@@ -15,8 +15,8 @@
             font-family: "Lato", sans-serif;
             background: url("{{ asset('invoice/bg.jpg') }}") no-repeat;
             background-size: cover;
-            width: 3310px;
-            height: 2482px;
+            width: 3507px;
+            height: 2480px;
             position: relative;
         }
 
@@ -25,8 +25,8 @@
         }
 
         .invoice-no {
-            top: 430px;
-            left: 1950px;
+            top: 435px;
+            left: 2070px;
             font-size: 40px;
         }
 
@@ -38,25 +38,25 @@
         }
 
         .invoice-date {
-            top: 430px;
-            left: 2655px;
+            top: 435px;
+            left: 2780px;
             font-size: 40px;
         }
 
         .client {
-            top: 490px;
+            top: 500px;
             left: 625px;
             font-size: 50px;
         }
 
         .address {
-            top: 585px;
+            top: 595px;
             left: 625px;
             font-size: 50px;
         }
 
         .gstin {
-            top: 490px;
+            top: 500px;
             left: 2400px;
             font-size: 50px;
         }
@@ -79,7 +79,7 @@
         #items {
             top: 800px;
             left: 275px;
-            width: 2965px;
+            width: 3070px;
             /* background-color: black; */
         }
 
@@ -110,26 +110,26 @@
         .col.item {
             width: 1446px;
             /* background-color: pink; */
-            margin-left: 38px;
-            padding-left: 30px;
+            margin-left: 100px;
+            /* padding-left: 30px; */
         }
 
         .col.duration {
-            width: 261px;
+            width: 320px;
             /* background-color: green; */
             margin-left: 4px;
             text-align: center;
         }
 
         .col.price {
-            width: 356px;
+            width: 400px;
             /* background-color: yellow; */
             margin-left: 4px;
             text-align: center;
         }
 
         .col.amount {
-            width: 571px;
+            width: 540px;
             /* background-color: blue; */
             margin-left: 4px;
             text-align: center;
@@ -141,10 +141,10 @@
         }
 
         .total {
-            top: 1955px;
-            left: 2670px;
+            top: 2000px;
+            left: 2805px;
             font-size: 50px;
-            width: 571px;
+            width: 540px;
             text-align: center;
             font-weight: bold;
         }
@@ -166,16 +166,16 @@
 
         .tax-value {
             top: 1700px;
-            left: 2670px;
+            left: 2805px;
             font-size: 50px;
-            width: 571px;
+            width: 540px;
             text-align: center;
             line-height: 80px;
         }
 
         .in-words {
-            top: 1955px;
-            left: 590px;
+            top: 2005px;
+            left: 650px;
             font-size: 40px;
             text-align: center;
         }
@@ -204,7 +204,7 @@
         @endif
 
         <div class="abs invoice-type">
-            PROFOMA INVOICE
+            PROFORMA INVOICE
         </div>
         <div class="abs invoice-no">{{ $invoice->invoice_no }}</div>
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>
@@ -236,6 +236,7 @@
                 <div class="col item">
                     <p><b>DOMAIN:</b></p>
                     <p>{{ $domain->itemable->tld }}</p>
+                    <p><b>HSN/SAC:</b> 998315</p>
                 </div>
                 <div class="col duration">
                     <p>&nbsp;</p>
@@ -258,6 +259,7 @@
                 <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
                 <div class="col item">
                     <p><b>WEB HOSTING: {{ $hosting->itemable->domain }}</b></p>
+                    <p><b>HSN/SAC:</b> 998315</p>
                     @if($hosting->itemable->package)
                     <table style="text-align: left;">
                         <tr>
@@ -296,6 +298,7 @@
                 <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
                 <div class="col item">
                     <p><b>Google Workspace: {{ $email->itemable->domain }}</b></p>
+                    <p><b>HSN/SAC:</b> 998315</p>
                     <table style="text-align: left;">
                         <tr>
                             <th style="padding-right: 50px;">Email Accounts:</th>
@@ -324,6 +327,7 @@
                 <div class="col sr"><p>{{ $rowCount++ }}.</p></div>
                 <div class="col item">
                     <p><b>{{ $extra->line_title }}</b></p>
+                    <p><b>HSN/SAC:</b> 998314</p>
                     <p>{!! $extra->line_description !!}</p>
                 </div>
                 <div class="col duration">
@@ -369,11 +373,11 @@
 
         <div class="abs in-words"><b>Rupees: </b> {{ ucfirst($invoice->inWords()) }}</div>
 
-        <div class="abs warning">
+        <!-- <div class="abs warning">
             Due to a steady increase in the value of the US dollar, we will be increasing the prices of our Domains and Hosting services from March 2020. 
             While we were able to bear the Forex losses in the weeks before, the current and expected exchange rates have left us with no other option but 
             to adjust our prices. Thank you for your understanding.
-        </div>
+        </div> -->
     </div>
 </body>
 
