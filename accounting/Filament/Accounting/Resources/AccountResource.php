@@ -6,6 +6,7 @@ use Ri\Accounting\Filament\Accounting\Resources\AccountResource\Pages;
 use Ri\Accounting\Filament\Accounting\Resources\AccountResource\RelationManagers;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -41,6 +42,13 @@ class AccountResource extends Resource
                         'Expense' => 'Expense',
                     ])
                     ->required(),
+
+                TextInput::make('billing_name'),
+                Textarea::make('billing_address')
+                    ->rows(3),
+                TextInput::make('gstin')
+                        ->label('GSTIN')
+                    ->rules('regex:/^([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1})$/i'),
             ]);
     }
 
