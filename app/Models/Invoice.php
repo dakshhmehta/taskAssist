@@ -154,4 +154,19 @@ class Invoice extends Model
     {
         return $this->total + $this->gst_amount;
     }
+
+    public function getTypeAttribute(){
+        $invoiceType = $this->invoice_no;
+
+        // If it starts with DH
+        if (strpos($invoiceType, 'DH') === 0) {
+            return 'DH';
+        }
+
+        // If it starts with PI, Its Proforma
+        if (strpos($invoiceType, 'PI') === 0) {
+            return 'PROFORMA';
+        }
+        else if()
+    }
 }
