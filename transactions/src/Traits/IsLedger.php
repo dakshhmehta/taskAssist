@@ -10,7 +10,11 @@ trait IsLedger
     public static function bootIsLedger()
     {
         static::saved(function (Model $model) {
-            $model->syncWithLedger();
+            $account = $model->account()->first();
+
+            if(! $account){
+                $model->syncWithLedger();
+            }
         });
     }
 
@@ -23,10 +27,13 @@ trait IsLedger
             $account->type = $this->ledgerType();
             $account->save();
         } else {
-            $this->account()->create([
+            $account = $this->account()->create([
                 'name' => $this->accountNameColumn(),
                 'type' => $this->ledgerType(),
             ]);
+
+            $this->{$this->accountIdColumnName()} = $account->id;
+            $this->save();
         }
     }
 
@@ -52,6 +59,6 @@ trait IsLedger
 
     public function account()
     {
-        return $this->belongsTo(Account::class, $this->accountIdColumnName(), 'id');
+        return $this->hasOne(Account::class, 'id', $this->accountIdColumnName());
     }
 }
