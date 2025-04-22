@@ -205,7 +205,11 @@
         @endif
 
         <div class="abs invoice-type">
+            @if($invoice->type == 'PROFORMA')
             PROFORMA INVOICE
+            @elseif($invoice->type == 'TAX')
+                TAX INVOICE
+            @endif
         </div>
         <div class="abs invoice-no">{{ $invoice->invoice_no }}</div>
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>

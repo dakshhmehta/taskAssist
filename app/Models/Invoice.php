@@ -200,18 +200,10 @@ class Invoice extends Model
     {
         $invoiceType = $this->invoice_no;
 
-        // If it starts with DH
-        if (strpos($invoiceType, 'DH') === 0) {
-            return 'DH';
+        if (strpos($invoiceType, 'SI') === 0) {
+            return 'TAX';
         }
 
-        // If it starts with PI, Its Proforma
-        if (strpos($invoiceType, 'PI') === 0) {
-            return 'PROFORMA';
-        } else if (strpos($invoiceType, 'SI') === 0) {
-            return 'SALE';
-        }
-
-        return null;
+        return 'PROFORMA';
     }
 }
