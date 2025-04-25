@@ -155,7 +155,7 @@ class Invoice extends Model
         // TODO: Confirm with meet bhai, Accounts
         $companyGstin = substr(config('app.gstin'), 0, 2);
 
-        $partyGstin = substr($this->client->account->gstin, 0, 2);
+        $partyGstin = substr($this->client->account?->gstin, 0, 2);
 
         if ($companyGstin != $partyGstin) {
             return false;

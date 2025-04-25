@@ -17,10 +17,10 @@ class InvoicesController extends Controller
             return view('invoices.print', compact('invoice'));
         }
 
-        $invoicePath = storage_path('app/public/invoice_'.$invoice->id.'.pdf');
+        $invoicePath = storage_path('app/public/invoice_' . $invoice->id . '.pdf');
 
         if (file_exists($invoicePath) && !$request->has('force')) {
-            return redirect()->to('storage/invoice_'.$invoice->id.'.pdf');
+            return redirect()->to('storage/invoice_' . $invoice->id . '.pdf');
         }
 
         Browsershot::url(route('invoices.print', [$invoice->id, 'view' => 1]))
@@ -33,6 +33,6 @@ class InvoicesController extends Controller
             ->scale(0.97)
             ->save($invoicePath);
 
-        return redirect()->to('storage/invoice_'.$invoice->id.'.pdf');
+        return redirect()->to('storage/invoice_' . $invoice->id . '.pdf');
     }
 }

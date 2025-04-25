@@ -67,8 +67,7 @@ class JournalEntryResource extends Resource
                             ->required(),
                     ])
                     ->columns(2)
-                    ->minItems(2)
-                    ->maxItems(2),
+                    ->minItems(2),
 
                 Textarea::make('remarks')
                     ->rows(4),

@@ -195,6 +195,16 @@
             width: 500px;
             height: 500px;
         }
+
+        .ri-logo {
+            top: 2240px;
+            left: 2700px;
+            width: 500px;
+            height: 94px;
+        }
+        .ri-logo img {
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -214,13 +224,13 @@
         <div class="abs invoice-no">{{ $invoice->invoice_no }}</div>
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>
 
-        <div class="abs client"><b>Name:</b> <span>{{ $invoice->client->account->billing_name }}</span></div>
-        @if($invoice->client->account->billing_address)
-        <div class="abs address"><b>Address:</b> <span>{{ $invoice->client->account->billing_address }}</span></div>
+        <div class="abs client"><b>Name:</b> <span>{{ $invoice->client->account?->billing_name }}</span></div>
+        @if($invoice->client->account?->billing_address)
+        <div class="abs address"><b>Address:</b> <span>{{ $invoice->client->account?->billing_address }}</span></div>
         @endif
 
-        @if($invoice->client->account->gstin != null)
-        <div class="abs gstin"><b>GSTIN:</b> <span>{{ $invoice->client->account->gstin }}</span></div>
+        @if($invoice->client->account?->gstin != null)
+        <div class="abs gstin"><b>GSTIN:</b> <span>{{ $invoice->client->account?->gstin }}</span></div>
         @endif
 
         @php
@@ -403,6 +413,10 @@
         </div>
 
         <div class="abs in-words"><b>Rupees: </b> {{ ucfirst($invoice->inWords()) }}</div>
+
+        <div class="abs ri-logo">
+            <img src="{{ asset('images/ri_logo.png') }}" />
+        </div>
 
         <!-- <div class="abs warning">
             Due to a steady increase in the value of the US dollar, we will be increasing the prices of our Domains and Hosting services from March 2020. 
