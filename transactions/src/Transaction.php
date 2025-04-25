@@ -2,6 +2,7 @@
 
 namespace Romininteractive\Transaction;
 
+use App\Models\Invoice;
 use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -310,6 +311,10 @@ class Transaction extends Model
 
         foreach ($references as &$ref) {
             switch ($ref->related_type) {
+                case Invoice::class:
+                    $relatedAccounts[] = $ref->related?->invoice_no;
+                    break;
+
                 case JournalEntry::class:
                     $relatedAccounts[] = $ref->related?->sr_no;
                     break;
