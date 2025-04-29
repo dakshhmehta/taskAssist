@@ -27,6 +27,12 @@ class ClientReceivablesTable extends BaseWidget
             ->columns([
                 TextColumn::make('receivable_amount')
                     ->numeric()
+                    ->formatStateUsing(function ($state) {
+                        // Mask all characters except the last two
+                        $length = strlen((int) $state);
+                        return str_repeat('*', max(1, $length - 2)) . substr((int) $state, -2);
+                    })
+                    ->tooltip(fn ($state) => $state)
                     ->sortable(),
                 TextColumn::make('display_name')
                     ->label('Client'),
