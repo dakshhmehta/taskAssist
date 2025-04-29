@@ -28,10 +28,12 @@ class Comment extends FilamentComment
                     }
                 }
             } else {
-                Notification::make()
-                    ->title($comment->user->name . ' commented on ' . $comment->subject->title)
-                    ->body($comment->comment)
-                    ->sendToDatabase($comment->subject->assignee);
+                if($comment->subject instanceof Task){
+                    Notification::make()
+                        ->title($comment->user->name . ' commented on ' . $comment->subject->title)
+                        ->body($comment->comment)
+                        ->sendToDatabase($comment->subject->assignee);
+                }
             }
         });
     }
