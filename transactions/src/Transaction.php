@@ -199,16 +199,17 @@ class Transaction extends Model
         return null;
     }
 
+    // This two methods are for display ONLY, do not use it for calculation
     public function getCreditAttribute()
     {
-        if ($this->amount > 0) return $this->amount;
+        if ($this->amount < 0) return $this->amount;
 
         return null;
     }
 
     public function getDebitAttribute()
     {
-        if ($this->amount < 0) return $this->amount;
+        if ($this->amount > 0) return $this->amount;
 
         return null;
     }

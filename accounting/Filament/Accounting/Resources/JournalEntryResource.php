@@ -36,10 +36,10 @@ class JournalEntryResource extends Resource
         return $form
             ->schema([
                 Select::make('type_id')
-                    ->relationship(name: 'type', titleAttribute:'label')
+                    ->relationship(name: 'type', titleAttribute: 'label')
                     // ->searchable()
                     ->live()
-                    ->afterStateUpdated(function(Set $set, Get $get){
+                    ->afterStateUpdated(function (Set $set, Get $get) {
                         $typeId = $get('type_id');
                         $type = JournalEntryType::find($typeId);
 
@@ -59,6 +59,32 @@ class JournalEntryResource extends Resource
                             ->label('Account')
                             ->options(Account::all()->pluck('dropdown_name', 'id'))
                             ->searchable()
+                            ->live()
+                            ->afterStateUpdated(function (\Filament\Forms\Set $set, callable $get, $state, $context) {
+                                if ($context !== 'create') {
+                                    return;
+                                }
+
+                                $transactions = $get('../../transactions') ?? []; // Go 2 levels up (outside repeater item)
+
+                                $total = 0;
+                                $i = 0;
+                                // dd($transactions);
+                                $change = null;
+                                foreach ($transactions as $key => $transaction) {
+                                    if ($transaction['amount'] == null && $i > 0) {
+                                        $change = $key;
+                                        break;
+                                    }
+
+                                    $total += floatval($transaction['amount'] ?? 0);
+                                    $i++;
+                                }
+
+                                if ($change) {
+                                    $set('../../transactions.' . $change . '.amount', $total * -1);
+                                }
+                            })
                             ->required(),
                         Forms\Components\TextInput::make('amount')
                             ->label('Credit/Debit Amount')
@@ -66,6 +92,23 @@ class JournalEntryResource extends Resource
                             ->numeric()
                             ->required(),
                     ])
+                    // ->addable(function (Forms\Get $get) {
+                    //     $transactions = $get('transactions') ?? [];
+
+                    //     $last = null;
+                    //     foreach ($transactions as &$transaction) {
+                    //         $last = $transaction;
+                    //     }
+
+                    //     if ($last === null) {
+                    //         return true;
+                    //     }
+                    //     if (empty($last['account_id'])) {
+                    //         return false;
+                    //     }
+                    //     // Disable Add if last row is missing data
+                    //     return !empty($last['account_id']) && isset($last['amount']);
+                    // })
                     ->columns(2)
                     ->minItems(2),
 
