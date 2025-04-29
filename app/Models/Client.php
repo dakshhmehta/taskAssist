@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Parallax\FilamentComments\Models\Traits\HasFilamentComments;
 use Romininteractive\Transaction\Traits\IsLedger;
 
 class Client extends Model
 {
-    use HasFactory, IsLedger;
+    use HasFactory, IsLedger, HasFilamentComments;
 
     protected $guarded = [];
 

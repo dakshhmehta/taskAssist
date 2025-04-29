@@ -7,6 +7,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class ClientReceivablesTable extends BaseWidget
 {
@@ -29,6 +30,9 @@ class ClientReceivablesTable extends BaseWidget
                     ->sortable(),
                 TextColumn::make('display_name')
                     ->label('Client'),
+            ])
+            ->actions([
+                CommentsAction::make(),
             ]);
     }
 }
