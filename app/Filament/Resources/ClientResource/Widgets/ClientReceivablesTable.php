@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ClientResource\Widgets;
 
 use App\Models\Client;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
