@@ -27,12 +27,12 @@ class SitesHavingSSLIssueWidget extends BaseWidget
                     ->description(fn(Hosting $domain) => optional($domain->ssl_expiry_date)->format(config('app.date_format'))),
             ])
             ->actions([
-                Action::make('doIgnore')
-                    ->label('Ignore')
-                    ->icon('heroicon-o-x-circle')
-                    ->action(fn(Hosting $domain) => $domain->ignore())
-                    ->visible(fn(Hosting $domain) => !$domain->isIgnored())
-                    ->color('danger'),
+                // Action::make('doIgnore')
+                //     ->label('Ignore')
+                //     ->icon('heroicon-o-x-circle')
+                //     ->action(fn(Hosting $domain) => $domain->ignore())
+                //     ->visible(fn(Hosting $domain) => !$domain->isIgnored())
+                //     ->color('danger'),
 
             ]);
     }

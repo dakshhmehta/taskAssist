@@ -29,7 +29,6 @@ class WpSitesOutdatedVersion extends BaseWidget
             ->query(
                 Site::whereIn('id', $sites)
             )
-            ->paginated(false)
             ->columns([
                 TextColumn::make('domain')
                     ->description(fn(Site $site) => $site->getMeta('wp_version'))

@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
 use App\Models\HostingPackage;
+use App\Models\Site;
 use App\ResellerClub;
 use App\WHM;
 use Carbon\Carbon;
@@ -148,9 +149,13 @@ class SyncDomainsFromResellerClubCommand extends Command
                 $hosting->suspended_at = null;
             }
 
+            // TODO: Sync the renewal date to domain renewal date
+
             $hosting->package_id = $this->getHostingPackage($hostings[$i]);
             $hosting->server = $server;
             $hosting->save();
+
+            Site::firstOrCreate(['domain' => 'https://'.$hosting->domain]);
 
             $hostingTableData[] = [$hosting->domain, $hosting->expiry_date];
         }

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\HostingResource\Widgets\SitesHavingSSLIssueWidget;
+use App\Filament\Resources\HostingResource\Widgets\SitesMissingGoogleAnalytics;
 use App\Filament\Resources\HostingResource\Widgets\WpSitesMissingBackup;
 use App\Filament\Resources\HostingResource\Widgets\WpSitesOutdatedVersion;
 use App\Filament\Widgets\UpcomingDomainRenewals;
@@ -23,8 +24,8 @@ class SiteHealthDashboard extends Page
             WpSitesMissingBackup::make(),
             WpSitesOutdatedVersion::make(),
             SitesHavingSSLIssueWidget::make(),
+            SitesMissingGoogleAnalytics::make(),
             UpcomingDomainRenewals::make(),
-            UpcomingHostingRenewals::make(),
         ];
     }
 

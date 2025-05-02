@@ -7,20 +7,21 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
-class WpSitesMissingBackup extends BaseWidget
+class SitesMissingGoogleAnalytics extends BaseWidget
 {
     protected int | string | array $columnSpan = 3;
 
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Sites Having Old Backup')
+            ->heading('Missing Google Analytics')
             ->query(
-                Site::noLatestBackup()
+                Site::whereDoesntHave('meta', function($q){
+                    $q->where('key', 'ga_id');
+                })
             )
             ->columns([
-                TextColumn::make('domain')
-                ->description(fn(Site $site) => $site->getMeta('last_backup', 'Unknown'))
+                TextColumn::make('domain'),
             ]);
     }
 }

@@ -19,6 +19,11 @@ trait Metable {
      */
     public function setMeta(string $key, mixed $value): void
     {
+        if($value == null || $value == false){
+            $this->meta()->where('key', $key)->delete();
+            return;
+        }
+
         $this->meta()->updateOrCreate(['key' => $key], ['value' => $value]);
     }
 

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class CheckSSLCertificateExpiry extends Command
 {
-    protected $signature = 'ssl:check-expiry {--filter=}';
+    protected $signature = 'sites:check-ssl {--filter=}';
     protected $description = 'Check SSL expiry date for all hosting domains and save it to the Hosting model';
 
     public function handle()
