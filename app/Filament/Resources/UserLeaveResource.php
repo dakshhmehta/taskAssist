@@ -16,6 +16,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,7 +42,7 @@ class UserLeaveResource extends Resource
 
         $leaveTypes = config('leave_types');
 
-        $leaveTypes['CL'] = 'CL (Available: '.$user->balance('cl').')';
+        $leaveTypes['CL'] = 'CL (Available: ' . $user->balance('cl') . ')';
 
         return $form
             ->schema([
@@ -59,14 +60,14 @@ class UserLeaveResource extends Resource
                     ->displayFormat(config('app.date_format'))
                     ->required(),
                 Select::make('code')
-                    ->options(function(Get $get){
+                    ->options(function (Get $get) {
                         $leaveTypes = config('leave_types');
 
                         $u = $get('user_id');
 
                         $user = User::find($u);
 
-                        $leaveTypes['CL'] = 'CL (Available: '.$user->balance('cl').')';
+                        $leaveTypes['CL'] = 'CL (Available: ' . $user->balance('cl') . ')';
 
                         return $leaveTypes;
                     })
@@ -79,7 +80,20 @@ class UserLeaveResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(function () {
+                $query = new UserLeave();
+
+                if (! auth()->user()->is_admin) {
+                    $query = $query->where('user_id', auth()->user()->id);
+                }
+
+                return $query;
+            })
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 TextColumn::make('status')
                     ->description(fn(UserLeave $leave) => $leave->admin_remarks)
                     ->color(function (UserLeave $leave) {
@@ -141,7 +155,7 @@ class UserLeaveResource extends Resource
             ->defaultSort('from_date', 'desc')
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

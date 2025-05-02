@@ -34,6 +34,10 @@ class HolidayResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 Tables\Columns\TextColumn::make('date')
                     ->label('Date')
                     ->dateTime('d-m-Y')

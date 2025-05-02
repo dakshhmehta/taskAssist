@@ -16,10 +16,10 @@ class WpSitesOutdatedVersion extends BaseWidget
         $sites = [];
         $_sites = Site::all();
 
-        foreach($_sites as &$site){
+        foreach ($_sites as &$site) {
             $version = $site->getMeta('wp_version', 0);
 
-            if($version != 0 and version_compare($version, config('wp.min_required_version'), '<=')){
+            if ($version != 0 and version_compare($version, config('wp.min_required_version'), '<=')) {
                 $sites[] = $site->id;
             }
         }
@@ -30,6 +30,9 @@ class WpSitesOutdatedVersion extends BaseWidget
                 Site::whereIn('id', $sites)
             )
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
                 TextColumn::make('domain')
                     ->description(fn(Site $site) => $site->getMeta('wp_version'))
             ]);

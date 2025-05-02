@@ -29,6 +29,10 @@ class TagResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('incomplete_tasks_count')

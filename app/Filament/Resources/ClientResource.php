@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ClientResource extends Resource
@@ -34,6 +35,10 @@ class ClientResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 Tables\Columns\TextColumn::make('billing_name')
                     ->sortable()
                     ->searchable(),
@@ -53,7 +58,7 @@ class ClientResource extends Resource
                     ->iconButton()
                     ->icon('heroicon-m-arrows-right-left')
                     ->color('blue')
-                    ->action(function(Client $client){
+                    ->action(function (Client $client) {
                         $client->syncWithLedger();
                     }),
             ])

@@ -47,8 +47,8 @@ class TaskResource extends Resource
     {
         return parent::getGlobalSearchEloquentQuery()->with(['assignee'])
             ->orderByRaw('ISNULL(completed_at) DESC')
-                ->orderBy('completed_at', 'DESC');
-        }
+            ->orderBy('completed_at', 'DESC');
+    }
 
     public static function form(Form $form): Form
     {
@@ -100,6 +100,10 @@ class TaskResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 Tables\Columns\TextColumn::make('title')
                     ->description(fn(Task $task) => $task->tag)
                     ->searchable(),

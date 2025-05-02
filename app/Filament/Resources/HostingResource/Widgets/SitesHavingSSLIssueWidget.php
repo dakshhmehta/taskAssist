@@ -23,6 +23,9 @@ class SitesHavingSSLIssueWidget extends BaseWidget
                     ->orWhere('ssl_expiry_date', '<=', now()->format('Y-m-d'))
             )
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
                 TextColumn::make('domain')
                     ->description(fn(Hosting $domain) => optional($domain->ssl_expiry_date)->format(config('app.date_format'))),
             ])

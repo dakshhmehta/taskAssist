@@ -49,7 +49,7 @@ class InvoiceResource extends Resource
                         Forms\Components\TextInput::make('invoice_no')
                             ->required()
                             ->columnSpan(4)
-                            ->unique(ignoreRecord:true),
+                            ->unique(ignoreRecord: true),
                     ])
                     ->columns(12),
                 Forms\Components\Repeater::make('items')
@@ -118,6 +118,10 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 Tables\Columns\TextColumn::make('invoice_no')
                     ->sortable()
                     ->searchable(),

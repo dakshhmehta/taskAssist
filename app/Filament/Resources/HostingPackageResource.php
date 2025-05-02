@@ -30,6 +30,10 @@ class HostingPackageResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 TextColumn::make('storage'),
                 TextColumn::make('emails'),
                 TextColumn::make('price'),

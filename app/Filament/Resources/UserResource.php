@@ -53,6 +53,10 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('performance'),
@@ -102,7 +106,7 @@ class UserResource extends Resource
                 Action::make('leave-ledger')
                     ->label('Leave Ledger')
                     ->color('info')
-                    ->url(fn ($record) => UserResource::getUrl('leave-ledger', ['record' => $record]))
+                    ->url(fn($record) => UserResource::getUrl('leave-ledger', ['record' => $record]))
                 // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
                 //     ->color('info')
             ])

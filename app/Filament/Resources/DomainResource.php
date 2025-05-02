@@ -45,6 +45,10 @@ class DomainResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 Tables\Columns\TextColumn::make('tld')
                     ->label('TLD')
                     ->searchable(),

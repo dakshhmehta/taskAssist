@@ -19,6 +19,9 @@ class WpSitesMissingBackup extends BaseWidget
                 Site::noLatestBackup()
             )
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
                 TextColumn::make('domain')
                 ->description(fn(Site $site) => $site->getMeta('last_backup', 'Unknown'))
             ]);

@@ -16,11 +16,14 @@ class SitesMissingGoogleAnalytics extends BaseWidget
         return $table
             ->heading('Missing Google Analytics')
             ->query(
-                Site::whereDoesntHave('meta', function($q){
+                Site::whereDoesntHave('meta', function ($q) {
                     $q->where('key', 'ga_id');
                 })
             )
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
                 TextColumn::make('domain'),
             ]);
     }

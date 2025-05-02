@@ -32,6 +32,10 @@ class EmailResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('index')
+                    ->label('#')
+                    ->rowIndex(),
+
                 TextColumn::make('domain')
                     ->description(fn(Email $email) => $email->provider)
                     ->searchable(),
