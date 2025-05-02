@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'latest_version' => '6.7.2',
+    'latest_version' => '6.8.1',
     'min_required_version' => '6.7.0',
     'plugin_info' => [
         "new_version" => "0.0.2",
