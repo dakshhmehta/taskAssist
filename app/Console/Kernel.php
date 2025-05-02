@@ -16,7 +16,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('make:tasks-schedule')->dailyAt('08:00');
 
         $schedule->command('sites:check-ssl')->dailyAt('09:00');
-        $schedule->command('sites:detect-ga')->dailyAt('09:30');
+        $schedule->command('sites:detect')->dailyAt('09:30');
     }
 
     /**
