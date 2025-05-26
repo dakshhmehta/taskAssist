@@ -88,8 +88,11 @@ class InvoiceResource extends Resource
                             ->label('Price')
                             ->numeric()
                             ->required(),
+                        Forms\Components\TextInput::make('discount_value')
+                            ->label('Discount')
+                            ->numeric(),
                     ])
-                    ->columns(3)
+                    ->columns(4)
                     ->columnSpan(12)
                     ->addActionLabel('Add Invoice Item'),
 
@@ -107,8 +110,11 @@ class InvoiceResource extends Resource
                             ->label('Price')
                             ->numeric()
                             ->required(),
+                        Forms\Components\TextInput::make('discount_value')
+                            ->label('Discount')
+                            ->numeric(),
                     ])
-                    ->columns(4)
+                    ->columns(5)
                     ->columnSpan(12)
                     ->addActionLabel('Add Extra')
             ]);

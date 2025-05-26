@@ -17,7 +17,7 @@ class CreateInvoice extends CreateRecord
 
         // Only set the invoice number for the create form
         $this->form->fill([
-            'invoice_no' => Invoice::nextInvoiceNumber(),
+            'invoice_no' => Invoice::nextInvoiceNumber(request()->get('prefix', 'DH-')),
         ]);
     }
 }

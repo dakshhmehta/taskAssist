@@ -53,7 +53,11 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
+                    @if($domain->discount_value > 0)
+                        <p><s>Rs. {{ number_format(($domain->price + $domain->discount_value) / 1.18) }}</s><br/>Rs. {{ number_format($domain->price / 1.18, 2) }}</p>
+                    @else
+                        <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
@@ -94,7 +98,11 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
+                    @if($hosting->discount_value > 0)
+                        <p><s>Rs. {{ number_format(($hosting->price + $hosting->discount_value)) }}</s><br/>Rs. {{ number_format($hosting->price / 1.18, 2) }}</p>
+                    @else
+                        <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
@@ -125,7 +133,11 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
+                    @if($email->discount_value > 0)
+                        <p><s>Rs. {{ number_format(($email->price + $email->discount_value)) }}</s><br/>Rs. {{ number_format($email->price / 1.18, 2) }}</p>
+                    @else
+                        <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
@@ -156,7 +168,11 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
+                    @if($extra->discount_value > 0)
+                        <p><s>Rs. {{ number_format(($extra->price + $extra->discount_value)) }}</s><br/>Rs. {{ number_format($extra->price / 1.18, 2) }}</p>
+                    @else
+                        <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>

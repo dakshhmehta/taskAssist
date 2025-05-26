@@ -151,7 +151,7 @@
 
         .footnote {
             top: 1850px;
-            left: 590px;
+            left: 630px;
             font-size: 40px;
             text-align: center;
             font-weight: bold;

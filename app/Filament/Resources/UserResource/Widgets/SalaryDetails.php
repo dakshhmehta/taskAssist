@@ -31,6 +31,9 @@ class SalaryDetails extends BaseWidget
 
         $widgets[] = (new Stat('Leaves', $leavesCount))
             ->description($allowedLeaves . ' monthly leave allowed. This includes CL/SL both');
+        
+        $userSalary = $this->user->salary;
+
 
         // Salary Count
         if ($this->user->salary_type == 'monthly') {
@@ -43,7 +46,19 @@ class SalaryDetails extends BaseWidget
             $widgets[] = (new Stat('Payable Days', $payableDays))
                 ->description('Out of ' . $workingDays . ' working days');
 
-            $widgets[] = new Stat('Payable Salary', sprintf("%.2f", $payableSalary));
+            $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
+                ->whereNotNull('start_at')
+                ->whereNotNull('end_at')
+                ->where('end_at', '>=', $this->filterData['startDate'])
+                ->where('end_at', '<=', $this->filterData['endDate'])
+                ->where('user_id', $this->user->id)
+                ->groupBy('user_id')
+                ->first();
+
+            $effectiveHourlyRate = sprintf("%.2f", $payableSalary / ($timeWorked->time / 60));
+
+            $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $payableSalary)))
+                ->description("Total Salary = ".$userSalary.", Eff. Hourly Rate = ".$effectiveHourlyRate);
         } else {
             $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
                 ->whereNotNull('start_at')
@@ -56,9 +71,10 @@ class SalaryDetails extends BaseWidget
 
             $timeWorked = ($timeWorked->time / 60);
 
-            $payableSalary = $timeWorked * $this->user->salary;
+            $payableSalary = $timeWorked * $userSalary;
 
-            $widgets[] = new Stat('Payable Salary', sprintf("%.2f", $payableSalary));
+            $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $payableSalary)))
+                ->description('Hourly Rate = '.$userSalary);
         }
 
         return $widgets;

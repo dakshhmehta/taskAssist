@@ -50,7 +50,7 @@ class LiabilitiesTable extends BaseWidget
 
         if($pl < 0){ // Profit is Negetive because Cr > Dr
             $data->push(new Account([
-                'name' => 'Realized Loss',
+                'name' => 'Realized Profit',
                 'is_summary' => true,
                 'balance' => $pl,
             ]));    
