@@ -38,14 +38,14 @@ class SyncDomainsFromResellerClubCommand extends Command
         $this->getDomains('new');
 
         // Get Gsuite
-        $this->getGsuites();
+        // $this->getGsuites();
 
         // // Hostings
-        $this->getLinuxHostingsIN();
-        $this->getLinuxHostingsUS();
+        // $this->getLinuxHostingsIN();
+        // $this->getLinuxHostingsUS();
 
-        $this->getWHMHostings('romin');
-        $this->getWHMHostings('dristal');
+        // $this->getWHMHostings('romin');
+        // $this->getWHMHostings('dristal');
     }
 
     public function getGSuites()
@@ -97,7 +97,7 @@ class SyncDomainsFromResellerClubCommand extends Command
             $domainTableData[] = [$domain->tld, $domain->expiry_date->format('d-m-Y')];
         }
 
-        $this->info('Domains');
+        $this->info('Domains - '.$mode);
         $this->table($domainTableHeader, $domainTableData);
 
         $domains = Domain::whereNotIn('tld', $_tlds)
@@ -110,8 +110,11 @@ class SyncDomainsFromResellerClubCommand extends Command
             try {
                 $domain->sync();
 
+                $domain->unIgnore();
+
                 $domainTableData[] = [$domain->tld, $domain->expiry_date->format('d-m-Y')];
             } catch (\Exception $e) {
+                $domain->ignore();
                 $this->error('Unable to sync domain ' . $domain->tld);
             }
         }
