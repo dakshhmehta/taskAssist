@@ -15,10 +15,12 @@ class ListInvoices extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->label('New DH Invoice'),
-            Actions\CreateAction::make()
-                ->label('New Service Invoice'),
+            Actions\CreateAction::make('dh-invoice')
+                ->label('New DH Invoice')
+                ->url(fn() => InvoiceResource::getUrl('create', ['prefix' => 'DH-'])),
+            Actions\CreateAction::make('service-invoice')
+                ->label('New Service Invoice')
+                ->url(fn() => InvoiceResource::getUrl('create', ['prefix' => 'SR-'])),
         ];
     }
 }
