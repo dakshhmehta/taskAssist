@@ -210,7 +210,7 @@
 
 <body>
     <div id="invoice">
-        @if($invoice->date->lte('2025-04-17'))
+        @if($invoice->date->lte(config('app.gstin_start_date')))
             @include('invoices.normal_format')
         @else
             @include('invoices.tax_format')

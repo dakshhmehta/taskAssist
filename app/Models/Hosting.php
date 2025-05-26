@@ -27,6 +27,10 @@ class Hosting extends Model
         'ssl_expiry_date' => 'datetime',
     ];
 
+    public function domainLink(){
+        return $this->belongsTo(Domain::class, 'domain');
+    }
+
     public function invoiceItems()
     {
         return $this->morphMany(InvoiceItem::class, 'itemable');
@@ -92,5 +96,14 @@ class Hosting extends Model
     public function getLastInvoicedDateAttribute()
     {
         return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+    }
+
+    public function getLastInvoice(){
+        return $this->invoices()->orderBy('date', 'DESC')->first();
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

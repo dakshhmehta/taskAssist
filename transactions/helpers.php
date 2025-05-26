@@ -1,14 +1,5 @@
 <?php
 
-function accountBalance($balance)
-{
-    if ($balance > 0) {
-        return IndianNumberingFormat(abs($balance), 2).' Cr.';
-    }
-
-    return IndianNumberingFormat(abs($balance), 2).' Dr.';
-}
-
 function AmountInWords(float $number = 0)
 {
     $no = floor($number);

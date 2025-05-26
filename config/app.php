@@ -8,6 +8,7 @@ use Ri\Accounting\Providers\Filament\AccountingPanelProvider;
 return [
 
     'gstin' => '24AIOPJ9078R1Z6',
+    'gstin_start_date' => '2025-04-17',
 
     'date_format' => 'd-m-Y',
 

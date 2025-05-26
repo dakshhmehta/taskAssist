@@ -121,7 +121,6 @@ class InvoiceResource extends Resource
                 TextColumn::make('index')
                     ->label('#')
                     ->rowIndex(),
-
                 Tables\Columns\TextColumn::make('invoice_no')
                     ->sortable()
                     ->searchable(),
@@ -178,6 +177,16 @@ class InvoiceResource extends Resource
                     ->visible(fn(?Invoice $invoice): bool => Gate::allows('markAsPaid', $invoice))
                     ->action(function (array $data, Invoice $record): void {
                         $record->markAsPaid($data['date'], $data['remarks']);
+                    }),
+                Action::make('convert_tax_invoice')
+                    ->label('Convert to SI')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn(?Invoice $invoice): bool => Gate::allows('convertToTaxInvoice', $invoice))
+                    ->action(function (Invoice $invoice) {
+                        $newInvoice = $invoice->createTaxInvoice();
+
+                        return redirect(self::getUrl('edit', ['record' => $newInvoice]));
                     }),
                 Tables\Actions\EditAction::make(),
                 Action::make('print')

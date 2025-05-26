@@ -3,6 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ClientResource\Pages;
+use App\Filament\Resources\ClientResource\RelationManagers\DomainsRelationManager;
+use App\Filament\Resources\ClientResource\RelationManagers\EmailsRelationManager;
+use App\Filament\Resources\ClientResource\RelationManagers\HostingsRelationManager;
 use App\Models\Client;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -73,6 +76,15 @@ class ClientResource extends Resource
             'index' => Pages\ListClients::route('/'),
             'create' => Pages\CreateClient::route('/create'),
             'edit' => Pages\EditClient::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            DomainsRelationManager::class,
+            HostingsRelationManager::class,
+            EmailsRelationManager::class,
         ];
     }
 }

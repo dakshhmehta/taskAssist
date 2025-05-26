@@ -22,6 +22,11 @@ class Client extends Model
         });
     }
 
+    public function getReceivableSlabAttribute()
+    {
+        return '< 10k';
+    }
+
     public function accountNameColumn()
     {
         return $this->billing_name;
@@ -34,7 +39,7 @@ class Client extends Model
 
     public function getDisplayNameAttribute()
     {
-        return $this->billing_name.' ('.$this->nickname.')';
+        return $this->billing_name . ' (' . $this->nickname . ')';
     }
 
     public function getReceivable()
@@ -47,5 +52,20 @@ class Client extends Model
         }
 
         return $total;
+    }
+
+    public function domains()
+    {
+        return $this->hasMany(Domain::class);
+    }
+
+    public function hostings()
+    {
+        return $this->hasMany(Hosting::class);
+    }
+
+    public function emails()
+    {
+        return $this->hasMany(Email::class);
     }
 }

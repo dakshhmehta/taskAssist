@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\ClientResource\Widgets;
 
 use App\Models\Client;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
@@ -22,7 +24,6 @@ class ClientReceivablesTable extends BaseWidget
                 })
             )
             ->paginated(false)
-            ->defaultSort('receivable_amount', 'DESC')
             ->columns([
                 TextColumn::make('receivable_amount')
                     ->numeric()

@@ -12,6 +12,7 @@ use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Ri\Accounting\Helper;
 use Ri\Accounting\Models\Account;
 use Romininteractive\Transaction\Transaction;
 use Spatie\Color\Hex;
@@ -60,10 +61,10 @@ class PLStatement extends Page implements HasTable
                         return "<span style='color: {$color}'>{$acc->name}</span>";
                     })->html(),
                 TextColumn::make('debit')
-                    ->formatStateUsing(fn($state) => abs($state))
+                    ->formatStateUsing(fn($state) => Helper::accountBalance($state))
                     ->extraAttributes(['class' => 'dr-cell']),
                 TextColumn::make('credit')
-                    ->formatStateUsing(fn($state) => abs($state))
+                    ->formatStateUsing(fn($state) => Helper::accountBalance($state))
                     ->extraAttributes(['class' => 'cr-cell']),
             ])
             ->filters([])

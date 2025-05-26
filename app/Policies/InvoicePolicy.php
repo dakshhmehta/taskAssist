@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Invoice;
 use App\Models\User;
+use Carbon\Carbon;
 
 class InvoicePolicy
 {
@@ -65,6 +66,19 @@ class InvoicePolicy
 
     public function markAsPaid(User $user, Invoice $invoice): bool
     {
-        return $user->is_admin && $invoice->paid_date == null;
+        if($invoice->date->lte(config('app.gstin_start_date'))){
+            return $user->is_admin && $invoice->paid_date == null;
+        }
+
+        return $user->is_admin && $invoice->type == 'TAX' && $invoice->paid_date == null;
+    }
+
+    public function convertToTaxInvoice(User $user, Invoice $invoice): bool
+    {
+        if($invoice->date->gte(config('app.gstin_start_date'))){
+            return $user->is_admin && $invoice->paid_date == null && $invoice->type == 'PROFORMA';
+        }
+
+        return false;
     }
 }

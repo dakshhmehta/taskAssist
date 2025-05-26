@@ -5,6 +5,7 @@ namespace Ri\Accounting\Filament\Accounting\Resources\AccountResource\RelationMa
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Ri\Accounting\Helper;
 use Romininteractive\Transaction\Transaction;
 
 class TransactionsRelationManager extends RelationManager
@@ -23,8 +24,8 @@ class TransactionsRelationManager extends RelationManager
                 TextColumn::make('description')
                     ->searchable(),
                 TextColumn::make('amount')
-                    ->sortable()
-                    ->money('INR'),
+                    ->formatStateUsing(fn($state) => Helper::accountBalance($state))
+                    ->sortable(),
             ])
             ->filters([
                 //

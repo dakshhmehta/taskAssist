@@ -34,15 +34,15 @@ class SyncDomainsFromResellerClubCommand extends Command
     public function handle()
     {
         // Domains
-        $this->getDomains();
-        $this->getDomains('new');
+        // $this->getDomains();
+        // $this->getDomains('new');
 
         // Get Gsuite
-        $this->getGsuites();
+        // $this->getGsuites();
 
         // // Hostings
-        $this->getLinuxHostingsIN();
-        $this->getLinuxHostingsUS();
+        // $this->getLinuxHostingsIN();
+        // $this->getLinuxHostingsUS();
 
         $this->getWHMHostings('romin');
         $this->getWHMHostings('dristal');
@@ -139,7 +139,9 @@ class SyncDomainsFromResellerClubCommand extends Command
                 'domain' => $hostings[$i]['domain'],
             ]);
 
-            if (! $hosting->expiry_date) {
+            if ($hosting->domainLink) {
+                $hosting->expiry_date = $hosting->domainLink->expiry_date;
+            } elseif (! $hosting->expiry_date) {
                 // Only update expiry date if record is being created and hence does not have default expiry date
                 $hosting->expiry_date = Carbon::parse($hostings[$i]['startdate'])->setYear(date('Y'));
             }
@@ -153,9 +155,12 @@ class SyncDomainsFromResellerClubCommand extends Command
 
             $hosting->package_id = $this->getHostingPackage($hostings[$i]);
             $hosting->server = $server;
+
+            $hosting->client_id = $hosting->getLastInvoice()?->client_id;
+
             $hosting->save();
 
-            Site::firstOrCreate(['domain' => 'https://'.$hosting->domain]);
+            Site::firstOrCreate(['domain' => 'https://' . $hosting->domain]);
 
             $hostingTableData[] = [$hosting->domain, $hosting->expiry_date];
         }
@@ -202,6 +207,9 @@ class SyncDomainsFromResellerClubCommand extends Command
             ]);
             $hosting->expiry_date = date('Y-m-d H:i:s', $hostings[$i]['orders.endtime']);
             $hosting->server = 'rc-in-linux';
+
+            $hosting->client_id = $hosting->getLastInvoice()?->client_id;
+
             $hosting->save();
 
             $hostingTableData[] = [$hostings[$i]['entity.description'], date('d-m-Y', $hostings[$i]['orders.endtime'])];
@@ -228,6 +236,9 @@ class SyncDomainsFromResellerClubCommand extends Command
             ]);
             $hosting->expiry_date = date('Y-m-d H:i:s', $hostings[$i]['orders.endtime']);
             $hosting->server = 'rc-us-linux';
+
+            $hosting->client_id = $hosting->getLastInvoice()?->client_id;
+
             $hosting->save();
 
             $hostingTableData[] = [$hostings[$i]['entity.description'], date('d-m-Y', $hostings[$i]['orders.endtime'])];

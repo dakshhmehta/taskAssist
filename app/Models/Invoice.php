@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\TaxableInvoice;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Romininteractive\Transaction\Traits\HasTransactions;
 
 class Invoice extends Model
 {
-    use HasFactory, HasTransactions;
+    use HasFactory, HasTransactions, TaxableInvoice;
 
     protected $guarded = [];
 
@@ -24,66 +25,6 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
-    }
-
-    protected function getRevenueAccount() {}
-
-    public function createAccountingEntries(Account $revenueAccount)
-    {
-        if ($this->type != 'TAX') {
-            throw new \Exception('Only TAX INVOICE can have accounting entries.');
-        }
-
-        $this->transactions()->delete();
-
-        $customerAccount = $this->client->account;
-
-        if (! $customerAccount) {
-            throw new \Exception('Customer account not found');
-        }
-
-        $t1 = $customerAccount->credit($this->total, $this->date);
-        $t1->associate($this);
-
-        // GST
-        if ($this->date->gte(Carbon::create(2025, 4, 20))) {
-            $igst = $this->igst;
-            $cgst = $this->cgst;
-            $sgst = $this->sgst;
-
-            if ($igst > 0) {
-                $igstAccount = Account::where('name', 'IGST Payable')->firstOrFail();
-
-                if ($igstAccount) {
-                    $t3 = $igstAccount->debit($igst, $this->date);
-                    $t3->associate($this);
-                }
-            }
-
-            if ($cgst > 0) {
-                $cgstAccount = Account::where('name', 'CGST Payable')->firstOrFail();
-
-                if ($cgstAccount) {
-                    $t4 = $cgstAccount->debit($cgst, $this->date);
-                    $t4->associate($this);
-                }
-            }
-
-            if ($sgst > 0) {
-                $sgstAccount = Account::where('name', 'SGST Payable')->firstOrFail();
-
-                if ($sgstAccount) {
-                    $t5 = $sgstAccount->debit($sgst, $this->date);
-                    $t5->associate($this);
-                }
-            }
-
-            $t2 = $revenueAccount->debit($this->total - $igst - $cgst - $sgst, $this->date);
-            $t2->associate($this);
-        } else {
-            $t2 = $revenueAccount->debit($this->total, $this->date);
-            $t2->associate($this);
-        }
     }
 
     public function extras()
@@ -178,11 +119,10 @@ class Invoice extends Model
         return $result . "" . ($points ? "and " . $points . " paise" : "only");
     }
 
-    public static function nextInvoiceNumber()
+    public static function nextInvoiceNumber($prefix = 'DH-')
     {
         // Define the prefix and the current year
-        $prefix = 'DH-';
-        $suffix = '\/2024';
+        $suffix = '\/2025';
 
         // Find the latest invoice number using the prefix and suffix
         $latestInvoice = self::where('invoice_no', 'LIKE', "{$prefix}%{$suffix}")

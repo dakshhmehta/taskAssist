@@ -27,7 +27,7 @@ class Email extends Model
 
     public function getDomainAccountsAttribute()
     {
-        return $this->domain.' ('.$this->accounts_count.' accounts)';
+        return $this->domain . ' (' . $this->accounts_count . ' accounts)';
     }
 
     public function invoices()
@@ -56,5 +56,15 @@ class Email extends Model
     public function getLastInvoicedDateAttribute()
     {
         return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+    }
+
+    public function getLastInvoice()
+    {
+        return $this->invoices()->orderBy('date', 'DESC')->first();
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

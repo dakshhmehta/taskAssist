@@ -31,6 +31,9 @@ class Domain extends Model
         $rc = ResellerClub::fetch($this->tld);
 
         $this->expiry_date = date('Y-m-d H:i:s', $rc[1]['orders.endtime']);
+
+        $this->client_id = $this->getLastInvoice()?->client_id;
+
         $this->save();
     }
 
@@ -69,5 +72,14 @@ class Domain extends Model
     public function getLastInvoicedDateAttribute()
     {
         return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+    }
+
+    public function getLastInvoice(){
+        return $this->invoices()->orderBy('date', 'DESC')->first();
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Ri\Accounting\Helper;
 use Ri\Accounting\Models\Account;
 
 class AssetsTable extends BaseWidget
@@ -25,7 +26,7 @@ class AssetsTable extends BaseWidget
             ->columns([
                 TextColumn::make('name'),
                 TextColumn::make('balance')
-                    ->formatStateUsing(fn($state) => abs($state))
+                    ->formatStateUsing(fn($state) => Helper::accountBalance($state))
             ]);
     }
 
