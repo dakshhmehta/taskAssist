@@ -34,15 +34,15 @@ class SyncDomainsFromResellerClubCommand extends Command
     public function handle()
     {
         // Domains
-        // $this->getDomains();
-        // $this->getDomains('new');
+        $this->getDomains();
+        $this->getDomains('new');
 
         // Get Gsuite
-        // $this->getGsuites();
+        $this->getGsuites();
 
         // // Hostings
-        // $this->getLinuxHostingsIN();
-        // $this->getLinuxHostingsUS();
+        $this->getLinuxHostingsIN();
+        $this->getLinuxHostingsUS();
 
         $this->getWHMHostings('romin');
         $this->getWHMHostings('dristal');
