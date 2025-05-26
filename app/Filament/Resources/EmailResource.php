@@ -4,13 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\EmailResource\Pages;
 use App\Models\Email;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class EmailResource extends Resource
 {
@@ -19,6 +19,16 @@ class EmailResource extends Resource
     protected static ?string $navigationGroup = 'Domain & Hosting';
 
     protected static ?string $navigationIcon = 'heroicon-o-at-symbol';
+
+    protected static ?string $recordTitleAttribute = 'domain';
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Accounts' => $record->accounts_count,
+            'Expiry' => $record->expiry_date->format(config('app.date_format')),
+        ];
+    }
 
     public static function form(Form $form): Form
     {

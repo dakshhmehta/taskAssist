@@ -10,15 +10,15 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class HostingsRelationManager extends RelationManager
+class InvoicesRelationManager extends RelationManager
 {
-    protected static string $relationship = 'hostings';
+    protected static string $relationship = 'invoices';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('domain')
+                Forms\Components\TextInput::make('invoice_no')
                     ->required()
                     ->maxLength(255),
             ]);
@@ -27,9 +27,9 @@ class HostingsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('domain')
+            ->recordTitleAttribute('invoice_no')
             ->columns([
-                Tables\Columns\TextColumn::make('domain'),
+                Tables\Columns\TextColumn::make('invoice_no'),
             ])
             ->filters([
                 //

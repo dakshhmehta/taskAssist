@@ -6,6 +6,7 @@ use App\Filament\Resources\ClientResource\Pages;
 use App\Filament\Resources\ClientResource\RelationManagers\DomainsRelationManager;
 use App\Filament\Resources\ClientResource\RelationManagers\EmailsRelationManager;
 use App\Filament\Resources\ClientResource\RelationManagers\HostingsRelationManager;
+use App\Filament\Resources\ClientResource\RelationManagers\InvoicesRelationManager;
 use App\Models\Client;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -85,6 +86,7 @@ class ClientResource extends Resource
             DomainsRelationManager::class,
             HostingsRelationManager::class,
             EmailsRelationManager::class,
+            InvoicesRelationManager::class,
         ];
     }
 }
