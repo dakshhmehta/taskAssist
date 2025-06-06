@@ -89,6 +89,12 @@ class DomainResource extends Resource
                     ->action(fn(Domain $domain) => $domain->ignore())
                     ->visible(fn(Domain $domain) => !$domain->isIgnored())
                     ->color('danger'),
+
+                Action::make('doUnIgnore')
+                    ->label('Unignore')
+                    ->action(fn(Domain $domain) => $domain->unIgnore())
+                    ->visible(fn(Domain $domain) => $domain->isIgnored())
+                    ->color('warning'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
