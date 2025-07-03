@@ -10,6 +10,8 @@ return [
     'gstin' => '24AIOPJ9078R1Z6',
     'gstin_start_date' => '2025-04-17',
 
+    'gstin_lut_no' => 'AD240725002045K',
+
     'date_format' => 'd-m-Y',
 
     /*

@@ -26,7 +26,7 @@ class EditInvoice extends EditRecord
                         ->options(Account::where('type', 'revenue')->pluck('name', 'id'))
                         ->required()
                 ])
-                ->visible(fn(Invoice $invoice) => $invoice->type == 'TAX')
+                ->visible(fn(Invoice $invoice) => $invoice->type == 'TAX' && $invoice->client->account?->country == 'India')
                 ->action(function (array $data, Invoice $invoice): void {
                     $revenueAccount = Account::findOrFail($data['revenue']);
 

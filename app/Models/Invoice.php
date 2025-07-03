@@ -44,7 +44,7 @@ class Invoice extends Model
 
     public function scopeUnpaid($q)
     {
-        return $q->whereNull('paid_date');
+        return $q->whereNull('paid_date')->whereDoesntHave('taxInvoice');
     }
 
     public function markAsPaid($date = null, $remarks = null)
@@ -208,5 +208,9 @@ class Invoice extends Model
         }
 
         return 'PROFORMA';
+    }
+
+    public function hasItemsUnbilled(){
+        $items = $this->items;
     }
 }

@@ -76,7 +76,7 @@ class InvoicePolicy
     public function convertToTaxInvoice(User $user, Invoice $invoice): bool
     {
         if($invoice->date->gte(config('app.gstin_start_date'))){
-            return $user->is_admin && $invoice->paid_date == null && $invoice->type == 'PROFORMA';
+            return $user->is_admin && $invoice->paid_date == null && $invoice->type == 'PROFORMA' && !$invoice->hasTaxInvoice();
         }
 
         return false;

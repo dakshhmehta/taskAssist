@@ -205,6 +205,13 @@
         .ri-logo img {
             width: 100%;
         }
+
+        .lut-no {
+            font-weight: bold;
+            font-size: 38px;
+            top: 100px;
+            left: 2770px;
+        }
     </style>
 </head>
 

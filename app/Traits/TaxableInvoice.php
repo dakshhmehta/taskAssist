@@ -8,6 +8,20 @@ use Ri\Accounting\Models\Account;
 
 trait TaxableInvoice
 {
+    public function proformaInvoice()
+    {
+        return $this->belongsTo(Invoice::class, 'proforma_invoice_id');
+    }
+
+    public function taxInvoice()
+    {
+        return $this->hasOne(Invoice::class, 'proforma_invoice_id');
+    }
+
+    public function hasTaxInvoice(){
+        return static::where('proforma_invoice_id', $this->id)->exists();
+    }
+
     public function createTaxInvoice(): Invoice
     {
         // Ensure only Proforma invoices can be converted
@@ -20,12 +34,14 @@ trait TaxableInvoice
         $taxInvoice->invoice_no = Invoice::nextInvoiceNumber('SI-');
         $taxInvoice->created_at = now();
         $taxInvoice->updated_at = now();
+        $taxInvoice->proforma_invoice_id = $this->id;
         $taxInvoice->save();
 
         // Clone items with remaining amount
         foreach ($this->items as $item) {
             $newItem = $item->replicate();
             $newItem->invoice_id = $taxInvoice->id;
+            $newItem->proforma_invoice_id = $this->id;
 
             $newItem->save();
         }
@@ -34,6 +50,7 @@ trait TaxableInvoice
         foreach ($this->extras as $extra) {
             $extraItem = $extra->replicate();
             $extraItem->invoice_id = $taxInvoice->id;
+            $newItem->proforma_invoice_id = $this->id;
 
             $extraItem->save();
         }

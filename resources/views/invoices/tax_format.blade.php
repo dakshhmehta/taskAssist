@@ -3,12 +3,21 @@
         @endif
 
         <div class="abs invoice-type">
-            @if($invoice->type == 'PROFORMA')
-            PROFORMA INVOICE
-            @elseif($invoice->type == 'TAX')
-                TAX INVOICE
+            @if($invoice->client->account?->country == 'India')
+                @if($invoice->type == 'PROFORMA')
+                PROFORMA INVOICE
+                @elseif($invoice->type == 'TAX')
+                    TAX INVOICE
+                @endif
+            @else
+                EXPORT INVOICE
             @endif
         </div>
+        @if($invoice->client->account?->country != 'India')
+        <div class="abs lut-no">
+            LUT ARN: {{ config('app.gstin_lut_no') }}
+        </div>
+        @endif
         <div class="abs invoice-no">{{ $invoice->invoice_no }}</div>
         <div class="abs invoice-date">{{ $invoice->date->format('d/F/Y') }}</div>
 
@@ -53,15 +62,23 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    @if($domain->discount_value > 0)
-                        <p><s>Rs. {{ number_format(($domain->price + $domain->discount_value) / 1.18) }}</s><br/>Rs. {{ number_format($domain->price / 1.18, 2) }}</p>
+                    @if($invoice->client->account?->country == 'India')
+                        @if($domain->discount_value > 0)
+                            <p><s>Rs. {{ number_format(($domain->price + $domain->discount_value) / 1.18) }}</s><br/>Rs. {{ number_format($domain->price / 1.18, 2) }}</p>
+                        @else
+                            <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
+                        @endif
                     @else
-                        <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
+                        <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
                     @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
+                    @if($invoice->client->account?->country == 'India')
+                        <p>Rs. {{ number_format($domain->price / 1.18, 2) }}/-</p>
+                    @else
+                        <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -98,15 +115,23 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    @if($hosting->discount_value > 0)
-                        <p><s>Rs. {{ number_format(($hosting->price + $hosting->discount_value)) }}</s><br/>Rs. {{ number_format($hosting->price / 1.18, 2) }}</p>
+                    @if($invoice->client->account?->country == 'India')
+                        @if($hosting->discount_value > 0)
+                            <p><s>Rs. {{ number_format(($hosting->price + $hosting->discount_value)) }}</s><br/>Rs. {{ number_format($hosting->price / 1.18, 2) }}</p>
+                        @else
+                            <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
+                        @endif
                     @else
-                        <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
+                        <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
                     @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
+                    @if($invoice->client->account?->country == 'India')
+                        <p>Rs. {{ number_format($hosting->price / 1.18, 2) }}/-</p>
+                    @else
+                        <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -133,15 +158,23 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    @if($email->discount_value > 0)
-                        <p><s>Rs. {{ number_format(($email->price + $email->discount_value)) }}</s><br/>Rs. {{ number_format($email->price / 1.18, 2) }}</p>
+                    @if($invoice->client->account?->country == 'India')
+                        @if($email->discount_value > 0)
+                            <p><s>Rs. {{ number_format(($email->price + $email->discount_value)) }}</s><br/>Rs. {{ number_format($email->price / 1.18, 2) }}</p>
+                        @else
+                            <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
+                        @endif
                     @else
-                        <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
+                        <p>Rs. {{ number_format($email->price, 2) }}/-</p>
                     @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
+                    @if($invoice->client->account?->country == 'India')
+                        <p>Rs. {{ number_format($email->price / 1.18, 2) }}/-</p>
+                    @else
+                        <p>Rs. {{ number_format($email->price, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -168,15 +201,23 @@
                 </div>
                 <div class="col price">
                     <p>&nbsp;</p>
-                    @if($extra->discount_value > 0)
-                        <p><s>Rs. {{ number_format(($extra->price + $extra->discount_value)) }}</s><br/>Rs. {{ number_format($extra->price / 1.18, 2) }}</p>
+                    @if($invoice->client->account?->country == 'India')
+                        @if($extra->discount_value > 0)
+                            <p><s>Rs. {{ number_format(($extra->price + $extra->discount_value)) }}</s><br/>Rs. {{ number_format($extra->price / 1.18, 2) }}</p>
+                        @else
+                            <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
+                        @endif
                     @else
-                        <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
+                        <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
                     @endif
                 </div>
                 <div class="col amount">
                     <p>&nbsp;</p>
-                    <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
+                    @if($invoice->client->account?->country == 'India')
+                        <p>Rs. {{ number_format($extra->price / 1.18, 2) }}/-</p>
+                    @else
+                        <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
+                    @endif
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -186,9 +227,14 @@
 
         <div class="abs total">Rs. {{ number_format($invoice->total, 2) }}/-</div>
         @if($totalRows > 0)
-        <div class="abs footnote">Next domain and hosting renewal: {{ $invoice->date->format('F') }}, {{ $invoice->date->format('Y')+1 }}</div>
+        <div class="abs footnote">Next domain and hosting renewal: {{ $invoice->date->format('F') }}, {{ $invoice->date->format('Y')+1 }}
+            @if($invoice->client->account?->country != 'India')
+                <br/>(Export of services without payment of IGST)
+            @endif
+        </div>
         @endif
 
+        @if($invoice->client->account?->country == 'India')
         <div class="abs tax-area">
             <p>
                 @if($invoice->cgst > 0)
@@ -215,6 +261,7 @@
                 @endif
             </p>
         </div>
+        @endif
 
         <div class="abs in-words"><b>Rupees: </b> {{ ucfirst($invoice->inWords()) }}</div>
 
