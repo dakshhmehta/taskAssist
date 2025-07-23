@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'telegram-bot-api' => [
+        'token' => env('TELEGRAM_BOT_TOKEN', 'YOUR BOT TOKEN HERE')
+    ],
+
     'whm' => [
         'romin' => [
             'token' => 'N17USPCRS7G41IQLMLZKC4NA1BPQ13HP',

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Hosting;
 use App\Models\Site;
+use App\Notifications\SiteIsDownNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -39,10 +40,10 @@ class DetectGAInSitesCommand extends Command
                 $response = Http::get($url);
 
                 $this->info('Detecting for ' . $url);
+                $oldIsDown = $site->getMeta('is_down');
 
                 if (!$response->successful()) {
-                    $this->error("Failed to fetch the URL. Status: " . $response->status());
-                    continue;
+                    throw new \Exception("Failed to fetch the URL. Status: " . $response->status());
                 }
 
                 $html = $response->body();
@@ -53,11 +54,20 @@ class DetectGAInSitesCommand extends Command
                 // $this->detectWPVersion($site, $html);
 
                 $site->touch();
+
+                $isDown = $site->getMeta('is_down');
+
+                if ($isDown && $oldIsDown != $isDown) {
+                    $site->notify(new SiteIsDownNotification());
+                }
             } catch (\Exception $e) {
                 $site->setMeta('is_down', true);
                 $site->setMeta('down_remarks', $e->getMessage());
 
+                $site->notify(new SiteIsDownNotification());
+
                 $this->error("Error: " . $e->getMessage());
+
                 continue;
             }
         }
@@ -95,7 +105,7 @@ class DetectGAInSitesCommand extends Command
 
         if ($isDown) {
             $site->setMeta('is_down', true);
-            $site->setMeta('down_remarks', 'Found keyword: '.$detectedKeyword);
+            $site->setMeta('down_remarks', 'Found keyword: ' . $detectedKeyword);
         } else {
             $this->info("No downtime keywords found.");
             $site->setMeta('is_down', false);

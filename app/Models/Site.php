@@ -5,11 +5,19 @@ namespace App\Models;
 use App\Traits\IgnorableTrait;
 use App\Traits\Metable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Site extends Model
 {
+    use Notifiable;
     use Metable, IgnorableTrait;
+
     protected $guarded = [];
+
+    public function routeNotificationForTelegram()
+    {
+        return '-1002752505542'; // Telegram group ID
+    }
 
     public function scopeNoLatestBackup($q)
     {

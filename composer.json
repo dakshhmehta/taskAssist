@@ -9,6 +9,7 @@
         "filament/filament": "^3.2",
         "filament/spatie-laravel-tags-plugin": "^3.2",
         "guzzlehttp/guzzle": "^7.9",
+        "laravel-notification-channels/telegram": "^5.0",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
