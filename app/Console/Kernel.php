@@ -12,11 +12,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:sync-rc')->everyTwoHours();
-        $schedule->command('make:tasks-schedule')->dailyAt('08:00');
-
-        $schedule->command('sites:check-ssl')->dailyAt('09:00');
-        $schedule->command('sites:detect')->everyFiveMinutes();
+	$schedule->command('app:sync-rc')->cron('0 */2 * * *');
+	$schedule->command('make:tasks-schedule')->cron('0 8 * * *');
+	$schedule->command('sites:check-ssl')->cron('0 9 * * *');
+	$schedule->command('sites:detect')->cron('*/5 * * * *');
     }
 
     /**

@@ -31,7 +31,7 @@ class DetectGAInSitesCommand extends Command
     {
         $sites = Site::orderBy('updated_at', 'asc')
             ->excludeIgnored()
-            ->limit(20)
+            ->limit(10)
             ->get();
 
         foreach ($sites as &$site) {
@@ -106,6 +106,8 @@ class DetectGAInSitesCommand extends Command
         if ($isDown) {
             $site->setMeta('is_down', true);
             $site->setMeta('down_remarks', 'Found keyword: ' . $detectedKeyword);
+
+            $site->notify(new SiteIsDownNotification());
         } else {
             $this->info("No downtime keywords found.");
             $site->setMeta('is_down', false);
