@@ -25,6 +25,8 @@ trait Metable {
         }
 
         $this->meta()->updateOrCreate(['key' => $key], ['value' => $value]);
+
+        $this->touch();
     }
 
     /**

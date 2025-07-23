@@ -28,7 +28,9 @@ class DetectGAInSitesCommand extends Command
      */
     public function handle()
     {
-        $sites = Site::orderBy('updated_at', 'asc')->get();
+        $sites = Site::orderBy('updated_at', 'asc')
+            ->limit(20)
+            ->get();
 
         foreach ($sites as &$site) {
             try {
@@ -44,9 +46,16 @@ class DetectGAInSitesCommand extends Command
 
                 $html = $response->body();
 
-                $this->detectGA($site, $html);
-                $this->detectWPVersion($site, $html);
+                $this->checkDowntime($site, $html);
+
+                // $this->detectGA($site, $html);
+                // $this->detectWPVersion($site, $html);
+
+                $site->touch();
             } catch (\Exception $e) {
+                $site->setMeta('is_down', true);
+                $site->setMeta('down_remarks', $e->getMessage());
+
                 $this->error("Error: " . $e->getMessage());
                 continue;
             }
@@ -55,6 +64,44 @@ class DetectGAInSitesCommand extends Command
 
         return 0;
     }
+
+    public function checkDowntime($site, $html)
+    {
+        $downtimeKeywords = [
+            'site is down',
+            'error 500',
+            'unavailable',
+            'not reachable',
+            'bad gateway',
+            '502 bad gateway',
+            '503 service unavailable',
+            'database error',
+            'Error establishing a database connection',
+        ];
+
+        $lowerHtml = strtolower($html);
+        $isDown = false;
+        $detectedKeyword = null;
+
+        foreach ($downtimeKeywords as $keyword) {
+            if (strpos($lowerHtml, strtolower($keyword)) !== false) {
+                $detectedKeyword = $keyword;
+                $this->warn("Downtime keyword detected: '$keyword'");
+                $isDown = true;
+                break;
+            }
+        }
+
+        if ($isDown) {
+            $site->setMeta('is_down', true);
+            $site->setMeta('down_remarks', 'Found keyword: '.$detectedKeyword);
+        } else {
+            $this->info("No downtime keywords found.");
+            $site->setMeta('is_down', false);
+            $site->setMeta('down_remarks', null);
+        }
+    }
+
 
     public function detectWPVersion($site, $html)
     {
