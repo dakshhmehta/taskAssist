@@ -29,6 +29,7 @@ class DetectGAInSitesCommand extends Command
     public function handle()
     {
         $sites = Site::orderBy('updated_at', 'asc')
+            ->excludeIgnored()
             ->limit(20)
             ->get();
 

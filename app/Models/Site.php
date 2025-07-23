@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\IgnorableTrait;
 use App\Traits\Metable;
 use Illuminate\Database\Eloquent\Model;
 
 class Site extends Model
 {
-    use Metable;
+    use Metable, IgnorableTrait;
     protected $guarded = [];
 
     public function scopeNoLatestBackup($q)
