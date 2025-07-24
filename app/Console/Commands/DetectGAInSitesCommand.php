@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Hosting;
 use App\Models\Site;
 use App\Notifications\SiteIsDownNotification;
+use App\Notifications\SiteIsUpNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -72,8 +73,14 @@ class DetectGAInSitesCommand extends Command
 
                 $isDown = $site->getMeta('is_down');
 
-                if ($isDown && $oldIsDown != $isDown) {
-                    $site->notify(new SiteIsDownNotification());
+                if ($oldIsDown !== $isDown) {
+                    if ($isDown) {
+                        // Site just went down
+                        $site->notify(new SiteIsDownNotification());
+                    } else {
+                        // Site just came back up
+                        $site->notify(new SiteIsUpNotification());
+                    }
                 }
 
                 $this->error("Error: " . $e->getMessage());
