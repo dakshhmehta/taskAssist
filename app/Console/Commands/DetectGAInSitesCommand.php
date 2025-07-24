@@ -56,32 +56,12 @@ class DetectGAInSitesCommand extends Command
                 $this->detectGA($site, $html);
                 $this->detectWPVersion($site, $html);
 
-                $isDown = $site->getMeta('is_down');
-
-                if ($oldIsDown !== $isDown) {
-                    if ($isDown) {
-                        // Site just went down
-                        $site->notify(new SiteIsDownNotification());
-                    } else {
-                        // Site just came back up
-                        $site->notify(new SiteIsUpNotification());
-                    }
-                }
+                $this->notifyTelegram($site, $oldIsDown);
             } catch (\Exception $e) {
                 $site->setMeta('is_down', true);
                 $site->setMeta('down_remarks', $e->getMessage());
 
-                $isDown = $site->getMeta('is_down');
-
-                if ($oldIsDown !== $isDown) {
-                    if ($isDown) {
-                        // Site just went down
-                        $site->notify(new SiteIsDownNotification());
-                    } else {
-                        // Site just came back up
-                        $site->notify(new SiteIsUpNotification());
-                    }
-                }
+                $this->notifyTelegram($site, $oldIsDown);
 
                 $this->error("Error: " . $e->getMessage());
 
@@ -91,6 +71,21 @@ class DetectGAInSitesCommand extends Command
 
 
         return 0;
+    }
+
+    public function notifyTelegram(Site $site, $oldIsDown)
+    {
+        $isDown = $site->getMeta('is_down');
+
+        if ($oldIsDown !== $isDown) {
+            if ($isDown) {
+                // Site just went down
+                $site->notify(new SiteIsDownNotification());
+            } else {
+                // Site just came back up
+                $site->notify(new SiteIsUpNotification());
+            }
+        }
     }
 
     public function checkDowntime($site, $html)
