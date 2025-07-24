@@ -42,6 +42,8 @@ class DetectGAInSitesCommand extends Command
                 $this->info('Detecting for ' . $url);
                 $oldIsDown = $site->getMeta('is_down');
 
+                $site->touch();
+
                 if (!$response->successful()) {
                     throw new \Exception("Failed to fetch the URL. Status: " . $response->status());
                 }
@@ -50,21 +52,29 @@ class DetectGAInSitesCommand extends Command
 
                 $this->checkDowntime($site, $html);
 
-                // $this->detectGA($site, $html);
-                // $this->detectWPVersion($site, $html);
+                $this->detectGA($site, $html);
+                $this->detectWPVersion($site, $html);
 
-                $site->touch();
+                $isDown = $site->getMeta('is_down');
+
+                if ($oldIsDown !== $isDown) {
+                    if ($isDown) {
+                        // Site just went down
+                        $site->notify(new SiteIsDownNotification());
+                    } else {
+                        // Site just came back up
+                        $site->notify(new SiteIsUpNotification());
+                    }
+                }
+            } catch (\Exception $e) {
+                $site->setMeta('is_down', true);
+                $site->setMeta('down_remarks', $e->getMessage());
 
                 $isDown = $site->getMeta('is_down');
 
                 if ($isDown && $oldIsDown != $isDown) {
                     $site->notify(new SiteIsDownNotification());
                 }
-            } catch (\Exception $e) {
-                $site->setMeta('is_down', true);
-                $site->setMeta('down_remarks', $e->getMessage());
-
-                $site->notify(new SiteIsDownNotification());
 
                 $this->error("Error: " . $e->getMessage());
 
