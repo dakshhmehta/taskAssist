@@ -99,6 +99,7 @@ class DetectGAInSitesCommand extends Command
             '502 bad gateway',
             '503 service unavailable',
             'database error',
+            'This Account has been suspended',
             'Error establishing a database connection',
         ];
 
