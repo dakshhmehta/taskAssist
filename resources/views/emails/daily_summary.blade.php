@@ -1,7 +1,7 @@
 @component('mail::message')
 # Hello {{ $user->name }},
 
-Here is your task summary for today ({{ now()->format('d M, Y') }}):
+Here is your task summary for today ({{ $date->format('d M, Y') }}):
 
 ---
 
@@ -52,7 +52,7 @@ Here is your task summary for today ({{ now()->format('d M, Y') }}):
         @foreach($completedTasks as $j => $task)
         <tr>
             <td style="text-align: center; padding: 6px 0;">{{ $j+1 }}</td>
-            <td style="padding: 6px 0;">{{ $task->display_title }}<br/>
+            <td style="padding: 6px 0;">{{ $task->display_title }}<br />
                 <i>{!! $task->lastComment()?->comment ?? 'No comment' !!}</i>
             </td>
             <td style="text-align: center;">{{ $task->estimate_label ?? 'N/A' }}</td>

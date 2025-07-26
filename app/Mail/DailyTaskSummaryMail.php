@@ -3,20 +3,18 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class DailyTaskSummaryMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user, $createdTasks, $completedTasks;
+    public $user, $createdTasks, $completedTasks, $date;
 
-    public function __construct($user, $createdTasks, $completedTasks)
+    public function __construct($date, $user, $createdTasks, $completedTasks)
     {
+        $this->date = $date;
         $this->user = $user;
         $this->createdTasks = $createdTasks;
         $this->completedTasks = $completedTasks;
@@ -24,7 +22,7 @@ class DailyTaskSummaryMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Your Task Summary for Today - '.now()->format('d-m-Y'))
+        return $this->subject('Your Task Summary for Today - ' . $this->date->format('d-m-Y'))
             ->markdown('emails.daily_summary');
     }
 }

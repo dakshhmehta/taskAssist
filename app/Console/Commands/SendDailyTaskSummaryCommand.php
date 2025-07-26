@@ -35,13 +35,9 @@ class SendDailyTaskSummaryCommand extends Command
             $createdTasks = $user->tasks()->whereDate('created_at', $today)->get();
             $completedTasks = $user->tasks()->whereDate('completed_at', $today)->get();
 
-            if ($createdTasks->isEmpty() && $completedTasks->isEmpty()) {
-                continue;
-            }
-
             Mail::to($user->email)
                 ->cc('admin@romininteractive.com')
-                ->send(new DailyTaskSummaryMail($user, $createdTasks, $completedTasks));
+                ->send(new DailyTaskSummaryMail($today, $user, $createdTasks, $completedTasks));
 
             $this->info("Sent daily summary to: " . $user->email);
         }
