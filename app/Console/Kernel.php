@@ -12,10 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-	$schedule->command('app:sync-rc')->cron('0 */2 * * *');
-	$schedule->command('make:tasks-schedule')->cron('0 8 * * *');
-	$schedule->command('sites:check-ssl')->cron('0 9 * * *');
-	$schedule->command('sites:detect')->cron('*/5 * * * *');
+        $schedule->command('app:sync-rc')->cron('0 */2 * * *');
+        $schedule->command('make:tasks-schedule')->cron('0 8 * * *');
+        $schedule->command('sites:check-ssl')->cron('0 9 * * *');
+        $schedule->command('sites:detect')->cron('*/5 * * * *');
+        $schedule->command('tasks:send-daily-summary')->cron('30 19 * * *');
     }
 
     /**
@@ -23,7 +24,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
