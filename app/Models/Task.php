@@ -47,6 +47,10 @@ class Task extends Model implements HasMedia
         return $this->belongsTo(User::class, 'assignee_id');
     }
 
+    public function lastComment(){
+        return $this->filamentComments()->latest()->first();
+    }
+
     public function canStartWork($userId)
     {
         return ((!$this->isTimeStarted($userId)) && // Timer is not started
