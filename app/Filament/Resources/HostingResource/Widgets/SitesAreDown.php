@@ -25,7 +25,7 @@ class SitesAreDown extends BaseWidget
                     ->label('Check Site')
                     ->icon('heroicon-o-arrow-path')
                     ->color('primary')
-                    ->requiresConfirmation()
+                    // ->requiresConfirmation()
                     ->action(function (Site $site): void {
                         DetectSiteJob::dispatch($site);
                     }),
@@ -36,6 +36,7 @@ class SitesAreDown extends BaseWidget
                     ->visible(fn(Site $domain) => !$domain->isIgnored())
                     ->color('danger'),
             ])
+            ->recordUrl(fn(Site $site) => $site->domain)
             ->columns([
                 TextColumn::make('index')
                     ->label('#')
