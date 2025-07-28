@@ -25,9 +25,9 @@ class SiteHealthDashboard extends Page
             WpSitesMissingBackup::make(),
             WpSitesOutdatedVersion::make(),
             SitesHavingSSLIssueWidget::make(),
+            SitesAreDown::make(),
             SitesMissingGoogleAnalytics::make(),
             UpcomingDomainRenewals::make(),
-            SitesAreDown::make(),
         ];
     }
 
