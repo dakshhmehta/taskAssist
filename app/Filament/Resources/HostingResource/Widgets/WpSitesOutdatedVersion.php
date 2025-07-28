@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\HostingResource\Widgets;
 
+use App\Jobs\DetectSiteJob;
 use App\Models\Site;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -14,7 +16,7 @@ class WpSitesOutdatedVersion extends BaseWidget
     public function table(Table $table): Table
     {
         $sites = [];
-        $_sites = Site::all();
+        $_sites = Site::excludeIgnored()->get();
 
         foreach ($_sites as &$site) {
             $version = $site->getMeta('wp_version', 0);
@@ -29,6 +31,16 @@ class WpSitesOutdatedVersion extends BaseWidget
             ->query(
                 Site::whereIn('id', $sites)
             )
+            ->actions([
+                Action::make('checkNow')
+                    ->label('Check Site')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('primary')
+                    // ->requiresConfirmation()
+                    ->action(function (Site $site): void {
+                        DetectSiteJobb::dispatch($site);
+                    })
+            ])
             ->columns([
                 TextColumn::make('index')
                     ->label('#')

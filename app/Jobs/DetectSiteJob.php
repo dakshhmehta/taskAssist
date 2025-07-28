@@ -93,6 +93,7 @@ class DetectSiteJob implements ShouldQueue
     protected function detectWPVersion($site, $html)
     {
         if (preg_match('/<meta\s+name=["\']generator["\']\s+content=["\']WordPress\s+([\d.]+)["\']\s*\/?>/i', $html, $matches)) {
+            dd($matches);
             $site->setMeta('wp_version', $matches[1]);
         } else {
             $site->setMeta('wp_version', null);
