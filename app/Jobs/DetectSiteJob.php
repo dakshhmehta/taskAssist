@@ -64,7 +64,7 @@ class DetectSiteJob implements ShouldQueue
     protected function checkDowntime($site, $html)
     {
         $keywords = [
-            'site is down', 'error 500', 'unavailable', 'not reachable',
+            'site is down', 'error 500', 'not reachable',
             'bad gateway', '502 bad gateway', '503 service unavailable',
             'database error', 'This Account has been suspended',
             'Error establishing a database connection',
