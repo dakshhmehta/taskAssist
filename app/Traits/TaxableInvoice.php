@@ -32,6 +32,7 @@ trait TaxableInvoice
         // Clone the base invoice
         $taxInvoice = $this->replicate();
         $taxInvoice->invoice_no = Invoice::nextInvoiceNumber('SI-');
+        $taxInvoice->date = now();
         $taxInvoice->created_at = now();
         $taxInvoice->updated_at = now();
         $taxInvoice->proforma_invoice_id = $this->id;
@@ -50,7 +51,7 @@ trait TaxableInvoice
         foreach ($this->extras as $extra) {
             $extraItem = $extra->replicate();
             $extraItem->invoice_id = $taxInvoice->id;
-            $newItem->proforma_invoice_id = $this->id;
+            $extraItem->proforma_invoice_id = $this->id;
 
             $extraItem->save();
         }

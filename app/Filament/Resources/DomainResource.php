@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\DomainInvoicesRelationManagerResource\RelationManagers\DomainResourceRelationManager;
 use App\Filament\Resources\DomainResource\Pages;
 use App\Models\Domain;
 use Filament\Forms\Form;
@@ -106,7 +107,7 @@ class DomainResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DomainResourceRelationManager::class,
         ];
     }
 
