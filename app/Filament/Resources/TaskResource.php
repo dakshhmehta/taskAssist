@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaskResource\Pages;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Forms;
@@ -166,7 +167,24 @@ class TaskResource extends Resource
                         true: fn(Builder $query) => $query->whereNotNull('estimate'),
                         false: fn(Builder $query) => $query->whereNull('estimate'),
                         blank: fn(Builder $query) => $query,
+                    ),
+                SelectFilter::make('tags')
+                    ->label('Tags')
+                    ->multiple() // allow selecting multiple tags
+                    ->options(
+                        Tag::all()
+                            ->mapWithKeys(function ($tag) {
+                                $tagLabel = $tag->getTranslation('name', 'en');
+                                return [$tagLabel => $tagLabel];
+                            })
+                            ->toArray()
                     )
+                    ->query(function ($query, array $data) {
+                        if (! empty($data['values'])) {
+                            $tags = $data['values'];
+                            $query->withAnyTags($tags); // specify locale
+                        }
+                    }), // uses the relation + field
 
             ])
             ->actions([

@@ -20,6 +20,6 @@ class Account extends Model
     }
 
     public function getDropdownNameAttribute(){
-        return $this->name . ' (' . $this->balanceFormatted . ')';
+        return $this->billing_name .' ('.$this->name.')'. ' (' . $this->balanceFormatted . ')';
     }
 }
