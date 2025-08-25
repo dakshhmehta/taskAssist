@@ -79,8 +79,6 @@ class ScheduleTasksForUser implements ShouldQueue
             ->where('due_date', $date->format('Y-m-d'))
             ->sum('estimate');
 
-        $blockedTime = $user->work_hours * 60;
-
         $dailyLimit -= $blockedTime;
 
         if ($date->isWeekend() || Holiday::isHoliday($date) || $user->isOnLeave($date)) {
@@ -113,9 +111,6 @@ class ScheduleTasksForUser implements ShouldQueue
                         ->where('assignee_id', $this->userId)
                         ->where('due_date', $date->format('Y-m-d'))
                         ->sum('estimate');
-
-                    $blockedTime = $user->work_hours * 60;
-
 
                     $dailyLimit = $user->work_hours * 60;
                     $dailyLimit -= $blockedTime;
