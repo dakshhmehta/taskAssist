@@ -76,10 +76,11 @@ class ScheduleTasksForUser implements ShouldQueue
             ->where('auto_schedule', false) // Auto schedule
             ->whereNotNull('estimate') // Has estimate time
             ->where('assignee_id', $this->userId)
+            ->where('date', $date->format('Y-m-d'))
             ->sum('estimate');
 
         $blockedTime = $user->work_hours * 60;
-        
+
         $dailyLimit -= $blockedTime;
 
         if ($date->isWeekend() || Holiday::isHoliday($date) || $user->isOnLeave($date)) {
@@ -104,7 +105,20 @@ class ScheduleTasksForUser implements ShouldQueue
                 if ($dailyLimit == 0) {
                     \Log::debug('Switch to next day');
 
+                    // Exclude task hours for the period that are fixed
+                    $blockedTime = Task::orderBy('id', 'ASC')
+                        ->whereNull('completed_at') // Incomplete
+                        ->where('auto_schedule', false) // Auto schedule
+                        ->whereNotNull('estimate') // Has estimate time
+                        ->where('assignee_id', $this->userId)
+                        ->where('date', $date->format('Y-m-d'))
+                        ->sum('estimate');
+
+                    $blockedTime = $user->work_hours * 60;
+
+
                     $dailyLimit = $user->work_hours * 60;
+                    $dailyLimit -= $blockedTime;
 
                     do {
                         $date = $date->addDay();
