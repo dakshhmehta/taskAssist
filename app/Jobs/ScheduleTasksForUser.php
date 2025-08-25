@@ -76,7 +76,7 @@ class ScheduleTasksForUser implements ShouldQueue
             ->where('auto_schedule', false) // Auto schedule
             ->whereNotNull('estimate') // Has estimate time
             ->where('assignee_id', $this->userId)
-            ->where('date', $date->format('Y-m-d'))
+            ->where('due_date', $date->format('Y-m-d'))
             ->sum('estimate');
 
         $blockedTime = $user->work_hours * 60;
@@ -111,7 +111,7 @@ class ScheduleTasksForUser implements ShouldQueue
                         ->where('auto_schedule', false) // Auto schedule
                         ->whereNotNull('estimate') // Has estimate time
                         ->where('assignee_id', $this->userId)
-                        ->where('date', $date->format('Y-m-d'))
+                        ->where('due_date', $date->format('Y-m-d'))
                         ->sum('estimate');
 
                     $blockedTime = $user->work_hours * 60;
