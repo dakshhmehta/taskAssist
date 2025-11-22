@@ -34,6 +34,8 @@ class User extends Authenticatable
         'salary',
 
         'salary_type',
+
+        'biometric_id',
     ];
 
     /**
@@ -138,6 +140,10 @@ class User extends Authenticatable
     public function getStarsAttribute()
     {
         return (int) $this->balance(['star']);
+    }
+
+    public function checkIns(){
+        return $this->hasMany(UserCheckIn::class);
     }
 
     public function stars($since)

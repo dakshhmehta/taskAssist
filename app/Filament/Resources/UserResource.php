@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\Pages\AttendanceReportPage;
 use App\Filament\Resources\UserResource\Pages\UserLeaveLedger;
 use App\Models\User;
 use Filament\Forms;
@@ -46,6 +47,8 @@ class UserResource extends Resource
                     ->label('Working Hours / Day')
                     ->rules(['numeric', 'integer', 'gte:1'])
                     ->required(),
+                TextInput::make('biometric_id')
+                    ->required(),
             ]);
     }
 
@@ -67,6 +70,7 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->dateTime()
+                    ->toggleable(true, true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -106,7 +110,11 @@ class UserResource extends Resource
                 Action::make('leave-ledger')
                     ->label('Leave Ledger')
                     ->color('info')
-                    ->url(fn($record) => UserResource::getUrl('leave-ledger', ['record' => $record]))
+                    ->url(fn($record) => UserResource::getUrl('leave-ledger', ['record' => $record])),
+                Action::make('attendance-report')
+                    ->label('Attendance Report')
+                    ->color('info')
+                    ->url(fn($record) => UserResource::getUrl('attendance-report', ['record' => $record]))
                 // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
                 //     ->color('info')
             ])
@@ -132,6 +140,7 @@ class UserResource extends Resource
             'edit' => Pages\EditUser::route('/{record}/edit'),
             'view' => Pages\ViewUser::route('/{record}'),
             'leave-ledger' => UserLeaveLedger::route('/{record}/leave-ledger'),
+            'attendance-report' => AttendanceReportPage::route('/{record}/attendance-report'),
         ];
     }
 }
