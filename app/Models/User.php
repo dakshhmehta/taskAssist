@@ -176,7 +176,7 @@ class User extends Authenticatable
     public function performanceThisWeekTimeBased($offset = 0)
     {
         $timeWorked = $this->timeWorkedThisWeek($offset);
-        $expectedWorkingHrs = $this->work_hours * 5;
+        $expectedWorkingHrs = $this->work_hours * 5 * 60;
 
         $performance = (float) sprintf("%.2f", (($timeWorked / $expectedWorkingHrs) * 10));
 
