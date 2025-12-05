@@ -63,4 +63,12 @@ class TagPolicy
     {
         return $user->is_admin;
     }
+
+    /**
+     * Determine whether the user can view cost information.
+     */
+    public function viewCost(User $user): bool
+    {
+        return $user->is_admin;
+    }
 }

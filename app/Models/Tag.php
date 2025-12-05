@@ -9,6 +9,7 @@ use Spatie\Tags\Tag as BaseTag;
 
 class Tag extends BaseTag
 {
+    protected $fillable = ['name', 'slug', 'type', 'order_column', 'cost'];
     public function tasks()
     {
         return $this->morphedByMany(Task::class, 'taggable');
@@ -69,5 +70,10 @@ class Tag extends BaseTag
 
         // \Log::debug([count($performances)]);
         return sprintf("%.2f", array_sum($performances) / count($performances));
+    }
+
+    public function getHourlyCostAttribute()
+    {
+        return $this->cost ?: config('settings.company_hourly_rate');
     }
 }

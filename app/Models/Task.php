@@ -216,7 +216,10 @@ class Task extends Model implements HasMedia
 
     public function getCostAttribute()
     {
-        $cost = ($this->minutes_taken  * config('settings.company_hourly_rate')) / 60;
+        $tag = $this->tags()->first();
+        $hourlyRate = $tag ? $tag->hourly_cost : config('settings.company_hourly_rate');
+        
+        $cost = ($this->minutes_taken * $hourlyRate) / 60;
 
         return sprintf("%.2f", $cost);
     }
