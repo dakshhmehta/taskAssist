@@ -78,7 +78,7 @@ $rowCount = 1;
                 </tr>
                 @if($hosting->line_description)
                 <tr>
-                    <th>Description:</th>
+                    <th></th>
                     <td>{!! $hosting->line_description !!}</td>
                 </tr>
                 @endif
@@ -119,7 +119,7 @@ $rowCount = 1;
                 </tr>
                 @if($email->line_description)
                 <tr>
-                    <th>Description:</th>
+                    <th></th>
                     <td>{!! $email->line_description !!}</td>
                 </tr>
                 @endif
