@@ -86,6 +86,8 @@ class InvoiceResource extends Resource
                                 return [];
                             })
                             ->required(),
+                        Forms\Components\RichEditor::make('line_description')
+                            ->label('Description'),
                         Forms\Components\TextInput::make('price')
                             ->label('Price')
                             ->numeric()

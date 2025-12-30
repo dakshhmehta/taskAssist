@@ -9,7 +9,7 @@ class InvoiceItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['invoice_id', 'itemable_id', 'itemable_type', 'price', 'discount_value', 'proforma_invoice_id'];
+    protected $fillable = ['invoice_id', 'itemable_id', 'itemable_type', 'price', 'discount_value', 'proforma_invoice_id', 'line_description'];
 
     public function itemable()
     {

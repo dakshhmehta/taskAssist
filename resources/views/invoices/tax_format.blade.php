@@ -55,6 +55,9 @@
                     <p><b>DOMAIN:</b></p>
                     <p>{{ $domain->itemable->tld }}</p>
                     <p><b>HSN/SAC:</b> 998315</p>
+                    @if($domain->line_description)
+                    <p>{!! $domain->line_description !!}</p>
+                    @endif
                 </div>
                 <div class="col duration">
                     <p>&nbsp;</p>
@@ -106,6 +109,12 @@
                             <th>Emails:</th>
                             <td>{{ (($hosting->itemable->package->emails == -1) ? 'unlimited' :  $hosting->itemable->package->emails) }}</td>
                         </tr>
+                        @if($hosting->line_description)
+                        <tr>
+                            <th>Description:</th>
+                            <td>{!! $hosting->line_description !!}</td>
+                        </tr>
+                        @endif
                     </table>
                     @endif
                 </div>
@@ -150,6 +159,12 @@
                             <th style="padding-right: 50px;">Email Accounts:</th>
                             <td>{{ $email->itemable->accounts_count }}</td>
                         </tr>
+                        @if($email->line_description)
+                        <tr>
+                            <th>Description:</th>
+                            <td>{!! $email->line_description !!}</td>
+                        </tr>
+                        @endif
                     </table>
                 </div>
                 <div class="col duration">
