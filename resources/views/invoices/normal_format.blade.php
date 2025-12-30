@@ -78,8 +78,7 @@ $rowCount = 1;
                 </tr>
                 @if($hosting->line_description)
                 <tr>
-                    <th></th>
-                    <td>{!! $hosting->line_description !!}</td>
+                    <td colspan="2">{!! $hosting->line_description !!}</td>
                 </tr>
                 @endif
             </table>
@@ -119,8 +118,7 @@ $rowCount = 1;
                 </tr>
                 @if($email->line_description)
                 <tr>
-                    <th></th>
-                    <td>{!! $email->line_description !!}</td>
+                    <td colspan="2">{!! $email->line_description !!}</td>
                 </tr>
                 @endif
             </table>
