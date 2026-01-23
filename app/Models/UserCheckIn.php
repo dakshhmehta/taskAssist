@@ -13,6 +13,10 @@ class UserCheckIn extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'punch_at' => 'datetime',
+    ];
+
     public function user(){
         return $this->belongsTo(User::class);
     }

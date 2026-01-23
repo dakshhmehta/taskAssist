@@ -35,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->profile(isSimple: false)
             ->databaseNotifications()
-            ->databaseNotificationsPolling('60s')
+            ->databaseNotificationsPolling('180s')
             ->colors([
                 'primary' => Color::Yellow,
             ])
@@ -73,10 +73,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationItems([
                 \Filament\Navigation\NavigationItem::make('Add Task') // TODO: Implement user policy validation to hide if dont have access to create task
-                ->sort(5)
-                ->group('Tasks')
-                ->url('/admin/tasks/create') // The URL you want the link to go to
-                ->icon('heroicon-o-plus'),    // Optionally, add an icon
-            ]);
+                    ->sort(5)
+                    ->group('Tasks')
+                    ->url('/admin/tasks/create') // The URL you want the link to go to
+                    ->icon('heroicon-o-plus'),    // Optionally, add an icon
+                \Filament\Navigation\NavigationItem::make('My CheckIns') // TODO: Implement user policy validation to hide if dont have access to create task
+                    ->sort(5)
+                    ->group('Team')
+                    ->url(fn() => route('filament.admin.resources.users.attendance-report', auth()->user()->id)) // The URL you want the link to go to
+                    ->icon('heroicon-o-plus'),
+            ],
+            );
     }
 }
