@@ -24,19 +24,19 @@ class TasksCount extends BaseWidget
             ->whereDate('completed_at', '<=', $this->filterData['endDate'])
             ->count();
 
-        $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
-        ->whereNotNull('start_at')
-        ->whereNotNull('end_at')
-        ->where('end_at', '>=', $this->filterData['startDate'])
-        ->where('end_at', '<=', $this->filterData['endDate'])
-        ->where('user_id', $this->user->id)
-        ->groupBy('user_id')
-        ->first();
+        // $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
+        // ->whereNotNull('start_at')
+        // ->whereNotNull('end_at')
+        // ->where('end_at', '>=', $this->filterData['startDate'])
+        // ->where('end_at', '<=', $this->filterData['endDate'])
+        // ->where('user_id', $this->user->id)
+        // ->groupBy('user_id')
+        // ->first();
 
         return [
             new Stat('Tasks Assigned', $assignedCount),
             new Stat('Tasks Completed', $completedCount),
-            new Stat('Time Worked', $timeWorked ? Timesheet::toHMS($timeWorked->time) : 0) // Display time worked)
+            // new Stat('Time Worked', $timeWorked ? Timesheet::toHMS($timeWorked->time) : 0) // Display time worked)
         ];
     }
 }

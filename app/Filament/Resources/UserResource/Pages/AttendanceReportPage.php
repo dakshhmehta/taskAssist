@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
+use App\Models\User;
 use App\Models\UserCheckIn;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
@@ -41,25 +43,38 @@ class AttendanceReportPage extends ViewRecord implements HasTable
 
     public function getHeaderActions(): array
     {
+        $isAdmin = Auth::user()->is_admin;
+        
         return [
             Action::make('check_in')
                 ->label('Check In')
                 ->form([
+                    Select::make('user_id')
+                        ->label('User')
+                        ->options(User::all()->pluck('name', 'id'))
+                        ->default($this->record->id)
+                        ->required()
+                        ->visible($isAdmin),
                     Select::make('type')
                         ->options([
                             'IN' => 'In',
                             'OUT' => 'Out',
                         ])
                         ->required(),
+                    DateTimePicker::make('punch_at')
+                        ->label('Date & Time')
+                        ->default(now())
+                        ->required()
+                        ->visible($isAdmin),
                 ])
                 ->action(function (array $data): void {
                     $latitude = request()->input('latitude');
                     $longitude = request()->input('longitude');
 
                     UserCheckIn::create([
-                        'user_id' => $this->record->id,
+                        'user_id' => $data['user_id'] ?? $this->record->id,
                         'type' => $data['type'],
-                        'punch_at' => now(),
+                        'punch_at' => $data['punch_at'] ?? now(),
                         'latitude' => $latitude,
                         'longitude' => $longitude,
                     ]);
@@ -69,7 +84,7 @@ class AttendanceReportPage extends ViewRecord implements HasTable
                         ->title('Check-in recorded successfully')
                         ->send();
                 })
-                ->extraAttributes([
+                ->extraAttributes($isAdmin ? [] : [
                     'x-data' => '{ 
                         officeLatitude: 23.2432096, 
                         officeLongitude: 69.6678079, 
@@ -150,6 +165,7 @@ class AttendanceReportPage extends ViewRecord implements HasTable
                               WHERE b.user_id = user_checkins.user_id 
                                 AND b.type = "OUT" 
                                 AND b.punch_at > user_checkins.punch_at 
+                                AND DATE(b.punch_at) = DATE(user_checkins.punch_at)
                               ORDER BY b.punch_at ASC 
                               LIMIT 1) as check_out')
                 )
@@ -167,6 +183,52 @@ class AttendanceReportPage extends ViewRecord implements HasTable
                             ? now()->parse($record->check_in)->diffAsCarbonInterval($record->check_out)->cascade()->forHumans()
                             : 'N/A'
                     ),
+                TextColumn::make('actual_work')
+                    ->label('Actual Work Time')
+                    ->getStateUsing(function ($record) {
+                        $endTime = $record->check_out ? $record->check_out : now();
+                        
+                        $timesheets = \App\Models\Timesheet::where('user_id', $record->user_id)
+                            ->whereNotNull('end_at')
+                            ->where('start_at', '>=', $record->check_in)
+                            ->where('end_at', '<=', $endTime)
+                            ->get();
+                        
+                        $totalMinutes = 0;
+                        foreach ($timesheets as $timesheet) {
+                            $totalMinutes += $timesheet->end_at->diffInMinutes($timesheet->start_at);
+                        }
+                        
+                        return \App\Models\Timesheet::toHMS($totalMinutes);
+                    }),
+                TextColumn::make('productivity')
+                    ->label('Productivity %')
+                    ->getStateUsing(function ($record) {
+                        if (!$record->check_out) {
+                            return 'N/A';
+                        }
+                        
+                        $totalCheckInMinutes = now()->parse($record->check_in)->diffInMinutes($record->check_out);
+                        
+                        if ($totalCheckInMinutes == 0) {
+                            return '0%';
+                        }
+                        
+                        $timesheets = \App\Models\Timesheet::where('user_id', $record->user_id)
+                            ->whereNotNull('end_at')
+                            ->where('start_at', '>=', $record->check_in)
+                            ->where('end_at', '<=', $record->check_out)
+                            ->get();
+                        
+                        $totalWorkMinutes = 0;
+                        foreach ($timesheets as $timesheet) {
+                            $totalWorkMinutes += $timesheet->end_at->diffInMinutes($timesheet->start_at);
+                        }
+                        
+                        $productivity = ($totalWorkMinutes / $totalCheckInMinutes) * 100;
+                        
+                        return number_format($productivity, 2) . '%';
+                    }),
             ]);
     }
 }

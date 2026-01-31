@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
+use App\Filament\Resources\UserResource\Widgets\AttendanceStats;
 use App\Filament\Resources\UserResource\Widgets\SalaryDetails;
 use App\Filament\Resources\UserResource\Widgets\TasksCount;
 use App\Filament\Resources\UserResource\Widgets\UserTasksTable;
@@ -55,6 +56,7 @@ class ViewUser extends Page
         $data = ['user' => $this->record, 'filterData' => $this->filters];
         return [
             TasksCount::make($data),
+            AttendanceStats::make($data),
             SalaryDetails::make($data),
             UserTaskUtilization::make($data),
             UserTasksTable::make($data),
