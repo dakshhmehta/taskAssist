@@ -77,10 +77,10 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Tasks')
                     ->url('/admin/tasks/create') // The URL you want the link to go to
                     ->icon('heroicon-o-plus'),    // Optionally, add an icon
-                \Filament\Navigation\NavigationItem::make('My CheckIns') // TODO: Implement user policy validation to hide if dont have access to create task
+                \Filament\Navigation\NavigationItem::make('My Profile') // TODO: Implement user policy validation to hide if dont have access to create task
                     ->sort(5)
                     ->group('Team')
-                    ->url(fn() => route('filament.admin.resources.users.attendance-report', auth()->user()->id)) // The URL you want the link to go to
+                    ->url(fn() => route('filament.admin.resources.users.view', auth()->user()->id)) // The URL you want the link to go to
                     ->icon('heroicon-o-plus'),
             ],
             );

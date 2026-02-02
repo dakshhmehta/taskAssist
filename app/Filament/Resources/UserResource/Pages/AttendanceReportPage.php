@@ -47,6 +47,7 @@ class AttendanceReportPage extends ViewRecord implements HasTable
         
         return [
             Action::make('check_in')
+                ->visible($isAdmin)
                 ->label('Check In')
                 ->form([
                     Select::make('user_id')

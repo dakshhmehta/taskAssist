@@ -31,6 +31,19 @@ class ViewUser extends Page
         $this->record = $this->resolveRecord($record);
     }
 
+    public static function canAccess(array $parameters = []): bool
+    {
+        $user = $parameters['record'];
+        $currentUser = auth()->user();
+
+        if($currentUser->is_admin || $currentUser->id == $user->id){
+            return true;
+        }
+
+        return false;
+    }
+
+
     public function getTitle(): string|Htmlable
     {
         return $this->record->name.' Details';

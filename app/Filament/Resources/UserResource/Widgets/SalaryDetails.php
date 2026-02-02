@@ -29,8 +29,7 @@ class SalaryDetails extends BaseWidget
         // TODO: Allowed leavs formula to change?
         $allowedLeaves = config('settings.monthly_allowed_leaves');
 
-        $widgets[] = (new Stat('Leaves', $leavesCount))
-            ->description($allowedLeaves . ' monthly leave allowed. This includes CL/SL both');
+        $widgets[] = (new Stat('Sick Leaves', $leavesCount));
         
         $userSalary = $this->user->salary;
 
@@ -57,8 +56,10 @@ class SalaryDetails extends BaseWidget
 
             $effectiveHourlyRate = sprintf("%.2f", $payableSalary / ($timeWorked->time / 60));
 
-            $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $payableSalary)))
-                ->description("Total Salary = ".$userSalary.", Eff. Hourly Rate = ".$effectiveHourlyRate);
+            if(auth()->user()->is_admin){
+                $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $payableSalary)))
+                    ->description("Total Salary = ".$userSalary.", Eff. Hourly Rate = ".$effectiveHourlyRate);
+            }
         } else {
             $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
                 ->whereNotNull('start_at')
