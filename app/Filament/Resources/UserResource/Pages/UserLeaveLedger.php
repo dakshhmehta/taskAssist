@@ -34,6 +34,7 @@ class UserLeaveLedger extends ViewRecord
         return [
             Action::make('adjust_balance')
                 ->label('Adjust Leave Balance')
+                ->visible(Auth::user()->is_admin)
                 ->form([
                     DatePicker::make('date')
                         ->required()

@@ -62,7 +62,7 @@ class UserResource extends Resource
 
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('performance'),
+                // TextColumn::make('performance'),
                 TextColumn::make('stars'),
                 TextColumn::make('work_hours')
                     ->label('Working Hours'),

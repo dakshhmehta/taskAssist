@@ -81,6 +81,7 @@ class User extends Authenticatable
         $tasks = $this->tasks()
             ->where('assignee_id', $this->id)
             ->whereNotNull('estimate')
+            ->with('timesheet')
             ->whereNotNull('completed_at')
             ->where('due_date', '<=', now()->endOfDay())
             ->get();
