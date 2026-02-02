@@ -55,10 +55,15 @@ class UserLeaveResource extends Resource
                     ->required(),
                 Forms\Components\DatePicker::make('from_date')
                     ->displayFormat(config('app.date_format'))
+                    ->reactive()
                     ->required(),
                 Forms\Components\DatePicker::make('to_date')
                     ->displayFormat(config('app.date_format'))
+                    ->reactive()
                     ->required(),
+                Forms\Components\Checkbox::make('half_day')
+                    ->label('Half Day')
+                    ->visible(fn(Get $get) => $get('from_date') === $get('to_date') && $get('from_date') !== null),
                 Select::make('code')
                     ->options(function (Get $get) {
                         $leaveTypes = config('leave_types');

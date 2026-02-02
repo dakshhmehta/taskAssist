@@ -34,7 +34,8 @@ class UserLeave extends Model
             $leave->transactions()->delete();
 
             if ($leave->status == 'APPROVED' and $leave->code == 'CL') {
-                $txn = $leave->user->debit($leave->leave_days, $leave->from_date, 'Leave application accepted from ' . $leave->from_date->format('d-m-Y') . ' to ' . $leave->to_date->format('d-m-Y'));
+                $days = $leave->half_day ? 0.5 : $leave->leave_days;
+                $txn = $leave->user->debit($days, $leave->from_date, 'Leave application accepted from ' . $leave->from_date->format('d-m-Y') . ' to ' . $leave->to_date->format('d-m-Y') . ($leave->half_day ? ' (Half Day)' : ''));
                 $txn->changeType('cl');
                 $txn->associate($leave);
             }
@@ -43,6 +44,10 @@ class UserLeave extends Model
 
     public function getLeaveDaysAttribute()
     {
+        if ($this->half_day) {
+            return 0.5;
+        }
+        
         return $this->to_date->diffInDays($this->from_date) + 1;
     }
 
