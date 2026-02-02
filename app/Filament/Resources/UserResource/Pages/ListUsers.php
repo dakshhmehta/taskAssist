@@ -43,8 +43,6 @@ class ListUsers extends ListRecords
                         ->directory('uploads/logs')
                         ->acceptedFileTypes([
                             'text/csv',
-                            'application/vnd.ms-excel',
-                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                         ]),
                 ])
                 ->action(function (array $data) {
