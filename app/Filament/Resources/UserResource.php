@@ -17,6 +17,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class UserResource extends Resource
 {
@@ -102,6 +103,7 @@ class UserResource extends Resource
                                     ->required(),
                             ])
                     ])
+                    ->visible(Auth::user()->is_admin)
                     ->action(function (array $data, User $record): void {
                         $record->adjustStar($data['star'], $data['remarks']);
                     }),
@@ -110,10 +112,12 @@ class UserResource extends Resource
                 Action::make('leave-ledger')
                     ->label('Leave Ledger')
                     ->color('info')
+                    ->visible(fn($record) => $record->id == auth()->user()->id || auth()->user()->is_admin)
                     ->url(fn($record) => UserResource::getUrl('leave-ledger', ['record' => $record])),
                 Action::make('attendance-report')
                     ->label('Attendance Report')
                     ->color('info')
+                    ->visible(fn($record) => $record->id == auth()->user()->id || auth()->user()->is_admin)
                     ->url(fn($record) => UserResource::getUrl('attendance-report', ['record' => $record]))
                 // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
                 //     ->color('info')
@@ -121,7 +125,7 @@ class UserResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                ])->visible(Auth::user()->is_admin),
             ]);
     }
 
