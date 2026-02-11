@@ -42,9 +42,9 @@ $rowCount = 1;
         <div class="col price">
             <p>&nbsp;</p>
             @if($domain->discount_value > 0)
-                <p><s>Rs. {{ number_format($domain->price + $domain->discount_value) }}</s><br/>Rs. {{ number_format($domain->price) }}</p>
+            <p><s>Rs. {{ number_format($domain->price + $domain->discount_value) }}</s><br />Rs. {{ number_format($domain->price) }}</p>
             @else
-                <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
+            <p>Rs. {{ number_format($domain->price, 2) }}/-</p>
             @endif
         </div>
         <div class="col amount">
@@ -91,9 +91,9 @@ $rowCount = 1;
         <div class="col price">
             <p>&nbsp;</p>
             @if($hosting->discount_value > 0)
-                <p><s>Rs. {{ number_format($hosting->price + $hosting->discount_value) }}</s><br/>Rs. {{ number_format($hosting->price) }}</p>
+            <p><s>Rs. {{ number_format($hosting->price + $hosting->discount_value) }}</s><br />Rs. {{ number_format($hosting->price) }}</p>
             @else
-                <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
+            <p>Rs. {{ number_format($hosting->price, 2) }}/-</p>
             @endif
         </div>
         <div class="col amount">
@@ -130,9 +130,9 @@ $rowCount = 1;
         <div class="col price">
             <p>&nbsp;</p>
             @if($email->discount_value > 0)
-                <p><s>Rs. {{ number_format($email->price + $email->discount_value) }}</s><br/>Rs. {{ number_format($email->price) }}</p>
+            <p><s>Rs. {{ number_format($email->price + $email->discount_value) }}</s><br />Rs. {{ number_format($email->price) }}</p>
             @else
-                <p>Rs. {{ number_format($email->price, 2) }}/-</p>
+            <p>Rs. {{ number_format($email->price, 2) }}/-</p>
             @endif
         </div>
         <div class="col amount">
@@ -164,9 +164,9 @@ $rowCount = 1;
         <div class="col price">
             <p>&nbsp;</p>
             @if($extra->discount_value > 0)
-                <p><s>Rs. {{ number_format($extra->price + $extra->discount_value) }}</s><br/>Rs. {{ number_format($extra->price) }}</p>
+            <p><s>Rs. {{ number_format($extra->price + $extra->discount_value) }}</s><br />Rs. {{ number_format($extra->price) }}</p>
             @else
-                <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
+            <p>Rs. {{ number_format($extra->price, 2) }}/-</p>
             @endif
         </div>
         <div class="col amount">
@@ -181,7 +181,13 @@ $rowCount = 1;
 
 <div class="abs total">Rs. {{ number_format($invoice->total, 2) }}/-</div>
 @if($totalRows > 0)
-<div class="abs footnote">Next domain and hosting renewal: {{ $invoice->date->format('F') }}, {{ $invoice->date->format('Y')+1 }}</div>
+<div class="abs footnote">
+    @if($invoice->footnote)
+    {!! nl2br(e($invoice->footnote)) !!}
+    @else
+    Next domain and hosting renewal: {{ $invoice->date->format('F') }}, {{ $invoice->date->format('Y')+1 }}
+    @endif
+</div>
 @endif
 
 <div class="abs in-words"><b>Rupees: </b> {{ ucfirst($invoice->inWords()) }}</div>

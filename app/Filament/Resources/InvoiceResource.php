@@ -120,7 +120,12 @@ class InvoiceResource extends Resource
                     ])
                     ->columns(5)
                     ->columnSpan(12)
-                    ->addActionLabel('Add Extra')
+                    ->addActionLabel('Add Extra'),
+                Textarea::make('footnote')
+                    ->label('Footnote')
+                    ->rows(3)
+                    ->columnSpan(12)
+                    ->placeholder('Leave empty for default: Next domain and hosting renewal: [Month], [Year+1]'),
             ]);
     }
 
