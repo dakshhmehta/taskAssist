@@ -4,6 +4,26 @@ namespace Ri\Accounting;
 
 class Helper
 {
+    public static function getPeriod($currentDate, $futureDate)
+    {
+        $months = $futureDate->diffInMonths($currentDate) + 1;
+        $years = $futureDate->diffInYears($currentDate) + 1;
+
+        if ($months == 0 and $years > 0) {
+            if ($years == 1) {
+                return $years . ' year';
+            }
+
+            return $years . ' year';
+        }
+
+        if ($months == 1) {
+            return $months . ' month';
+        }
+
+        return $months . ' month';
+    }
+
     public static function accountBalance($balance)
     {
         if ($balance > 0) { // 

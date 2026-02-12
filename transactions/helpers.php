@@ -12,15 +12,34 @@ function AmountInWords(float $number = 0)
     $str = array();
     $str2 = array();
     $words = array(
-        0 => '', 1 => 'One', 2 => 'Two',
-        3 => 'Three', 4 => 'Four', 5 => 'Five', 6 => 'Six',
-        7 => 'Seven', 8 => 'Eight', 9 => 'Nine',
-        10 => 'Ten', 11 => 'Eleven', 12 => 'Twelve',
-        13 => 'Thirteen', 14 => 'Fourteen', 15 => 'Fifteen',
-        16 => 'Sixteen', 17 => 'Seventeen', 18 => 'Eighteen',
-        19 => 'Nineteen', 20 => 'Twenty', 30 => 'Thirty',
-        40 => 'Forty', 50 => 'Fifty', 60 => 'Sixty',
-        70 => 'Seventy', 80 => 'Eighty', 90 => 'Ninety'
+        0 => '',
+        1 => 'One',
+        2 => 'Two',
+        3 => 'Three',
+        4 => 'Four',
+        5 => 'Five',
+        6 => 'Six',
+        7 => 'Seven',
+        8 => 'Eight',
+        9 => 'Nine',
+        10 => 'Ten',
+        11 => 'Eleven',
+        12 => 'Twelve',
+        13 => 'Thirteen',
+        14 => 'Fourteen',
+        15 => 'Fifteen',
+        16 => 'Sixteen',
+        17 => 'Seventeen',
+        18 => 'Eighteen',
+        19 => 'Nineteen',
+        20 => 'Twenty',
+        30 => 'Thirty',
+        40 => 'Forty',
+        50 => 'Fifty',
+        60 => 'Sixty',
+        70 => 'Seventy',
+        80 => 'Eighty',
+        90 => 'Ninety'
     );
     $digits = array('', 'Hundred', 'Thousand', 'Lakh', 'Crore');
 
@@ -55,8 +74,8 @@ function AmountInWords(float $number = 0)
 
     $rupees = implode('', array_reverse($str));
     $paisa = implode('', array_reverse($str2));
-    $paisa = ($decimalPart > 0) ?'and ' . $paisa . ' paise' : '';
-    return $rupees . $paisa ."Only";
+    $paisa = ($decimalPart > 0) ? 'and ' . $paisa . ' paise' : '';
+    return $rupees . $paisa . "Only";
 }
 
 function IndianNumberingFormat($number, $precision = 2)
