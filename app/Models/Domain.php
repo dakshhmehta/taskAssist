@@ -37,6 +37,11 @@ class Domain extends Model
         $this->save();
     }
 
+    public function hosting()
+    {
+        return $this->hasOne(Hosting::class, 'domain', 'tld');
+    }
+
     public function invoiceItems()
     {
         return $this->morphMany(InvoiceItem::class, 'itemable');
@@ -71,10 +76,11 @@ class Domain extends Model
 
     public function getLastInvoicedDateAttribute()
     {
-        return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+        return optional($this->getLastInvoice())->date;
     }
 
-    public function getLastInvoice(){
+    public function getLastInvoice()
+    {
         return $this->invoices()->orderBy('date', 'DESC')->first();
     }
 

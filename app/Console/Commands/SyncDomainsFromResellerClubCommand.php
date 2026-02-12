@@ -143,6 +143,9 @@ class SyncDomainsFromResellerClubCommand extends Command
             ]);
 
             if ($hosting->domainLink) {
+                dd($hosting->domainLink);
+                $this->info($hosting->domainLink->expiry_date);
+
                 $hosting->expiry_date = $hosting->domainLink->expiry_date;
             } elseif (! $hosting->expiry_date) {
                 // Only update expiry date if record is being created and hence does not have default expiry date

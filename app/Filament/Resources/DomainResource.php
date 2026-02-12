@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DomainInvoicesRelationManagerResource\RelationManagers\DomainResourceRelationManager;
 use App\Filament\Resources\DomainResource\Pages;
+use App\Jobs\GenerateInvoice;
 use App\Models\Domain;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -96,6 +97,16 @@ class DomainResource extends Resource
                     ->action(fn(Domain $domain) => $domain->unIgnore())
                     ->visible(fn(Domain $domain) => $domain->isIgnored())
                     ->color('warning'),
+
+                // Action button for the Generate Invoice button, if the domain is not invoiced and refresh row when clicked
+                Action::make('generateInvoice')
+                    ->label('Generate Invoice')
+                    // Previous invoice is older than 1 year and client is already exist
+                    ->visible(fn(Domain $domain) => $domain->last_invoiced_date?->diffInYears(now()) >= 1 && $domain->client)
+                    ->color('success')
+                    ->action(function (Domain $domain) {
+                        GenerateInvoice::dispatch([$domain, $domain->hosting ?? null], $domain->expiry_date->subYear());
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -9,7 +9,7 @@ class Helper
         $months = $futureDate->diffInMonths($currentDate);
         $years = $futureDate->diffInYears($currentDate);
 
-        if ($months == 0 and $years > 0) {
+        if ($years > 0) {
             if ($years == 1) {
                 return $years . ' year';
             }
