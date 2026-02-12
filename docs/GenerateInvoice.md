@@ -103,6 +103,7 @@ Prices are configured in `config/pricing.php`:
 - Keys are TLD extensions **without the leading dot** (e.g., "com" not ".com")
 - The job extracts the TLD from the domain name and strips the dot for lookup
 - Supports multi-part TLDs like "co.in", "org.in", "com.in"
+- **Important**: Multi-part TLDs use array access (`$config['co.in']`) instead of dot notation to avoid Laravel interpreting dots as nested keys
 - **Automatically multiplies by number of years**: Calculates years from invoice date to expiry date
   - Example: 2-year domain registration = `1460 × 2 = 2920`
 

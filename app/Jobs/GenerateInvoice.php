@@ -77,9 +77,12 @@ class GenerateInvoice implements ShouldQueue
             if ($itemableType === Domain::class) {
                 // Get TLD extension from domain (e.g., ".com" from "example.com")
                 $tldExtension = $this->extractTldExtension($item->tld);
-                // Remove leading dot for config key (e.g., ".com" becomes "com")
+                // Remove leading dot for config key (e.g., ".com" becomes "com", ".co.in" becomes "co.in")
                 $tldKey = ltrim($tldExtension, '.');
-                $basePrice = config("pricing.domains.{$tldKey}", 0);
+
+                // Use array access to avoid Laravel interpreting dots as nested keys
+                $domainPricing = config('pricing.domains', []);
+                $basePrice = $domainPricing[$tldKey] ?? 0;
 
                 // Calculate years from invoice date to expiry date
                 $years = $this->calculateYears($invoice->date, $item->expiry_date);
