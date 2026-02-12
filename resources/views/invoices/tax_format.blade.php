@@ -235,7 +235,6 @@ $rowCount = 1;
         <div class="clearfix"></div>
     </div>
     @endforeach
-
 </div>
 
 <div class="abs total">Rs. {{ number_format($invoice->total, 2) }}/-</div>

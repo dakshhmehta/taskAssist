@@ -41,11 +41,11 @@ class SyncDomainsFromResellerClubCommand extends Command
         $this->getGsuites();
 
         // // Hostings
-        // $this->getLinuxHostingsIN();
-        // $this->getLinuxHostingsUS();
+        $this->getLinuxHostingsIN();
+        $this->getLinuxHostingsUS();
 
-        // $this->getWHMHostings('romin');
-        // $this->getWHMHostings('dristal');
+        $this->getWHMHostings('romin');
+        $this->getWHMHostings('dristal');
     }
 
     public function getGSuites()
