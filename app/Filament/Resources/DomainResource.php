@@ -111,6 +111,48 @@ class DomainResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     // Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('generateInvoices')
+                        ->label('Generate Invoices')
+                        ->icon('heroicon-o-document-text')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Generate Invoices for Selected Domains')
+                        ->modalDescription('This will create invoices for the selected domains grouped by client. Each domain\'s hosting will be included if it exists.')
+                        ->action(function ($records) {
+                            // Group domains by client_id
+                            $groupedByClient = $records->groupBy('client_id');
+
+                            $invoiceCount = 0;
+                            foreach ($groupedByClient as $clientId => $domains) {
+                                if (!$clientId) {
+                                    continue; // Skip domains without a client
+                                }
+
+                                // Collect items for this client (domains + their hosting)
+                                $items = [];
+                                foreach ($domains as $domain) {
+                                    $items[] = $domain;
+                                    if ($domain->hosting) {
+                                        $items[] = $domain->hosting;
+                                    }
+                                }
+
+                                // Get the earliest expiry date from the domains for this client
+                                $earliestExpiryDate = $domains->min('expiry_date');
+                                $invoiceDate = \Carbon\Carbon::parse($earliestExpiryDate)->subYear();
+
+                                // Dispatch the job
+                                GenerateInvoice::dispatch($items, $invoiceDate);
+                                $invoiceCount++;
+                            }
+
+                            // Show success notification
+                            \Filament\Notifications\Notification::make()
+                                ->title('Invoices Generated')
+                                ->body("Successfully queued {$invoiceCount} invoice(s) for generation.")
+                                ->success()
+                                ->send();
+                        }),
                 ]),
             ]);
     }
