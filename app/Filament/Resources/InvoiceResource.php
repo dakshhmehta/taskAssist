@@ -85,9 +85,27 @@ class InvoiceResource extends Resource
                                 // }
                                 return [];
                             })
-                            ->required(),
-                        Forms\Components\RichEditor::make('line_description')
-                            ->label('Description'),
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function (callable $set, callable $get, $state) {
+                                // Auto-populate expiry_date from itemable when item is selected
+                                if ($state) {
+                                    $type = $get('itemable_type');
+                                    $itemable = null;
+
+                                    if ($type === Domain::class) {
+                                        $itemable = Domain::find($state);
+                                    } elseif ($type === Hosting::class) {
+                                        $itemable = Hosting::find($state);
+                                    } elseif ($type === Email::class) {
+                                        $itemable = Email::find($state);
+                                    }
+
+                                    if ($itemable && isset($itemable->expiry_date)) {
+                                        $set('expiry_date', $itemable->expiry_date);
+                                    }
+                                }
+                            }),
                         Forms\Components\TextInput::make('price')
                             ->label('Price')
                             ->numeric()
@@ -95,6 +113,12 @@ class InvoiceResource extends Resource
                         Forms\Components\TextInput::make('discount_value')
                             ->label('Discount')
                             ->numeric(),
+
+                        Forms\Components\DatePicker::make('expiry_date')
+                            ->label('Expiry Date')
+                            ->nullable(),
+                        Forms\Components\RichEditor::make('line_description')
+                            ->label('Description'),
                     ])
                     ->columns(4)
                     ->columnSpan(12)

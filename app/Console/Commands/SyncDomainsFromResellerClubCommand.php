@@ -38,7 +38,7 @@ class SyncDomainsFromResellerClubCommand extends Command
         $this->getDomains('new');
 
         // Get Gsuite
-        // $this->getGsuites();
+        $this->getGsuites();
 
         // // Hostings
         // $this->getLinuxHostingsIN();
@@ -97,7 +97,7 @@ class SyncDomainsFromResellerClubCommand extends Command
             $domainTableData[] = [$domain->tld, $domain->expiry_date->format('d-m-Y')];
         }
 
-        $this->info('Domains - '.$mode);
+        $this->info('Domains - ' . $mode);
         $this->table($domainTableHeader, $domainTableData);
 
         $domains = Domain::whereNotIn('tld', $_tlds)
