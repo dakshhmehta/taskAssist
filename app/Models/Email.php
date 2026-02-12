@@ -55,7 +55,7 @@ class Email extends Model
 
     public function getLastInvoicedDateAttribute()
     {
-        return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+        return optional($this->getLastInvoice())->date;
     }
 
     public function getLastInvoice()
@@ -65,6 +65,11 @@ class Email extends Model
 
     public function client()
     {
+        if (! $this->client_id) {
+            $this->client_id = $this->getLastInvoice()->client->id;
+            $this->save();
+        }
+
         return $this->belongsTo(Client::class);
     }
 }

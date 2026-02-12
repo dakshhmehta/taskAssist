@@ -75,7 +75,7 @@ class EmailResource extends Resource
                 Action::make('generateInvoice')
                     ->label('Generate Invoice')
                     // Previous invoice is older than 1 year and client already exists
-                    ->visible(fn(Email $email) => $email->last_invoiced_date?->diffInYears(now()) >= 1 && $email->client)
+                    ->visible(fn(Email $email) => $email->last_invoiced_date?->diffInYears($email->expiry_date) > 1 && $email->client)
                     ->color('success')
                     ->action(function (Email $email) {
                         GenerateInvoice::dispatch([$email], now());
