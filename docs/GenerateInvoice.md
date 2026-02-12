@@ -89,17 +89,20 @@ Prices are configured in `config/pricing.php`:
 
 ```php
 'domains' => [
-    '.com' => 1460,
-    '.in' => 960,
-    '.org' => 1599,
+    'com' => 1460,
+    'in' => 960,
+    'org' => 1599,
+    'co.in' => 9000,
+    'org.in' => 885,
     // Add more TLDs as needed
 ],
 ```
 
 - Prices should include GST (18%)
 - Price is **per year**
-- The job extracts the TLD from the domain name (e.g., ".com" from "example.com")
-- Supports multi-part TLDs like ".co.in", ".org.in", ".com.in"
+- Keys are TLD extensions **without the leading dot** (e.g., "com" not ".com")
+- The job extracts the TLD from the domain name and strips the dot for lookup
+- Supports multi-part TLDs like "co.in", "org.in", "com.in"
 - **Automatically multiplies by number of years**: Calculates years from invoice date to expiry date
   - Example: 2-year domain registration = `1460 × 2 = 2920`
 

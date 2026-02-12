@@ -77,7 +77,9 @@ class GenerateInvoice implements ShouldQueue
             if ($itemableType === Domain::class) {
                 // Get TLD extension from domain (e.g., ".com" from "example.com")
                 $tldExtension = $this->extractTldExtension($item->tld);
-                $basePrice = config("pricing.domains.{$tldExtension}", 0);
+                // Remove leading dot for config key (e.g., ".com" becomes "com")
+                $tldKey = ltrim($tldExtension, '.');
+                $basePrice = config("pricing.domains.{$tldKey}", 0);
 
                 // Calculate years from invoice date to expiry date
                 $years = $this->calculateYears($invoice->date, $item->expiry_date);
