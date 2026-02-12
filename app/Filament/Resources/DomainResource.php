@@ -64,7 +64,7 @@ class DomainResource extends Resource
                 TextColumn::make('last_invoiced_date')
                     ->dateTime('d-m-Y'),
             ])
-            ->defaultSort('expiry_date', 'ASC')
+            ->defaultSort('expiry_date', 'DESC')
             ->filters([
                 TernaryFilter::make('ignored')
                     ->label('Ignore')
