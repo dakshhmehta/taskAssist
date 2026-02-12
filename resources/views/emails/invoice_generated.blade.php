@@ -56,7 +56,7 @@
                     @endif
                 </td>
                 <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">
-                    Rs. {{ number_format($item->price, 2) }}
+                    Rs. {{ number_format($item->price / 1.18, 2) }}
                 </td>
             </tr>
             @endforeach
