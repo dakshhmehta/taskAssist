@@ -5,9 +5,12 @@ This job automatically generates invoices for Domain, Hosting, or Email services
 
 ## Features
 1. **Auto-generates invoice number** using `Invoice::nextInvoiceNumber('DH-')` helper
-2. **Sets invoice date** to current date
+2. **Sets invoice date** to current date (or custom date if provided)
 3. **Auto-detects client** from the first item in the array
-4. **Copies prices** from previous invoices (or sets to 0 if no previous invoice exists)
+4. **Sets prices from config with dynamic period calculation**:
+   - **Domains**: Uses TLD-based pricing × number of years (calculated from invoice date to expiry date)
+   - **Hosting**: Uses package price, or default if no package
+   - **Email/Workspace**: Calculates price based on accounts count × years × yearly rate
 5. **Copies expiry dates** from the itemable objects
 6. **Sends email notification** with invoice details and a "View Invoice" button
 
@@ -78,6 +81,56 @@ class GenerateRenewalInvoices extends Command
 }
 ```
 
+## Pricing Configuration
+
+Prices are configured in `config/pricing.php`:
+
+### Domain Pricing
+
+```php
+'domains' => [
+    '.com' => 1460,
+    '.in' => 960,
+    '.org' => 1599,
+    // Add more TLDs as needed
+],
+```
+
+- Prices should include GST (18%)
+- Price is **per year**
+- The job extracts the TLD from the domain name (e.g., ".com" from "example.com")
+- Supports multi-part TLDs like ".co.in", ".org.in", ".com.in"
+- **Automatically multiplies by number of years**: Calculates years from invoice date to expiry date
+  - Example: 2-year domain registration = `1460 × 2 = 2920`
+
+### Workspace (Email) Pricing
+
+```php
+'workspace' => [
+    'price_per_account_per_year' => 2832.00, // 236 × 12
+],
+```
+
+- Price is **per account per year**
+- Price should include GST (18%)
+- **Automatically multiplies by number of years**: Calculates years from invoice date to expiry date
+  - 1-year subscription: `2832 × accounts × 1`
+  - 2-year subscription: `2832 × accounts × 2`
+- Example: 5 accounts for 2 years = `2832 × 5 × 2 = 28,320`
+
+### Hosting Pricing
+
+```php
+'hosting' => [
+    'default_price' => 0,
+],
+```
+
+- Hosting uses the price from the `HostingPackage` relationship
+- If no package is assigned, uses the default price from config
+- Package prices should include GST (18%)
+- Hosting prices are **not** multiplied by period (annual price expected)
+
 ## Email Details
 
 The job sends an email with:
@@ -93,7 +146,9 @@ The job sends an email with:
 - All items in the array must belong to the same client
 - Items must have a `client` relationship defined
 - Items must have an `expiry_date` field (nullable)
-- Items must have a `getLastInvoice()` method
+- Pricing must be configured in `config/pricing.php`
+- For hosting items, package relationship is optional (uses default if not set)
+- For email items, `accounts_count` field is required for price calculation
 
 ## Error Handling
 

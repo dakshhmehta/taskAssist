@@ -71,19 +71,32 @@ class GenerateInvoice implements ShouldQueue
             // Determine the itemable type
             $itemableType = get_class($item);
 
-            // 4. Set the price from the previous invoice of each individual item, if no previous invoice is found, set to 0
-            $lastInvoice = $item->getLastInvoice();
+            // 4. Set the price based on item type and config
             $price = 0;
 
-            if ($lastInvoice) {
-                // Get the last invoice item for this specific itemable
-                $lastInvoiceItem = $lastInvoice->items()
-                    ->where('itemable_type', $itemableType)
-                    ->where('itemable_id', $item->id)
-                    ->first();
+            if ($itemableType === Domain::class) {
+                // Get TLD extension from domain (e.g., ".com" from "example.com")
+                $tldExtension = $this->extractTldExtension($item->tld);
+                $basePrice = config("pricing.domains.{$tldExtension}", 0);
 
-                if ($lastInvoiceItem) {
-                    $price = $lastInvoiceItem->price;
+                // Calculate years from invoice date to expiry date
+                $years = $this->calculateYears($invoice->date, $item->expiry_date);
+                $price = $basePrice * $years;
+            } elseif ($itemableType === Hosting::class) {
+                // Get price from hosting package, or use default
+                $price = $item->package?->price ?? config('pricing.hosting.default_price', 0);
+            } elseif ($itemableType === Email::class) {
+                // Calculate price based on number of accounts and years
+                $years = $this->calculateYears($invoice->date, $item->expiry_date);
+
+                if ($years > 0) {
+                    $pricePerAccountPerYear = config('pricing.workspace.price_per_account_per_year', 0);
+                    $price = $pricePerAccountPerYear * ($item->accounts_count ?? 0) * $years;
+                } else {
+                    // Calculate with months calculation
+                    $months = $this->calculateMonths($invoice->date, $item->expiry_date);
+                    $pricePerAccountPerMonth = config('pricing.workspace.price_per_account_per_month', 0);
+                    $price = $pricePerAccountPerMonth * ($item->accounts_count ?? 0) * $months;
                 }
             }
 
@@ -104,5 +117,75 @@ class GenerateInvoice implements ShouldQueue
         if ($recipientEmail) {
             Mail::to($recipientEmail)->send(new InvoiceGenerated($invoice, $firstItem));
         }
+    }
+
+    /**
+     * Extract TLD extension from domain name
+     * 
+     * @param string $domain Full domain name (e.g., "example.com")
+     * @return string TLD extension with dot (e.g., ".com")
+     */
+    private function extractTldExtension(string $domain): string
+    {
+        // Handle common multi-part TLDs first
+        $multiPartTlds = ['.co.in', '.co.uk', '.com.au', '.org.uk', '.net.au', '.org.in', '.com.in', '.net.in'];
+
+        foreach ($multiPartTlds as $tld) {
+            if (str_ends_with($domain, $tld)) {
+                return $tld;
+            }
+        }
+
+        // Extract single-part TLD (everything after the last dot)
+        $parts = explode('.', $domain);
+        if (count($parts) >= 2) {
+            return '.' . end($parts);
+        }
+
+        return '';
+    }
+
+    /**
+     * Calculate the number of years between invoice date and expiry date
+     * 
+     * @param \Carbon\Carbon|string $invoiceDate
+     * @param \Carbon\Carbon|string|null $expiryDate
+     * @return int Number of years (minimum 1)
+     */
+    private function calculateYears($invoiceDate, $expiryDate): int
+    {
+        if (!$expiryDate) {
+            return 1; // Default to 1 year if no expiry date
+        }
+
+        $invoice = \Carbon\Carbon::parse($invoiceDate);
+        $expiry = \Carbon\Carbon::parse($expiryDate);
+
+        $years = $invoice->diffInYears($expiry);
+
+        // Return at least 1 year
+        return max(1, $years);
+    }
+
+    /**
+     * Calculate the number of months between invoice date and expiry date
+     * 
+     * @param \Carbon\Carbon|string $invoiceDate
+     * @param \Carbon\Carbon|string|null $expiryDate
+     * @return int Number of months (minimum 1)
+     */
+    private function calculateMonths($invoiceDate, $expiryDate): int
+    {
+        if (!$expiryDate) {
+            return 12; // Default to 12 months if no expiry date
+        }
+
+        $invoice = \Carbon\Carbon::parse($invoiceDate);
+        $expiry = \Carbon\Carbon::parse($expiryDate);
+
+        $months = $invoice->diffInMonths($expiry);
+
+        // Return at least 1 month
+        return max(1, $months);
     }
 }
