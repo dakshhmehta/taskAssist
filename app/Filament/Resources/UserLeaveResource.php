@@ -160,7 +160,8 @@ class UserLeaveResource extends Resource
             ->defaultSort('from_date', 'desc')
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    // Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn() => Auth::user()->is_admin),
                 ]),
             ]);
     }
