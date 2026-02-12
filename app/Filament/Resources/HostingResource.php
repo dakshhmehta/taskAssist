@@ -43,6 +43,11 @@ class HostingResource extends Resource
             ->schema([
                 Forms\Components\DatePicker::make('expiry_date')
                     ->displayFormat('d-m-Y'),
+                // Package dropdown
+                Forms\Components\Select::make('package_id')
+                    ->label('Package')
+                    ->required()
+                    ->options(HostingPackage::all()->pluck('storage', 'id')),
             ]);
     }
 
