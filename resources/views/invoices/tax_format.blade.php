@@ -36,6 +36,8 @@ $hostings = $invoice->items()->where('itemable_type', App\Models\Hosting::class)
 $emails = $invoice->items()->where('itemable_type', App\Models\Email::class)->get();
 $extras = $invoice->extras;
 
+$firstItem = $invoice->items()->first();
+
 $totalRows = count($domains) + count($hostings) + count($emails);
 
 $rowCount = 1;
@@ -243,7 +245,11 @@ $rowCount = 1;
     @if($invoice->footnote)
     {!! nl2br(e($invoice->footnote)) !!}
     @else
+    @if($firstItem)
+    Next domain and hosting renewal: {{ $firstItem->expiry_date->format('F') }}, {{ $firstItem->expiry_date->format('Y') }}
+    @else
     Next domain and hosting renewal: {{ $invoice->date->format('F') }}, {{ $invoice->date->format('Y')+1 }}
+    @endif
     @endif
     @if($invoice->client->account?->country != 'India')
     <br />(Export of services without payment of IGST)
