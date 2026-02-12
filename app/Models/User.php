@@ -143,7 +143,8 @@ class User extends Authenticatable
         return (int) $this->balance(['star']);
     }
 
-    public function checkIns(){
+    public function checkIns()
+    {
         return $this->hasMany(UserCheckIn::class);
     }
 
@@ -229,6 +230,7 @@ class User extends Authenticatable
     {
         $leave =  $this->leaves()
             ->where('status', 'APPROVED')
+            ->where('half_day', false)
             ->where('from_date', '<=', $date->format('Y-m-d'))
             ->where('to_date', '>=', $date->format('Y-m-d'))
             ->exists();
@@ -247,7 +249,7 @@ class User extends Authenticatable
 
     public function creditCLForMonth(Carbon $date)
     {
-        if($this->hasCreditedCLForMonth($date)){
+        if ($this->hasCreditedCLForMonth($date)) {
             return false;
         }
 
