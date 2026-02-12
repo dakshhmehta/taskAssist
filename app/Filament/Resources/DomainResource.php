@@ -32,6 +32,7 @@ class DomainResource extends Resource
     {
         return [
             'Expiry' => $record->expiry_date->format(config('app.date_format')),
+            'Ignored' => $record->isIgnored() ? 'Yes' : 'No',
         ];
     }
 
