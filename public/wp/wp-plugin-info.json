@@ -1,0 +1,27 @@
+{
+    "name": "WPManage by Timepro",
+    "slug": "wpmanage-by-timepro",
+    "version": "0.0.3",
+    "new_version": "0.0.3",
+    "author": "Timepro",
+    "homepage": "https://beta.timepro.in",
+    "download_url": "https://beta.timepro.in/wp/wpmanage-by-timepro.zip",
+    "requires": "6.0",
+    "tested": "6.0",
+    "requires_php": "7.4",
+    "last_updated": "2026-02-13 10:50:02",
+    "sections": {
+        "description": "WPManage by Timepro is a powerful WordPress management plugin that connects your WordPress site to the Timepro WP Dashboard. It automatically collects and sends site information including WordPress version, PHP version, MySQL version, active theme, admin details, and UpdraftPlus backup status. This allows centralized monitoring and management of multiple WordPress installations from a single dashboard.",
+        "installation": "1. Upload the plugin files to the `/wp-content/plugins/wpmanage-by-timepro` directory, or install the plugin through the WordPress plugins screen directly.\n2. Activate the plugin through the 'Plugins' screen in WordPress.\n3. The plugin will automatically start collecting and sending data to the Timepro dashboard every 12 hours.",
+        "changelog": "<h4>0.0.3</h4>\n<ul>\n<li>Release for internal site of RI</li>\n</ul>\n\n<h4>0.0.2</h4>\n<ul>\n<li>Initial release</li>\n<li>Automatic data collection and transmission</li>\n<li>WordPress, PHP, and MySQL version tracking</li>\n<li>Active theme detection</li>\n<li>Admin user information collection</li>\n<li>UpdraftPlus backup status integration</li>\n<li>Auto-update functionality via custom update server</li>\n<li>Manual data pull via URL parameter</li>\n</ul>",
+        "features": "<h4>Key Features</h4>\n<ul>\n<li><strong>Automatic Updates:</strong> Plugin updates are delivered automatically from the Timepro server</li>\n<li><strong>Site Profiling:</strong> Collects comprehensive site information including versions, theme, and admin details</li>\n<li><strong>Backup Monitoring:</strong> Tracks UpdraftPlus backup status and last backup time</li>\n<li><strong>Scheduled Sync:</strong> Automatically sends data every 12 hours to prevent server overload</li>\n<li><strong>Manual Pull:</strong> Supports on-demand data retrieval via URL parameter</li>\n<li><strong>Lightweight:</strong> Minimal impact on site performance</li>\n</ul>"
+    },
+    "banners": {
+        "low": "https://beta.timepro.in/wp/banner-772x250.png",
+        "high": "https://beta.timepro.in/wp/banner-1544x500.png"
+    },
+    "icons": {
+        "1x": "https://beta.timepro.in/wp/icon-128x128.png",
+        "2x": "https://beta.timepro.in/wp/icon-256x256.png"
+    }
+}
