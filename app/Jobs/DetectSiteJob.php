@@ -44,7 +44,6 @@ class DetectSiteJob implements ShouldQueue
             $this->checkDowntime($site, $html);
             $this->detectGA($site, $html);
             $this->detectWPVersion($site, $html);
-
         } catch (\Exception $e) {
             $site->setMeta('is_down', true);
             $site->setMeta('down_remarks', $e->getMessage());
@@ -64,9 +63,14 @@ class DetectSiteJob implements ShouldQueue
     protected function checkDowntime($site, $html)
     {
         $keywords = [
-            'site is down', 'error 500', 'not reachable',
-            'bad gateway', '502 bad gateway', '503 service unavailable',
-            'database error', 'This Account has been suspended',
+            'site is down',
+            'error 500',
+            'not reachable',
+            'bad gateway',
+            '502 bad gateway',
+            '503 service unavailable',
+            'database error',
+            'This Account has been suspended',
             'Error establishing a database connection',
         ];
 
@@ -93,7 +97,6 @@ class DetectSiteJob implements ShouldQueue
     protected function detectWPVersion($site, $html)
     {
         if (preg_match('/<meta\s+name=["\']generator["\']\s+content=["\']WordPress\s+([\d.]+)["\']\s*\/?>/i', $html, $matches)) {
-            dd($matches);
             $site->setMeta('wp_version', $matches[1]);
         } else {
             $site->setMeta('wp_version', null);
