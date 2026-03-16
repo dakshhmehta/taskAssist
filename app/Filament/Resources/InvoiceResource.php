@@ -24,6 +24,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class InvoiceResource extends Resource
 {
@@ -185,6 +186,22 @@ class InvoiceResource extends Resource
                         Forms\Components\DatePicker::make('paid_date_to')
                             ->label('Paid Date - To')
                             ->placeholder('Paid Date - To'),
+
+                        Forms\Components\DatePicker::make('created_from')
+                            ->label('Created From')
+                            ->placeholder('Created - From'),
+                        Forms\Components\DatePicker::make('created_to')
+                            ->label('Created - To')
+                            ->placeholder('Created - To'),
+
+                        // Dropdown with Yes / No field for Converted to Tax Invoice
+                        Forms\Components\Select::make('converted_to_tax_invoice')
+                            ->label('Converted to Tax Invoice')
+                            ->options([
+                                'yes' => 'Yes',
+                                'no' => 'No',
+                            ])
+                            ->placeholder('Converted to Tax Invoice'),
                     ])
                     ->query(function (Builder $query, array $data) {
                         return $query
@@ -193,6 +210,20 @@ class InvoiceResource extends Resource
                             })
                             ->when($data['paid_date_to'], function (Builder $query, $date) {
                                 return $query->whereDate('paid_date', '<=', $date);
+                            })
+                            ->when($data['created_from'], function (Builder $query, $date) {
+                                return $query->whereDate('date', '>=', $date);
+                            })
+                            ->when($data['created_to'], function (Builder $query, $date) {
+                                return $query->whereDate('date', '<=', $date);
+                            })
+                            ->when($data['converted_to_tax_invoice'], function (Builder $query, $value) {
+                                if($value == 'no'){
+                                    return $query->whereDoesntHave('taxInvoice');
+                                }
+                                if($value == 'yes'){
+                                    return $query->whereHas('taxInvoice');
+                                }
                             });
                     })
                     ->label('Paid Date Range'),
@@ -233,7 +264,9 @@ class InvoiceResource extends Resource
                 Action::make('print')
                     // ->icon('printer')
                     ->label('Print')
-                    ->url(fn(Invoice $invoice): string => route('invoices.print', [$invoice->id, 'force' => 1]), true)
+                    ->url(fn(Invoice $invoice): string => route('invoices.print', [$invoice->id, 'force' => 1]), true),
+                
+                CommentsAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

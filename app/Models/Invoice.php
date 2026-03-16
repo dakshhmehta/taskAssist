@@ -6,12 +6,15 @@ use App\Traits\TaxableInvoice;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Parallax\FilamentComments\Models\Traits\HasFilamentComments;
 use Ri\Accounting\Models\Account;
 use Romininteractive\Transaction\Traits\HasTransactions;
 
 class Invoice extends Model
 {
     use HasFactory, HasTransactions, TaxableInvoice;
+
+    use HasFilamentComments;
 
     protected $guarded = [];
 
