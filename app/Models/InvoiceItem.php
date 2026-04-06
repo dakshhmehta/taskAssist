@@ -17,7 +17,7 @@ class InvoiceItem extends Model
 
     public function itemable()
     {
-        return $this->morphTo();
+        return $this->morphTo()->includeIgnored();
     }
 
     public function invoice()

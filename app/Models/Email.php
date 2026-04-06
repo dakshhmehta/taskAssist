@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\CustomLogOptions;
+use App\Traits\IgnorableTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ class Email extends Model
 {
     use HasFactory;
 
-    use LogsActivity, CustomLogOptions;
+    use LogsActivity, CustomLogOptions, IgnorableTrait;
 
     protected $guarded = [];
 

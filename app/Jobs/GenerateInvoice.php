@@ -116,12 +116,7 @@ class GenerateInvoice implements ShouldQueue
         }
 
         // 6. Send a copy of invoice along with View Invoice button and invoice items, sub total, gst and grand total details as body
-        // Subject line as first line item's domain and type [Domain/Hosting/Workspace]
-        $recipientEmail = $client->email ?? 'rominjoshi@yahoo.com';
-
-        if ($recipientEmail) {
-            Mail::to($recipientEmail)->send(new InvoiceGenerated($invoice, $firstItem));
-        }
+        EmailInvoice::dispatch($invoice, $firstItem);
     }
 
     /**

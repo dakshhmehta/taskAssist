@@ -79,6 +79,7 @@ class HostingResource extends Resource
             ])
             ->defaultSort('expiry_date', 'ASC')
             ->filters([
+                // TODO: Add Filter for hosting only accounts i.e we do not own domain
                 TernaryFilter::make('suspended')
                     ->label('Suspended?')
                     ->placeholder('All')
