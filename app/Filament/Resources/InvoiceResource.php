@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\Pages\ViewInvoice;
+use App\Jobs\EmailInvoice;
 use App\Models\Invoice;
 use App\Models\Domain;
 use App\Models\Email;
@@ -19,6 +20,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -267,10 +269,16 @@ class InvoiceResource extends Resource
                 ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn($record) => ! $record->hasTaxInvoice()),
+
                 Action::make('print')
                     // ->icon('printer')
                     ->label('Print')
                     ->url(fn(Invoice $invoice): string => route('invoices.print', [$invoice->id, 'force' => 1]), true),
+
+                // Add the Email Invoice button
+                Action::make('email')
+                    ->label('Email')
+                    ->action(fn(Invoice $invoice) => EmailInvoice::dispatch($invoice, $invoice->items()->first())),
                 
                 CommentsAction::make(),
             ])
