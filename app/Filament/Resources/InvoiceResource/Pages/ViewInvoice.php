@@ -8,7 +8,13 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Parallax\FilamentComments\Actions\CommentsAction;
 use Ri\Accounting\Models\Account;
+
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Textarea;
+use Illuminate\Support\Facades\Gate;
 
 class ViewInvoice extends ViewRecord
 {
@@ -37,7 +43,7 @@ class ViewInvoice extends ViewRecord
                             ->body('Entry created successfully')
                             ->success()
                             ->send();
-                    } catch(\Exception $e){
+                    } catch (\Exception $e) {
                         Notification::make()
                             ->title('Error')
                             ->body($e->getMessage())
@@ -50,6 +56,39 @@ class ViewInvoice extends ViewRecord
                 ->label('Print')
                 ->url(fn(Invoice $invoice): string => route('invoices.print', [$invoice->id, 'force' => 1]), true),
             // Actions\DeleteAction::make(),
+
+            // For Tax Invoice, mark as paid should be actually making the accounting entry, and if its done, we consider it mark it as paid.
+            Action::make('mark_paid')
+                ->label('Mark as Paid')
+                ->color('success')
+                ->form([
+                    Grid::make()
+                        ->columns(2)
+                        ->schema([
+                            DatePicker::make('date')
+                                ->label('Date')
+                                ->default(now())
+                                ->required(),
+                            Textarea::make('remarks')
+                                ->label('Remarks'),
+                        ])
+                ])
+                ->visible(fn(?Invoice $invoice): bool => Gate::allows('markAsPaid', $invoice))
+                ->action(function (array $data, Invoice $record): void {
+                    $record->markAsPaid($data['date'], $data['remarks']);
+                }),
+            Action::make('convert_tax_invoice')
+                ->label('Convert to SI')
+                ->color('success')
+                ->requiresConfirmation()
+                ->visible(fn(?Invoice $invoice): bool => Gate::allows('convertToTaxInvoice', $invoice))
+                ->action(function (Invoice $invoice) {
+                    $newInvoice = $invoice->createTaxInvoice();
+
+                    return redirect(self::getUrl('edit', ['record' => $newInvoice]));
+                }),
+
+            CommentsAction::make(),
         ];
     }
 }

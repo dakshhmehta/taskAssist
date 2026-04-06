@@ -32,6 +32,7 @@ class Domain extends Model
 
         $this->expiry_date = date('Y-m-d H:i:s', $rc[1]['orders.endtime']);
 
+
         $this->client_id = $this->getLastInvoice()?->client_id;
 
         $this->save();

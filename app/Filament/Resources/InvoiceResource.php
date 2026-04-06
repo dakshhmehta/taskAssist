@@ -107,6 +107,8 @@ class InvoiceResource extends Resource
                                     }
                                 }
                             }),
+                        // TODO: Auto fill based on domain extension from the config/pricing file
+                        // OR in case hosting package, take it from Hosting Package pricing from the database
                         Forms\Components\TextInput::make('price')
                             ->label('Price')
                             ->numeric()
@@ -115,6 +117,7 @@ class InvoiceResource extends Resource
                             ->label('Discount')
                             ->numeric(),
 
+                        // TODO:  In case of the domain, take the expiry date from domain model
                         Forms\Components\DatePicker::make('expiry_date')
                             ->label('Expiry Date')
                             ->nullable(),
@@ -125,6 +128,7 @@ class InvoiceResource extends Resource
                     ->columnSpan(12)
                     ->addActionLabel('Add Invoice Item'),
 
+                // TODO: Default, 0 rows should be there
                 Forms\Components\Repeater::make('extras')
                     ->relationship('extras')
                     ->schema([
@@ -178,6 +182,7 @@ class InvoiceResource extends Resource
             ])
             ->defaultSort('date', 'DESC')
             ->filters([
+                // TODO: Reuse these same filters in Domain -> Invoices tab
                 Filter::make('paid_date_range')
                     ->form([
                         Forms\Components\DatePicker::make('paid_date_from')
@@ -229,6 +234,7 @@ class InvoiceResource extends Resource
                     ->label('Paid Date Range'),
             ])
             ->actions([
+                // For Tax Invoice, mark as paid should be actually making the accounting entry, and if its done, we consider it mark it as paid.
                 Action::make('mark_paid')
                     ->label('Mark as Paid')
                     ->color('success')
