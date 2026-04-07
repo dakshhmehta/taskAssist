@@ -121,11 +121,12 @@ class JournalEntryResource extends Resource
     {
         return $table
             ->columns([
-                // TODO: Sortable
                 TextColumn::make('date')
+                    ->sortable()
                     ->date('d-m-Y'),
                 TextColumn::make('sr_no')
                     ->label('Serial No')
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('remarks')
                     ->searchable()

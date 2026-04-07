@@ -58,25 +58,6 @@ class ViewInvoice extends ViewRecord
             // Actions\DeleteAction::make(),
 
             // For Tax Invoice, mark as paid should be actually making the accounting entry, and if its done, we consider it mark it as paid.
-            Action::make('mark_paid')
-                ->label('Mark as Paid')
-                ->color('success')
-                ->form([
-                    Grid::make()
-                        ->columns(2)
-                        ->schema([
-                            DatePicker::make('date')
-                                ->label('Date')
-                                ->default(now())
-                                ->required(),
-                            Textarea::make('remarks')
-                                ->label('Remarks'),
-                        ])
-                ])
-                ->visible(fn(?Invoice $invoice): bool => Gate::allows('markAsPaid', $invoice))
-                ->action(function (array $data, Invoice $record): void {
-                    $record->markAsPaid($data['date'], $data['remarks']);
-                }),
             Action::make('convert_tax_invoice')
                 ->label('Convert to SI')
                 ->color('success')
