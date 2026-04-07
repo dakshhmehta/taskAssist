@@ -56,13 +56,19 @@ class Hosting extends Model
 
     public function getIsInvoicedAttribute()
     {
-        if ($this->expiry_date->lte(Carbon::parse('2024-08-01'))) {
-            return true;
+        try {
+            if ($this->expiry_date->lte(Carbon::parse('2024-08-01'))) {
+                return true;
+            }
+    
+            $invoice = $this->invoices()->where('date', 'LIKE', $this->expiry_date->format('Y') . '%')->exists();
+    
+            return $invoice;
         }
-
-        $invoice = $this->invoices()->where('date', 'LIKE', $this->expiry_date->format('Y') . '%')->exists();
-
-        return $invoice;
+        catch(\Error $e){
+            \Log::error('Hosting for '.$this->domain.' ('.$this->id.') does not have a valid expiry');
+            return null;
+        }
     }
 
     public function getIsSuspendedAttribute($val)

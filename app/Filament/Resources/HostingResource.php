@@ -17,6 +17,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class HostingResource extends Resource
 {
@@ -79,7 +80,15 @@ class HostingResource extends Resource
             ])
             ->defaultSort('expiry_date', 'ASC')
             ->filters([
-                // TODO: Add Filter for hosting only accounts i.e we do not own domain
+                TernaryFilter::make('owned_domain')
+                    ->label('Is Hosting Only?')
+                    ->trueLabel('Yes')
+                    ->falseLabel('All')
+                    ->queries(
+                        true: fn(Builder $query) => $query->whereDoesntHave('domainLink'),
+                        false: fn(Builder $query) => $query,
+                        blank: fn(Builder $query) => $query,
+                    ),
                 TernaryFilter::make('suspended')
                     ->label('Suspended?')
                     ->placeholder('All')
@@ -97,11 +106,15 @@ class HostingResource extends Resource
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
+                Action::make('visit')
+                    ->label('Open URL')
+                    ->url(fn(Hosting $hosting) => url('http://'.$hosting->domain)),
                 Action::make('renew')
                     ->label('Renew')
                     ->icon('heroicon-o-arrow-path')
                     ->visible(fn(Hosting $hosting) => $hosting->isRenewable())
-                    ->action(fn(Hosting $hosting) => $hosting->renew())
+                    ->action(fn(Hosting $hosting) => $hosting->renew()),
+                CommentsAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

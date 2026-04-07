@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Spatie\Tags\Tag as BaseTag;
 
+// TODO: Implement a freezing capability: Once freezed, any task that exists or will be created, 
+// will be scheduled only once, and than Auto Schedule will be marked as OFF
+
 class Tag extends BaseTag
 {
     protected $fillable = ['name', 'slug', 'type', 'order_column', 'cost'];
