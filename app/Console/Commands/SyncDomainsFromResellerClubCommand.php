@@ -142,8 +142,8 @@ class SyncDomainsFromResellerClubCommand extends Command
                 'domain' => $hostings[$i]['domain'],
             ]);
 
+            // Sync the renewal date to domain renewal date
             if ($hosting->domainLink) {
-                dd($hosting->domainLink);
                 $this->info($hosting->domainLink->expiry_date);
 
                 $hosting->expiry_date = $hosting->domainLink->expiry_date;
@@ -156,8 +156,6 @@ class SyncDomainsFromResellerClubCommand extends Command
             } else {
                 $hosting->suspended_at = null;
             }
-
-            // TODO: Sync the renewal date to domain renewal date
 
             $hosting->package_id = $this->getHostingPackage($hostings[$i]);
             $hosting->server = $server;
