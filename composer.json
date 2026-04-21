@@ -14,7 +14,6 @@
         "laravel/mcp": "^0.1.1",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
-        "openai-php/client": "^0.19.2",
         "parallax/filament-comments": "^1.3",
         "pxlrbt/filament-excel": "^2.3",
         "rmsramos/activitylog": "^0.1.3",
