@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GptController;
 use App\Http\Controllers\WordPressDataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware('auth:sanctum')->prefix('ai')->group(function () {
     Route::get('/reseller-balance', [PersonalAssistantController::class, 'getResellerBalance']);
+
+    Route::post('chat', [GptController::class, 'chat']);
 });
 
 Route::any('wp-data', [WordPressDataController::class, 'receiveData']);

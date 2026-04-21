@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://<your-app-domain>/api/ai",
+      "url": "https://beta.timepro.in/api/ai",
       "description": "TaskAssist AI API Server"
     }
   ],
