@@ -45,7 +45,7 @@ class GetUpcomingRenewals extends Tool
         if ($tillDateStr) {
             $tillDate = Carbon::parse($tillDateStr)->endOfDay();
         } else {
-            $tillDate = now()->endOfWeek();
+            $tillDate = now()->addDays(5);
         }
 
         $allDomains = ResellerClub::getDomains('expiring');
@@ -59,7 +59,7 @@ class GetUpcomingRenewals extends Tool
                     continue; // Skip pagination keys like 'recsonpage', 'recsindb'
                 }
 
-                $expiryDate = Carbon::createFromTimestamp($domain['entity.endtime']);
+                $expiryDate = Carbon::createFromTimestamp($domain['orders.endtime']);
 
                 if ($expiryDate->lte($tillDate)) {
                     if ($domainFilter && stripos($domain['entity.description'], $domainFilter) === false) {
@@ -81,7 +81,7 @@ class GetUpcomingRenewals extends Tool
                     continue;
                 }
 
-                $expiryDate = Carbon::createFromTimestamp($gsuite['entity.endtime']);
+                $expiryDate = Carbon::createFromTimestamp($gsuite['orders.endtime']);
 
                 if ($expiryDate->lte($tillDate)) {
                     if ($domainFilter && stripos($gsuite['entity.description'], $domainFilter) === false) {
