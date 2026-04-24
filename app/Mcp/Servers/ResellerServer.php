@@ -3,6 +3,7 @@
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\GetResellerBalance;
+use App\Mcp\Tools\GetUpcomingRenewals;
 use Laravel\Mcp\Server;
 
 class ResellerServer extends Server
@@ -15,6 +16,7 @@ class ResellerServer extends Server
 
     public array $tools = [
         GetResellerBalance::class,
+        GetUpcomingRenewals::class,
     ];
 
     public array $resources = [
