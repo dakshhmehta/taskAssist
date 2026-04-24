@@ -10,7 +10,7 @@ class ResellerServer extends Server
 {
     public string $serverName = 'Reseller Server';
 
-    public string $serverVersion = '0.0.1';
+    public string $serverVersion = '0.0.2';
 
     public string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
 
