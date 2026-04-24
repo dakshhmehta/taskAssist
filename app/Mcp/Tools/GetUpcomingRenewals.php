@@ -2,7 +2,8 @@
 
 namespace App\Mcp\Tools;
 
-use App\ResellerClub;
+use App\Models\Domain;
+use App\Models\Email;
 use Carbon\Carbon;
 use Generator;
 use Laravel\Mcp\Server\Tool;
@@ -48,54 +49,45 @@ class GetUpcomingRenewals extends Tool
             $tillDate = now()->addDays(5);
         }
 
-        $allDomains = ResellerClub::getDomains('expiring');
-        $allGSuites = ResellerClub::getGSuites();
-
         $renewals = [];
 
-        if (is_array($allDomains)) {
-            foreach ($allDomains as $key => $domain) {
-                if (!is_numeric($key)) {
-                    continue; // Skip pagination keys like 'recsonpage', 'recsindb'
-                }
+        // Fetch Domains
+        $domainQuery = Domain::query()
+            ->where('expiry_date', '>=', now())
+            ->excludeIgnored();
 
-                $expiryDate = Carbon::createFromTimestamp($domain['orders.endtime']);
-
-                if ($expiryDate->lte($tillDate)) {
-                    if ($domainFilter && stripos($domain['entity.description'], $domainFilter) === false) {
-                        continue;
-                    }
-
-                    $renewals[] = [
-                        'type' => 'Domain',
-                        'domain' => $domain['entity.description'],
-                        'expiry_date' => $expiryDate->format('Y-m-d H:i:s'),
-                    ];
-                }
-            }
+        if ($domainFilter) {
+            $domainQuery->where('tld', 'like', "%{$domainFilter}%");
+        } else {
+            $domainQuery->where('expiry_date', '<=', $tillDate);
         }
 
-        if (is_array($allGSuites)) {
-            foreach ($allGSuites as $key => $gsuite) {
-                if (!is_numeric($key)) {
-                    continue;
-                }
+        foreach ($domainQuery->get() as $domain) {
+            $renewals[] = [
+                'type' => 'Domain',
+                'domain' => $domain->tld,
+                'expiry_date' => $domain->expiry_date->format('Y-m-d H:i:s'),
+            ];
+        }
 
-                $expiryDate = Carbon::createFromTimestamp($gsuite['orders.endtime']);
+        // Fetch GSuites (Emails)
+        $emailQuery = Email::query()
+            ->where('expiry_date', '>=', now())
+            ->excludeIgnored();
 
-                if ($expiryDate->lte($tillDate)) {
-                    if ($domainFilter && stripos($gsuite['entity.description'], $domainFilter) === false) {
-                        continue;
-                    }
+        if ($domainFilter) {
+            $emailQuery->where('domain', 'like', "%{$domainFilter}%");
+        } else {
+            $emailQuery->where('expiry_date', '<=', $tillDate);
+        }
 
-                    $renewals[] = [
-                        'type' => 'GSuite',
-                        'domain' => $gsuite['entity.description'],
-                        'expiry_date' => $expiryDate->format('Y-m-d H:i:s'),
-                        'accounts' => $gsuite['accounts_count'] ?? 'Unknown',
-                    ];
-                }
-            }
+        foreach ($emailQuery->get() as $email) {
+            $renewals[] = [
+                'type' => 'GSuite',
+                'domain' => $email->domain,
+                'expiry_date' => $email->expiry_date->format('Y-m-d H:i:s'),
+                'accounts' => $email->accounts_count ?? 'Unknown',
+            ];
         }
 
         return ToolResult::json([
