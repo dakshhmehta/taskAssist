@@ -52,7 +52,7 @@ class GetNewAssetsWithoutInvoices extends Tool
                 'expiry_date' => optional($domain->expiry_date)?->format('Y-m-d H:i:s'),
                 'client_id' => $domain->client_id,
                 'has_client' => $domain->client_id !== null,
-                'invoice_count' => 0,
+                'invoice_count' => $domain->invoices()->count(),
             ];
         }
 
@@ -75,7 +75,7 @@ class GetNewAssetsWithoutInvoices extends Tool
                 'expiry_date' => optional($email->expiry_date)?->format('Y-m-d H:i:s'),
                 'client_id' => $email->client_id,
                 'has_client' => $email->client_id !== null,
-                'invoice_count' => 0,
+                'invoice_count' => $email->invoices()->count(),
             ];
         }
 
