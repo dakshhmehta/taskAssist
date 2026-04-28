@@ -42,18 +42,19 @@ class GetUpcomingRenewals extends Tool
     {
         $domainFilter = $arguments['domain'] ?? null;
         $tillDateStr = $arguments['tillDate'] ?? null;
+        $today = now()->startOfDay();
 
         if ($tillDateStr) {
             $tillDate = Carbon::parse($tillDateStr)->endOfDay();
         } else {
-            $tillDate = now()->addDays(5);
+            $tillDate = now()->addDays(7);
         }
 
         $renewals = [];
 
         // Fetch Domains
         $domainQuery = Domain::query()
-            ->where('expiry_date', '>=', now())
+            ->whereNotNull('expiry_date')
             ->excludeIgnored();
 
         if ($domainFilter) {
@@ -62,17 +63,27 @@ class GetUpcomingRenewals extends Tool
             $domainQuery->where('expiry_date', '<=', $tillDate);
         }
 
-        foreach ($domainQuery->get() as $domain) {
+        $domains = $domainQuery
+            ->orderByRaw('CASE WHEN expiry_date < ? THEN 0 ELSE 1 END ASC', [$today->format('Y-m-d H:i:s')])
+            ->orderBy('expiry_date', 'ASC')
+            ->get();
+
+        foreach ($domains as $domain) {
+            $isExpired = $domain->expiry_date->lt($today);
+
             $renewals[] = [
                 'type' => 'Domain',
                 'domain' => $domain->tld,
                 'expiry_date' => $domain->expiry_date->format('Y-m-d H:i:s'),
+                'is_expired' => $isExpired,
+                'days_overdue' => $isExpired ? $domain->expiry_date->diffInDays($today) : null,
+                'days_until_expiry' => $isExpired ? null : $today->diffInDays($domain->expiry_date, false),
             ];
         }
 
         // Fetch GSuites (Emails)
         $emailQuery = Email::query()
-            ->where('expiry_date', '>=', now())
+            ->whereNotNull('expiry_date')
             ->excludeIgnored();
 
         if ($domainFilter) {
@@ -81,12 +92,22 @@ class GetUpcomingRenewals extends Tool
             $emailQuery->where('expiry_date', '<=', $tillDate);
         }
 
-        foreach ($emailQuery->get() as $email) {
+        $emails = $emailQuery
+            ->orderByRaw('CASE WHEN expiry_date < ? THEN 0 ELSE 1 END ASC', [$today->format('Y-m-d H:i:s')])
+            ->orderBy('expiry_date', 'ASC')
+            ->get();
+
+        foreach ($emails as $email) {
+            $isExpired = $email->expiry_date->lt($today);
+
             $renewals[] = [
                 'type' => 'GSuite',
                 'domain' => $email->domain,
                 'expiry_date' => $email->expiry_date->format('Y-m-d H:i:s'),
                 'accounts' => $email->accounts_count ?? 'Unknown',
+                'is_expired' => $isExpired,
+                'days_overdue' => $isExpired ? $email->expiry_date->diffInDays($today) : null,
+                'days_until_expiry' => $isExpired ? null : $today->diffInDays($email->expiry_date, false),
             ];
         }
 

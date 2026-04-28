@@ -23,26 +23,65 @@ class UpcomingDomainRenewals extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $upcomingRenewalDate = Domain::where('expiry_date', '>=', now()->endOfDay())->min('expiry_date');
-        $upcomingRenewalDate = Carbon::parse($upcomingRenewalDate)->endOfDay();
+        $today = now()->startOfDay();
+        $expiredDomainsExist = Domain::query()
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<', $today)
+            ->excludeIgnored()
+            ->exists();
+
+        $heading = 'Expired Domain Renewals';
+        $domainsQuery = Domain::query()
+            ->whereNotNull('expiry_date')
+            ->excludeIgnored();
+
+        if ($expiredDomainsExist) {
+            $domainsQuery->where('expiry_date', '<', $today)
+                ->orderBy('expiry_date', 'ASC');
+        } else {
+            $upcomingRenewalDate = Domain::query()
+                ->whereNotNull('expiry_date')
+                ->where('expiry_date', '>=', now()->endOfDay())
+                ->excludeIgnored()
+                ->min('expiry_date');
+
+            if ($upcomingRenewalDate) {
+                $upcomingRenewalDate = Carbon::parse($upcomingRenewalDate)->endOfDay();
+                $heading = 'Domain Renewals - ' . $upcomingRenewalDate->format('d-m-Y');
+
+                $domainsQuery->where('expiry_date', '<=', $upcomingRenewalDate->format('Y-m-d H:i:s'))
+                    ->where('expiry_date', '>=', '2024-08-01 00:00:00')
+                    ->orderBy('expiry_date', 'ASC');
+            } else {
+                $heading = 'Domain Renewals';
+                $domainsQuery->whereRaw('1 = 0');
+            }
+        }
 
         return $table
-            ->heading('Domain Renewals - ' . $upcomingRenewalDate->format('d-m-Y'))
-            ->query(
-                function () use (&$upcomingRenewalDate) {
-                    $domains = Domain::where('expiry_date', '<=', $upcomingRenewalDate->format('Y-m-d H:i:s'))
-                        ->where('expiry_date', '>=', '2024-08-01 00:00:00')->excludeIgnored();
-
-                    return $domains;
-                }
-            )
+            ->heading($heading)
+            ->query($domainsQuery)
             ->columns([
                 TextColumn::make('index')
                     ->label('#')
                     ->rowIndex(),
                 TextColumn::make('tld')
                     ->label('Domain')
-                    ->description(fn(Domain $domain) => optional($domain->expiry_date)->format(config('app.date_format')))
+                    ->description(function (Domain $domain) use ($today) {
+                        $expiryDate = optional($domain->expiry_date)?->format(config('app.date_format'));
+
+                        if (! $domain->expiry_date) {
+                            return $expiryDate;
+                        }
+
+                        if ($domain->expiry_date->lt($today)) {
+                            $daysOverdue = $domain->expiry_date->diffInDays($today);
+
+                            return $expiryDate . ' | Expired ' . $daysOverdue . ' day' . ($daysOverdue === 1 ? '' : 's') . ' ago';
+                        }
+
+                        return $expiryDate;
+                    })
             ])
             ->actions([
                 Action::make('doIgnore')
