@@ -24,6 +24,13 @@ class UpcomingDomainRenewals extends BaseWidget
     public function table(Table $table): Table
     {
         $today = now()->startOfDay();
+
+        $upcomingRenewalDate = Domain::query()
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '>=', now()->endOfDay())
+            ->excludeIgnored()
+            ->min('expiry_date');
+
         $expiredDomainsExist = Domain::query()
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '<', $today)
@@ -39,12 +46,6 @@ class UpcomingDomainRenewals extends BaseWidget
             $domainsQuery->where('expiry_date', '<', $today)
                 ->orderBy('expiry_date', 'ASC');
         } else {
-            $upcomingRenewalDate = Domain::query()
-                ->whereNotNull('expiry_date')
-                ->where('expiry_date', '>=', now()->endOfDay())
-                ->excludeIgnored()
-                ->min('expiry_date');
-
             if ($upcomingRenewalDate) {
                 $upcomingRenewalDate = Carbon::parse($upcomingRenewalDate)->endOfDay();
                 $heading = 'Domain Renewals - ' . $upcomingRenewalDate->format('d-m-Y');
