@@ -23,23 +23,66 @@ class UpcomingHostingRenewals extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $upcomingRenewalDate = Hosting::where('expiry_date', '>=', now()->endOfDay())->min('expiry_date');
-        $upcomingRenewalDate = Carbon::parse($upcomingRenewalDate)->endOfDay();
+        $today = now()->startOfDay();
+
+        $upcomingRenewalDate = Hosting::query()
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '>=', now()->endOfDay())
+            ->excludeIgnored()
+            ->active()
+            ->min('expiry_date');
+
+        $expiredHostingsExist = Hosting::query()
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<', $today)
+            ->excludeIgnored()
+            ->active()
+            ->exists();
+
+        $heading = 'Expired Hosting Renewals';
+        $hostingsQuery = Hosting::query()
+            ->whereNotNull('expiry_date')
+            ->excludeIgnored()
+            ->active();
+
+        if ($expiredHostingsExist) {
+            $hostingsQuery->where('expiry_date', '<', $today)
+                ->orderBy('expiry_date', 'ASC');
+        } else {
+            if ($upcomingRenewalDate) {
+                $upcomingRenewalDate = Carbon::parse($upcomingRenewalDate)->endOfDay();
+                $heading = 'Hosting Renewals - ' . $upcomingRenewalDate->format('d-m-Y');
+
+                $hostingsQuery->where('expiry_date', '<=', $upcomingRenewalDate->format('Y-m-d H:i:s'))
+                    ->where('expiry_date', '>=', '2024-08-01 00:00:00')
+                    ->orderBy('expiry_date', 'ASC');
+            } else {
+                $heading = 'Hosting Renewals';
+                $hostingsQuery->whereRaw('1 = 0');
+            }
+        }
 
         return $table
-            ->heading('Hosting Renewals - ' . $upcomingRenewalDate->format('d-m-Y'))
-            ->query(
-                function () use (&$upcomingRenewalDate) {
-                    $hostings = Hosting::where('expiry_date', '<=', $upcomingRenewalDate->format('Y-m-d H:i:s'))
-                        ->where('expiry_date', '>=', '2024-08-01 00:00:00')->active();
-
-                    return $hostings;
-                }
-            )
+            ->heading($heading)
+            ->query($hostingsQuery)
             ->columns([
                 TextColumn::make('domain')
                     ->label('Domain')
-                    ->description(fn(Hosting $hosting) => optional($hosting->expiry_date)->format(config('app.date_format')))
+                    ->description(function (Hosting $hosting) use ($today) {
+                        $expiryDate = optional($hosting->expiry_date)?->format(config('app.date_format'));
+
+                        if (! $hosting->expiry_date) {
+                            return $expiryDate;
+                        }
+
+                        if ($hosting->expiry_date->lt($today)) {
+                            $daysOverdue = $hosting->expiry_date->diffInDays($today);
+
+                            return $expiryDate . ' | Expired ' . $daysOverdue . ' day' . ($daysOverdue === 1 ? '' : 's') . ' ago';
+                        }
+
+                        return $expiryDate;
+                    })
             ])
             ->actions([
                 Action::make('doIgnore')
