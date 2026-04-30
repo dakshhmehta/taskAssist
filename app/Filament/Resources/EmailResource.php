@@ -11,8 +11,11 @@ use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class EmailResource extends Resource
 {
@@ -29,6 +32,7 @@ class EmailResource extends Resource
         return [
             'Accounts' => $record->accounts_count,
             'Expiry' => $record->expiry_date->format(config('app.date_format')),
+            'Ignored' => $record->isIgnored() ? 'Yes' : 'No',
         ];
     }
 
@@ -66,10 +70,34 @@ class EmailResource extends Resource
             ])
             ->defaultSort('expiry_date', 'DESC')
             ->filters([
-                //
+                TernaryFilter::make('ignored')
+                    ->label('Ignore')
+                    ->trueLabel('Include Ignored')
+                    ->falseLabel('Unignored Only')
+                    ->default(false)
+                    ->queries(
+                        true: fn(Builder $query) => $query->includeIgnored(),
+                        false: fn(Builder $query) => $query->excludeIgnored(),
+                        blank: fn(Builder $query) => $query->excludeIgnored(),
+                    ),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
+
+                CommentsAction::make(),
+
+                Action::make('doIgnore')
+                    ->label('Ignore')
+                    ->icon('heroicon-o-x-circle')
+                    ->action(fn(Email $email) => $email->ignore())
+                    ->visible(fn(Email $email) => ! $email->isIgnored())
+                    ->color('danger'),
+
+                Action::make('doUnIgnore')
+                    ->label('Unignore')
+                    ->action(fn(Email $email) => $email->unIgnore())
+                    ->visible(fn(Email $email) => $email->isIgnored())
+                    ->color('warning'),
 
                 // Action button for the Generate Invoice button
                 Action::make('generateInvoice')
