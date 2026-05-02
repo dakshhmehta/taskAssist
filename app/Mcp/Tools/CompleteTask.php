@@ -26,7 +26,7 @@ class CompleteTask extends Tool
      */
     public function schema(ToolInputSchema $schema): ToolInputSchema
     {
-        return $schema->integer('task_id', 'The ID of the task to complete');
+        return $schema->integer('timepro_task_id', 'The ID of the task to complete')->required();
     }
 
     /**
@@ -36,7 +36,7 @@ class CompleteTask extends Tool
      */
     public function handle(array $arguments): ToolResult|Generator
     {
-        $taskId = $arguments['task_id'] ?? null;
+        $taskId = $arguments['timepro_task_id'] ?? null;
 
         $task = Task::find($taskId);
 

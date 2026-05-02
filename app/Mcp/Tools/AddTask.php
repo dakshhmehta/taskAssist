@@ -27,13 +27,12 @@ class AddTask extends Tool
      */
     public function schema(ToolInputSchema $schema): ToolInputSchema
     {
-        return $schema->string('task', 'The title of the task')
-            ->string('project', 'The project/tag name to search for')
-            ->string('priority', 'Priority (P1, P2, P3, P4)')
-            ->integer('estimated_minutes', 'Estimated time in minutes')
-            ->object('_timepro', 'Task identification metadata (must be empty)', function ($meta) {
-                $meta->integer('id', 'Task ID (should not be present for new tasks)');
-            });
+        return $schema->string('task', 'The title of the task')->required()
+            ->string('project', 'The project/tag name to search for')->required()
+            ->string('priority', 'Priority (P1, P2, P3, P4)')->required()
+            ->integer('estimated_minutes', 'Estimated time in minutes')->required()
+            ->integer('assignee_id', 'The ID of the user to assign the task to (Defaults to 1)')
+            ->integer('timepro_task_id', 'Task ID (should not be present for new tasks)');
     }
 
     /**
@@ -43,10 +42,10 @@ class AddTask extends Tool
      */
     public function handle(array $arguments): ToolResult|Generator
     {
-        if (isset($arguments['_timepro']['id'])) {
+        if (isset($arguments['timepro_task_id'])) {
             return ToolResult::json([
                 'status' => 'error',
-                'message' => 'AddTask failed: _timepro.id detected. Use SyncTasks for existing tasks.',
+                'message' => 'AddTask failed: timepro_task_id detected. Use SyncTasks for existing tasks.',
             ]);
         }
 

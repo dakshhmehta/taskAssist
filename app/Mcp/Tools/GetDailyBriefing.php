@@ -50,7 +50,7 @@ class GetDailyBriefing extends Tool
         $format = function ($tasks) {
             return $tasks->map(function ($t) {
                 return [
-                    'id' => $t->id,
+                    'timepro_task_id' => $t->id,
                     'title' => $t->title,
                     'estimate' => $t->estimate,
                     'project' => $t->tag,
