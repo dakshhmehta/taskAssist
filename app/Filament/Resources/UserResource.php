@@ -50,6 +50,12 @@ class UserResource extends Resource
                     ->required(),
                 TextInput::make('biometric_id')
                     ->required(),
+                Forms\Components\Toggle::make('is_probation')
+                    ->label('In Probation')
+                    ->default(false),
+                Forms\Components\Toggle::make('is_disabled')
+                    ->label('Is Disabled')
+                    ->default(false),
             ]);
     }
 

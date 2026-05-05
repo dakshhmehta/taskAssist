@@ -29,10 +29,10 @@ class CreditTeamCLCommand extends Command
     {
         // For each month, from the beginning of the year, credit the CL on the start date of month, if not already done
         $startOfYear = now()->startOfYear();
-        $users = User::all();
+        $users = User::where('is_probation', false)->where('is_disabled', false)->get();
 
         while ($startOfYear->lte(now())) {
-            $date = $startOfYear->startOfMonth();
+            $date = $startOfYear->clone()->startOfMonth();
 
             foreach ($users as $user) {
                 $credited = $user->creditCLForMonth($date);
@@ -41,7 +41,7 @@ class CreditTeamCLCommand extends Command
                 }
             }
 
-            $date->addMonth();
+            $startOfYear->addMonth();
         }
 
         if($this->option('sync-debit')){

@@ -38,6 +38,8 @@ class User extends Authenticatable
         'salary_type',
 
         'biometric_id',
+        'is_probation',
+        'is_disabled',
     ];
 
     /**
@@ -60,6 +62,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_probation' => 'boolean',
+            'is_disabled' => 'boolean',
         ];
     }
 
@@ -251,6 +255,10 @@ class User extends Authenticatable
 
     public function creditCLForMonth(Carbon $date)
     {
+        if ($this->is_disabled) {
+            return false;
+        }
+
         if ($this->hasCreditedCLForMonth($date)) {
             return false;
         }

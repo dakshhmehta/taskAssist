@@ -63,7 +63,9 @@ class TaskResource extends Resource
             ->schema([
                 Select::make('assignee_id')
                     ->label('Assignee')
-                    ->options(User::all()->pluck('name', 'id'))
+                    ->options(User::query()
+                        ->when(!Auth::user()->is_admin, fn($query) => $query->where('is_disabled', false))
+                        ->pluck('name', 'id'))
                     ->default($userId)
                     ->required(),
                 Forms\Components\TextInput::make('title')
@@ -144,7 +146,9 @@ class TaskResource extends Resource
             ->defaultSort('due_date', 'ASC')
             ->filters([
                 SelectFilter::make('assignee_id')
-                    ->options(User::all()->pluck('name', 'id'))
+                    ->options(User::query()
+                        ->when(!Auth::user()->is_admin, fn($query) => $query->where('is_disabled', false))
+                        ->pluck('name', 'id'))
                     ->default(\Auth::user()->id),
                 TernaryFilter::make('completed')
                     ->label('Completed?')
