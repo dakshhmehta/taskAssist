@@ -13,6 +13,9 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Tags\HasTags;
 use TomatoPHP\FilamentMediaManager\Traits\InteractsWithMediaFolders;
+use App\Traits\IgnorableTrait;
+use Illuminate\Database\Eloquent\Builder;
+
 
 class Task extends Model implements HasMedia
 {
@@ -26,6 +29,8 @@ class Task extends Model implements HasMedia
     use LogsActivity;
 
     use HasFilamentComments;
+    use IgnorableTrait;
+
 
     protected $dates = ['completed_at'];
 
@@ -40,7 +45,12 @@ class Task extends Model implements HasMedia
     protected static function boot()
     {
         parent::boot();
+
+        static::addGlobalScope('excludeIgnored', function (Builder $builder) {
+            $builder->whereNull('ignored_at');
+        });
     }
+
 
     public function assignee()
     {

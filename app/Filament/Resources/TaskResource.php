@@ -189,6 +189,17 @@ class TaskResource extends Resource
                             $query->withAnyTags($tags); // specify locale
                         }
                     }), // uses the relation + field
+                TernaryFilter::make('ignored')
+                    ->label('Archived?')
+                    ->placeholder('Without Archived')
+                    ->trueLabel('Archived Only')
+                    ->falseLabel('Without Archived')
+                    ->queries(
+                        true: fn (Builder $query) => $query->withoutGlobalScope('excludeIgnored')->whereNotNull('ignored_at'),
+                        false: fn (Builder $query) => $query->whereNull('ignored_at'),
+                        blank: fn (Builder $query) => $query->whereNull('ignored_at'),
+                    )
+
 
             ])
             ->actions([
@@ -215,11 +226,14 @@ class TaskResource extends Resource
                     ->action(fn(Task $task) => $task->complete())
                     ->visible(fn(Task $task) => $task->isCompletable())
                     ->color('success'),
-                // Tables\Actions\EditAction::make()
-                //     ->visible(fn(Task $task) => ! $task->is_completed),
+
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn(Task $task) => ! $task->is_completed),
                 // DeleteAction::make()
                 //     ->visible(fn(Task $task) => ! $task->is_completed),
             ], position: ActionsPosition::BeforeColumns)
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     // Tables\Actions\DeleteBulkAction::make(),
@@ -239,7 +253,8 @@ class TaskResource extends Resource
         return [
             'index' => Pages\ListTasks::route('/'),
             'create' => Pages\CreateTask::route('/create'),
-            // 'view' => ViewTask::route('/{record}'),
+            'view' => Pages\ViewTask::route('/{record}'),
+
             'edit' => Pages\EditTask::route('/{record}/edit'),
         ];
     }
