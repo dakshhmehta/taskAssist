@@ -227,7 +227,6 @@ class TaskResource extends Resource
                     ->visible(fn(Task $task) => $task->isCompletable())
                     ->color('success'),
 
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn(Task $task) => ! $task->is_completed),
                 // DeleteAction::make()
