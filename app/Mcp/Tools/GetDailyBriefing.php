@@ -37,20 +37,14 @@ class GetDailyBriefing extends Tool
     {
         $today = now()->format('Y-m-d');
 
-        $todayTasks = Task::where('due_date', $today)
-            ->whereNull('completed_at')
-            ->get();
-
-        $overdueP1 = Task::where('due_date', '<', $today)
-            ->where('is_urgent', true)
-            ->where('is_important', true)
+        $tasks = Task::where('due_date', $today)
             ->whereNull('completed_at')
             ->get();
 
         $format = function ($tasks) {
             return $tasks->map(function ($t) {
                 return [
-                    'timepro_task_id' => $t->id,
+                    'task_id' => $t->id,
                     'title' => $t->title,
                     'estimate' => $t->estimate,
                     'project' => $t->tag,
@@ -58,9 +52,12 @@ class GetDailyBriefing extends Tool
             });
         };
 
+        $grouped = $tasks->groupBy('assignee_id')->map(function ($userTasks) use ($format) {
+            return $format($userTasks);
+        });
+
         return ToolResult::json([
-            'today' => $format($todayTasks),
-            'overdue_p1' => $format($overdueP1),
+            'today' => $grouped->toArray(),
         ]);
     }
 }

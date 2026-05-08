@@ -58,12 +58,14 @@ class AddTask extends Tool
         $projectName = $arguments['project'] ?? '';
         $tag = Tag::where('name', 'LIKE', '%' . $projectName . '%')->first();
 
+        $assigneeId = $arguments['assignee_id'] ?? 1;
+
         $task = Task::create([
             'title' => $arguments['task'],
             'estimate' => $arguments['estimated_minutes'] ?? 60,
             'is_urgent' => $isUrgent,
             'is_important' => $isImportant,
-            'assignee_id' => 1,
+            'assignee_id' => $assigneeId,
             'auto_schedule' => true,
         ]);
 
@@ -72,7 +74,7 @@ class AddTask extends Tool
             $task->syncTags([$tag->name]);
         }
 
-        dispatch(new ScheduleTasksForUser(1));
+        dispatch(new ScheduleTasksForUser($assigneeId));
 
         return ToolResult::json([
             'status' => 'success',

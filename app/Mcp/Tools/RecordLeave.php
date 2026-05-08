@@ -29,7 +29,8 @@ class RecordLeave extends Tool
         return $schema->string('from_date', 'Start date (YYYY-MM-DD)')
             ->string('to_date', 'End date (YYYY-MM-DD)')
             ->boolean('half_day', 'Is this a half-day leave?')
-            ->string('description', 'Reason or description for the leave');
+            ->string('description', 'Reason or description for the leave')
+            ->integer('user_id', 'The ID of the user to record leave for (Defaults to 1)');
     }
 
     /**
@@ -39,8 +40,10 @@ class RecordLeave extends Tool
      */
     public function handle(array $arguments): ToolResult|Generator
     {
+        $userId = $arguments['user_id'] ?? 1;
+
         $leave = UserLeave::create([
-            'user_id' => 1,
+            'user_id' => $userId,
             'from_date' => $arguments['from_date'],
             'to_date' => $arguments['to_date'],
             'half_day' => $arguments['half_day'] ?? false,
@@ -50,7 +53,7 @@ class RecordLeave extends Tool
             'approved_by_user_id' => 1,
         ]);
 
-        dispatch(new ScheduleTasksForUser(1));
+        dispatch(new ScheduleTasksForUser($userId));
 
         return ToolResult::json([
             'status' => 'success',
