@@ -78,6 +78,7 @@ class AddTask extends Tool
             'status' => 'success',
             'message' => 'Task added successfully.',
             'task_id' => $task->id,
+            'task' => $task->toArray(),
         ]);
     }
 }

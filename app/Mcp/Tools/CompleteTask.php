@@ -53,6 +53,8 @@ class CompleteTask extends Tool
 
         return ToolResult::json([
             'status' => 'success',
+            'task_id' => $task->id,
+            'task' => $task->toArray(),
             'message' => "Task completed: {$task->title}",
         ]);
     }

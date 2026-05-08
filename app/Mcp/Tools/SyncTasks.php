@@ -84,6 +84,7 @@ class SyncTasks extends Tool
             'status' => 'success',
             'message' => 'Task synced successfully.',
             'timepro_task_id' => $task->id,
+            'task' => $task->toArray(),
         ]);
     }
 }

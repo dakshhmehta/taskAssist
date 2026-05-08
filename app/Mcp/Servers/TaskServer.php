@@ -20,8 +20,8 @@ class TaskServer extends Server
 
     public array $tools = [
         SyncTasks::class,
-        // AddTask::class,
-        // CompleteTask::class,
+        AddTask::class,
+        CompleteTask::class,
         // GetDailyBriefing::class,
         // RecordLeave::class,
         ListTeamMembers::class,
