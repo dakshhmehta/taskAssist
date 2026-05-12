@@ -118,8 +118,9 @@ class Hosting extends Model
     public function dueForRenewal(): bool
     {
         return $this->client && (
-            $this->last_invoiced_date?->diffInYears(now()) > 1 ||
-            $this->last_invoiced_date?->diffInYears($this->expiry_date) > 1
+            ($this->expiry_date && $this->expiry_date->lte(now()->addDays(7))) ||
+            $this->last_invoiced_date?->diffInMonths(now()) > 12 ||
+            $this->last_invoiced_date?->diffInMonths($this->expiry_date) > 12
         );
     }
 }
