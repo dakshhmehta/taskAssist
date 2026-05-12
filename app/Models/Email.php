@@ -67,8 +67,11 @@ class Email extends Model
     public function client()
     {
         if (! $this->client_id) {
-            $this->client_id = $this->getLastInvoice()->client->id;
-            $this->save();
+            $lastInvoice = $this->getLastInvoice();
+            if ($lastInvoice) {
+                $this->client_id = $lastInvoice->client_id;
+                $this->save();
+            }
         }
 
         return $this->belongsTo(Client::class);
