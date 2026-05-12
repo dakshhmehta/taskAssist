@@ -89,4 +89,39 @@ class DomainRenewalTest extends TestCase
         // The test case: should NOT be due for renewal
         $this->assertFalse($domain->dueForRenewal(), 'Domain was invoiced in advance but it returned true.');
     }
+
+    public function test_domain_is_due_for_renewal_if_expiring_within_30_days()
+    {
+        // Set "now" to 2026-05-12
+        Carbon::setTestNow(Carbon::parse('2026-05-12'));
+
+        $client = Client::create([
+            'billing_name' => 'Test Client',
+            'nickname' => 'Test',
+        ]);
+
+        // Expiry is 14 days away (2026-05-26)
+        $domain = Domain::create([
+            'tld' => 'example.com',
+            'expiry_date' => Carbon::parse('2026-05-26'),
+            'client_id' => $client->id,
+        ]);
+
+        // last_invoiced_date is 2025-05-26 (exactly 1 year ago)
+        $invoice = Invoice::create([
+            'client_id' => $client->id,
+            'date' => Carbon::parse('2025-05-26'),
+            'invoice_no' => 'INV-003',
+        ]);
+
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'itemable_type' => Domain::class,
+            'itemable_id' => $domain->id,
+            'price' => 100,
+        ]);
+
+        // The test case: should be due for renewal because it expires in 14 days (< 30)
+        $this->assertTrue($domain->dueForRenewal(), 'Domain is expiring in 14 days but it returned false.');
+    }
 }

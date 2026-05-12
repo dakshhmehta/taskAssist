@@ -77,7 +77,7 @@ class Email extends Model
     public function dueForRenewal(): bool
     {
         return $this->client && (
-            ($this->expiry_date && $this->expiry_date->lte(now()->addDays(7))) ||
+            ($this->expiry_date && $this->expiry_date->lte(now()->addDays(30))) ||
             ($this->last_invoiced_date && (
                 now()->year - $this->last_invoiced_date->year >= 2 ||
                 ($this->expiry_date && $this->expiry_date->year - $this->last_invoiced_date->year >= 2)
