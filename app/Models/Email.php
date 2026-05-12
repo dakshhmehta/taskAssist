@@ -73,4 +73,12 @@ class Email extends Model
 
         return $this->belongsTo(Client::class);
     }
+
+    public function dueForRenewal(): bool
+    {
+        return $this->client && (
+            $this->last_invoiced_date?->diffInYears(now()) > 1 ||
+            $this->last_invoiced_date?->diffInYears($this->expiry_date) > 1
+        );
+    }
 }

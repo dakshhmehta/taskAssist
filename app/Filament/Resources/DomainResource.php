@@ -103,7 +103,7 @@ class DomainResource extends Resource
                 Action::make('generateInvoice')
                     ->label('Generate Invoice')
                     // Previous invoice is older than 1 year and client is already exist
-                    ->visible(fn(Domain $domain) => $domain->last_invoiced_date?->diffInYears(now()) >= 1 && $domain->client)
+                    ->visible(fn(Domain $domain) => $domain->dueForRenewal())
                     ->color('success')
                     ->action(function (Domain $domain) {
                         GenerateInvoice::dispatch([$domain, $domain->hosting ?? null], $domain->expiry_date->subYear());

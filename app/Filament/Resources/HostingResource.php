@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\HostingResource\Pages;
+use App\Jobs\GenerateInvoice;
 use App\Models\Hosting;
 use App\Models\HostingPackage;
 use Filament\Forms;
@@ -114,11 +115,56 @@ class HostingResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->visible(fn(Hosting $hosting) => $hosting->isRenewable())
                     ->action(fn(Hosting $hosting) => $hosting->renew()),
+
+                Action::make('generateInvoice')
+                    ->label('Generate Invoice')
+                    ->visible(fn(Hosting $hosting) => $hosting->dueForRenewal())
+                    ->color('success')
+                    ->action(function (Hosting $hosting) {
+                        GenerateInvoice::dispatch([$hosting], $hosting->expiry_date->subYear());
+                    }),
+
                 CommentsAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     // Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('generateInvoices')
+                        ->label('Generate Invoices')
+                        ->icon('heroicon-o-document-text')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Generate Invoices for Selected Hostings')
+                        ->modalDescription('This will create invoices for the selected hostings grouped by client.')
+                        ->action(function ($records) {
+                            // Group hostings by client_id
+                            $groupedByClient = $records->groupBy('client_id');
+
+                            $invoiceCount = 0;
+                            foreach ($groupedByClient as $clientId => $hostings) {
+                                if (!$clientId) {
+                                    continue; // Skip hostings without a client
+                                }
+
+                                // Collect items for this client
+                                $items = $hostings->all();
+
+                                // Get the earliest expiry date
+                                $earliestExpiryDate = $hostings->min('expiry_date');
+                                $invoiceDate = \Carbon\Carbon::parse($earliestExpiryDate)->subYear();
+
+                                // Dispatch the job
+                                GenerateInvoice::dispatch($items, $invoiceDate);
+                                $invoiceCount++;
+                            }
+
+                            // Show success notification
+                            \Filament\Notifications\Notification::make()
+                                ->title('Invoices Generated')
+                                ->body("Successfully queued {$invoiceCount} invoice(s) for generation.")
+                                ->success()
+                                ->send();
+                        }),
                 ]),
             ]);
     }
