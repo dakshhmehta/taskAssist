@@ -78,8 +78,10 @@ class Email extends Model
     {
         return $this->client && (
             ($this->expiry_date && $this->expiry_date->lte(now()->addDays(7))) ||
-            $this->last_invoiced_date?->diffInMonths(now()) > 12 ||
-            $this->last_invoiced_date?->diffInMonths($this->expiry_date) > 12
+            ($this->last_invoiced_date && (
+                now()->year - $this->last_invoiced_date->year >= 2 ||
+                ($this->expiry_date && $this->expiry_date->year - $this->last_invoiced_date->year >= 2)
+            ))
         );
     }
 }
