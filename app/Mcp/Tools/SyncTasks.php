@@ -51,7 +51,7 @@ class SyncTasks extends Tool
 
         // Find Tag (Project)
         $projectName = $arguments['project'] ?? '';
-        $tag = Tag::where('name', 'LIKE', '%' . $projectName . '%')->first();
+        $tag = Tag::where('name', 'LIKE', $projectName . '%')->first();
 
         $attributes = [
             'title' => $arguments['task'],
