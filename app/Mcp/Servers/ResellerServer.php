@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\Tools\GenerateDomainInvoice;
 use App\Mcp\Tools\GetNewAssetsWithoutInvoices;
 use App\Mcp\Tools\GetResellerBalance;
 use App\Mcp\Tools\GetUpcomingRenewals;
@@ -11,7 +12,7 @@ class ResellerServer extends Server
 {
     public string $serverName = 'Reseller Server';
 
-    public string $serverVersion = '0.1.0';
+    public string $serverVersion = '0.2.0';
 
     public string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
 
@@ -19,6 +20,7 @@ class ResellerServer extends Server
         GetResellerBalance::class,
         GetUpcomingRenewals::class,
         GetNewAssetsWithoutInvoices::class,
+        GenerateDomainInvoice::class,
     ];
 
     public array $resources = [
