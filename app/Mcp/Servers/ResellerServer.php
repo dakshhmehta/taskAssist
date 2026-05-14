@@ -6,6 +6,7 @@ use App\Mcp\Tools\GenerateAssetInvoice;
 use App\Mcp\Tools\GetNewAssetsWithoutInvoices;
 use App\Mcp\Tools\GetResellerBalance;
 use App\Mcp\Tools\GetUpcomingRenewals;
+use App\Mcp\Tools\ListPendingProformas;
 use Laravel\Mcp\Server;
 
 class ResellerServer extends Server
@@ -21,6 +22,7 @@ class ResellerServer extends Server
         GetUpcomingRenewals::class,
         GetNewAssetsWithoutInvoices::class,
         GenerateAssetInvoice::class,
+        ListPendingProformas::class,
     ];
 
     public array $resources = [
