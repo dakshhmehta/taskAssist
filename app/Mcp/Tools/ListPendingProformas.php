@@ -61,7 +61,7 @@ class ListPendingProformas extends Tool
                 'id' => $invoice->id,
                 'invoice_no' => $invoice->invoice_no,
                 'date' => $invoice->date->format('Y-m-d'),
-                'client' => $invoice->client?->name ?? 'Unknown',
+                'client' => $invoice->client,
                 'total' => number_format($invoice->total, 2),
                 'items' => $invoice->items,
             ];
