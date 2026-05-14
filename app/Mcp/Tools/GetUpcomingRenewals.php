@@ -55,6 +55,7 @@ class GetUpcomingRenewals extends Tool
         // Fetch Domains
         $domainQuery = Domain::query()
             ->whereNotNull('expiry_date')
+            ->with('client.account')
             ->excludeIgnored();
 
         if ($domainFilter) {
@@ -78,6 +79,7 @@ class GetUpcomingRenewals extends Tool
                 'is_expired' => $isExpired,
                 'days_overdue' => $isExpired ? $domain->expiry_date->diffInDays($today) : null,
                 'days_until_expiry' => $isExpired ? null : $today->diffInDays($domain->expiry_date, false),
+                'client' => $domain->client,
             ];
         }
 
