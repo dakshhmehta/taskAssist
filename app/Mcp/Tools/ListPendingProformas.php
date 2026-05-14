@@ -37,12 +37,12 @@ class ListPendingProformas extends Tool
     public function handle(array $arguments): ToolResult|Generator
     {
         $now = now();
-        
+
         if (isset($arguments['start_date'])) {
             $startDate = Carbon::parse($arguments['start_date'])->startOfDay();
         } else {
             // Financial year in India starts from April 1st
-            $startDate = $now->month >= 4 
+            $startDate = $now->month >= 4
                 ? Carbon::create($now->year, 4, 1)->startOfDay()
                 : Carbon::create($now->year - 1, 4, 1)->startOfDay();
         }
@@ -52,7 +52,7 @@ class ListPendingProformas extends Tool
             ->where('date', '>=', $startDate)
             ->where('invoice_no', 'NOT LIKE', 'SI-%')
             ->doesntHave('taxInvoice')
-            ->with('client')
+            ->with('client', 'items')
             ->orderBy('date', 'DESC')
             ->get();
 
@@ -63,6 +63,7 @@ class ListPendingProformas extends Tool
                 'date' => $invoice->date->format('Y-m-d'),
                 'client' => $invoice->client?->name ?? 'Unknown',
                 'total' => number_format($invoice->total, 2),
+                'items' => $invoice->items,
             ];
         });
 
