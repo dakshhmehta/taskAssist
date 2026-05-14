@@ -50,6 +50,13 @@ class MarkInvoiceAsPaid extends Tool
             ]);
         }
 
+        if ($invoice->type === 'PROFORMA') {
+            return ToolResult::json([
+                'status' => 'error',
+                'message' => "Proforma invoice '{$invoice->invoice_no}' cannot be marked as paid directly. Please convert it to a Tax Invoice first.",
+            ]);
+        }
+
         if ($invoice->paid_date !== null) {
             $message = "Invoice '{$invoice->invoice_no}' is already marked as paid on {$invoice->paid_date->format('Y-m-d')}.";
             if ($invoice->payment_remarks) {
