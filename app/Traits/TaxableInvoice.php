@@ -24,6 +24,10 @@ trait TaxableInvoice
 
     public function createTaxInvoice(): Invoice
     {
+        if ($this->hasTaxInvoice()) {
+            throw new \Exception("A tax invoice already exists for this proforma invoice.");
+        }
+
         // Ensure only Proforma invoices can be converted
         if ($this->type !== 'PROFORMA') {
             throw new \Exception("Only Proforma Invoice can be converted to Tax Invoice.");
