@@ -58,6 +58,14 @@ class Invoice extends Model
         $this->save();
     }
 
+    public function revertPaidStatus()
+    {
+        $this->paid_date = null;
+        $this->payment_remarks = null;
+
+        $this->save();
+    }
+
     public function inWords()
     {
         $no = floor($this->total);

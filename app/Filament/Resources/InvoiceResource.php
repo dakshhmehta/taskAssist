@@ -25,6 +25,7 @@ use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
@@ -284,6 +285,12 @@ class InvoiceResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\BulkAction::make('revert_paid')
+                    ->label('Revert Paid Status')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(fn (Collection $records) => $records->each->revertPaidStatus()),
             ]);
     }
 
