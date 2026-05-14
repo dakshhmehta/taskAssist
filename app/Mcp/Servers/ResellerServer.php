@@ -2,7 +2,7 @@
 
 namespace App\Mcp\Servers;
 
-use App\Mcp\Tools\GenerateDomainInvoice;
+use App\Mcp\Tools\GenerateAssetInvoice;
 use App\Mcp\Tools\GetNewAssetsWithoutInvoices;
 use App\Mcp\Tools\GetResellerBalance;
 use App\Mcp\Tools\GetUpcomingRenewals;
@@ -20,7 +20,7 @@ class ResellerServer extends Server
         GetResellerBalance::class,
         GetUpcomingRenewals::class,
         GetNewAssetsWithoutInvoices::class,
-        GenerateDomainInvoice::class,
+        GenerateAssetInvoice::class,
     ];
 
     public array $resources = [
