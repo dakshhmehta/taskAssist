@@ -10,6 +10,7 @@ use App\Mcp\Tools\GetResellerBalance;
 use App\Mcp\Tools\GetUpcomingRenewals;
 use App\Mcp\Tools\ListPendingProformas;
 use App\Mcp\Tools\MarkInvoiceAsPaid;
+use App\Mcp\Tools\SendInvoiceEmail;
 use App\Mcp\Tools\UpdateInvoice;
 use Laravel\Mcp\Server;
 
@@ -26,6 +27,7 @@ class ResellerServer extends Server
         GetUpcomingRenewals::class,
         GetInvoice::class,
         UpdateInvoice::class,
+        SendInvoiceEmail::class,
         GetNewAssetsWithoutInvoices::class,
         GenerateAssetInvoice::class,
         ListPendingProformas::class,
