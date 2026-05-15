@@ -235,6 +235,32 @@ class TaskResource extends Resource
 
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('massEdit')
+                        ->label('Mass Edit')
+                        ->icon('heroicon-o-pencil-square')
+                        ->form([
+                            Select::make('assignee_id')
+                                ->label('Assignee')
+                                ->options(User::query()
+                                    ->when(!Auth::user()->is_admin, fn($query) => $query->where('is_disabled', false))
+                                    ->pluck('name', 'id'))
+                                ->placeholder('No change'),
+                            Forms\Components\Toggle::make('is_urgent')
+                                ->label('Urgent?'),
+                            Forms\Components\Toggle::make('is_important')
+                                ->label('Important?'),
+                        ])
+                        ->action(function (\Illuminate\Support\Collection $records, array $data): void {
+                            foreach ($records as $record) {
+                                if (isset($data['assignee_id']) && $data['assignee_id'] !== null) {
+                                    $record->assignee_id = $data['assignee_id'];
+                                }
+                                $record->is_urgent = $data['is_urgent'];
+                                $record->is_important = $data['is_important'];
+                                $record->save();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
