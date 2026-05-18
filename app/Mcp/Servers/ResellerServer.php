@@ -26,7 +26,7 @@ class ResellerServer extends Server
         GetResellerBalance::class,
         GetUpcomingRenewals::class,
         GetInvoice::class,
-        UpdateInvoice::class,
+        // UpdateInvoice::class,
         SendInvoiceEmail::class,
         GetNewAssetsWithoutInvoices::class,
         GenerateAssetInvoice::class,
