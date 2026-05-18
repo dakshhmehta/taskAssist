@@ -4,6 +4,7 @@ namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\ConvertToTaxInvoice;
 use App\Mcp\Tools\CreateClient;
+use App\Mcp\Tools\FindClient;
 use App\Mcp\Tools\GenerateAssetInvoice;
 use App\Mcp\Tools\GetInvoice;
 use App\Mcp\Tools\GetNewAssetsWithoutInvoices;
@@ -19,7 +20,7 @@ class ResellerServer extends Server
 {
     public string $serverName = 'Reseller Server';
 
-    public string $serverVersion = '0.7.0';
+    public string $serverVersion = '0.8.0';
 
     public string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
 
@@ -35,6 +36,7 @@ class ResellerServer extends Server
         ConvertToTaxInvoice::class,
         MarkInvoiceAsPaid::class,
         CreateClient::class,
+        FindClient::class,
     ];
 
     public array $resources = [
