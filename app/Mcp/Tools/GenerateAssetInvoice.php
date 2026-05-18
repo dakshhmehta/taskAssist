@@ -96,20 +96,20 @@ class GenerateAssetInvoice extends Tool
             // If we adding domain, and has hosting, include hosting as well
             if ($type === 'domain') {
                 $hosting = Hosting::where('domain', $domainName)->first();
-                $model = [$model];
+                $items = [$model];
                 if ($hosting) {
-                    $model[] = $hosting;
+                    $items[] = $hosting;
                 }
 
                 // Check for email as well
                 $email = Email::where('domain', $domainName)->first();
                 if ($email) {
-                    $model[] = $email;
+                    $items[] = $email;
                 }
             }
 
             // Dispatch the job synchronously to get immediate results
-            GenerateInvoiceJob::dispatchSync($model, $invoiceDate);
+            GenerateInvoiceJob::dispatchSync($items, $invoiceDate);
 
             // Fetch the newly created invoice for this asset
             $lastInvoice = $model->getLastInvoice();
