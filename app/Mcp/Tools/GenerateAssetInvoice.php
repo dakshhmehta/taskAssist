@@ -30,7 +30,8 @@ class GenerateAssetInvoice extends Tool
     {
         return $schema->string('domain', 'The domain name to generate the invoice for.')->required()
             ->string('type', 'The type of asset (domain, hosting, email). Defaults to domain if not specified.')
-            ->string('invoice_date', 'Optional. The date for the invoice (Y-m-d). Defaults to today.');
+            ->string('invoice_date', 'Optional. The date for the invoice (Y-m-d). Defaults to today.')
+            ->integer('client_id', 'Optional. The ID of the client to assign to the asset if not already assigned.');
     }
 
     /**
@@ -43,6 +44,7 @@ class GenerateAssetInvoice extends Tool
         $domainName = $arguments['domain'];
         $type = strtolower($arguments['type'] ?? 'domain');
         $invoiceDate = $arguments['invoice_date'] ?? null;
+        $clientIdInput = $arguments['client_id'] ?? null;
 
         $model = null;
 
@@ -66,6 +68,23 @@ class GenerateAssetInvoice extends Tool
             ]);
         }
 
+        $warning = null;
+        if ($clientIdInput !== null) {
+            if (!$model->client_id) {
+                // Verify that the client exists
+                if (!\App\Models\Client::where('id', $clientIdInput)->exists()) {
+                    return ToolResult::json([
+                        'status' => 'error',
+                        'message' => "Client with ID {$clientIdInput} does not exist.",
+                    ]);
+                }
+                $model->client_id = $clientIdInput;
+                $model->save();
+            } else {
+                $warning = "Asset '{$domainName}' already has a client assigned (ID: {$model->client_id}). The provided client_id '{$clientIdInput}' was not saved.";
+            }
+        }
+
         if (!$model->client_id) {
             return ToolResult::json([
                 'status' => 'error',
@@ -80,9 +99,9 @@ class GenerateAssetInvoice extends Tool
             // Fetch the newly created invoice for this asset
             $lastInvoice = $model->getLastInvoice();
 
-            return ToolResult::json([
+            $response = [
                 'status' => 'success',
-                'message' => "Invoice generated successfully for '{$domainName}' ({$type}).",
+                'message' => "Invoice generated successfully for '{$domainName}' ({$type})." . ($warning ? " Warning: {$warning}" : ""),
                 'invoice' => $lastInvoice ? [
                     'id' => $lastInvoice->id,
                     'invoice_no' => $lastInvoice->invoice_no,
@@ -90,7 +109,13 @@ class GenerateAssetInvoice extends Tool
                     'client' => $lastInvoice->client?->name,
                     'total' => $lastInvoice->total,
                 ] : null,
-            ]);
+            ];
+
+            if ($warning) {
+                $response['warning'] = $warning;
+            }
+
+            return ToolResult::json($response);
         } catch (\Exception $e) {
             return ToolResult::json([
                 'status' => 'error',
