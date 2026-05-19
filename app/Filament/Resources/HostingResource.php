@@ -43,13 +43,22 @@ class HostingResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DatePicker::make('expiry_date')
-                    ->displayFormat('d-m-Y'),
-                // Package dropdown
+                Forms\Components\TextInput::make('domain')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('server')
+                    ->maxLength(255),
                 Forms\Components\Select::make('package_id')
                     ->label('Package')
                     ->required()
                     ->options(HostingPackage::all()->pluck('storage', 'id')),
+                Forms\Components\DatePicker::make('expiry_date')
+                    ->displayFormat('d-m-Y'),
+                Forms\Components\Select::make('client_id')
+                    ->label('Client')
+                    ->relationship('client', 'billing_name')
+                    ->searchable()
+                    ->nullable(),
             ]);
     }
 
@@ -106,7 +115,7 @@ class HostingResource extends Resource
                     ->options(HostingPackage::all()->pluck('storage', 'id')),
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
                 Action::make('visit')
                     ->label('Open URL')
                     ->url(fn(Hosting $hosting) => url('http://'.$hosting->domain)),

@@ -31,7 +31,7 @@ class SyncTasks extends Tool
             ->string('project', 'The project/tag name to search for')->required()
             ->string('priority', 'Priority (P1, P2, P3, P4)')->required()
             ->integer('estimated_minutes', 'Estimated time in minutes')->required()
-            ->integer('assignee_id', 'The ID of the user to assign the task to (Defaults to 1)')
+            ->integer('assignee_id', 'The ID of the user to assign the task to (Defaults to authenticated user)')
             ->integer('timepro_task_id', 'The existing Task ID in Laravel (if updating)');
     }
 
@@ -43,7 +43,7 @@ class SyncTasks extends Tool
     public function handle(array $arguments): ToolResult|Generator
     {
         $taskId = $arguments['timepro_task_id'] ?? null;
-        
+
         // Map Priority
         $priority = $arguments['priority'] ?? 'P2';
         $isUrgent = in_array($priority, ['P1', 'P3']);
@@ -58,7 +58,7 @@ class SyncTasks extends Tool
             'estimate' => $arguments['estimated_minutes'] ?? 60,
             'is_urgent' => $isUrgent,
             'is_important' => $isImportant,
-            'assignee_id' => $arguments['assignee_id'] ?? 1,
+            'assignee_id' => $arguments['assignee_id'] ?? auth()->id() ?? 1,
             'auto_schedule' => true,
         ];
 

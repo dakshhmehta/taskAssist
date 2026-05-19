@@ -16,18 +16,18 @@ class TaskServer extends Server
 {
     public string $serverName = 'Task Server';
 
-    public string $serverVersion = '1.4.0';
+    public string $serverVersion = '1.5.0';
 
     public string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 
     public array $tools = [
         SyncTasks::class,
         // AddTask::class,
-        // CompleteTask::class,
+        CompleteTask::class,
         // GetDailyBriefing::class,
         // RecordLeave::class,
-        // ListTeamMembers::class,
-        // ListTags::class,
+        ListTeamMembers::class,
+        ListTags::class,
         // UpdateTask::class,
     ];
 

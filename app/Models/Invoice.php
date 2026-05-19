@@ -20,6 +20,10 @@ class Invoice extends Model
 
     protected $touches = ['client'];
 
+    protected $attributes = [
+        'status' => 'open', // That's just for test env, sqlite driver
+    ];
+
     protected $casts = [
         'date' => 'date',
         'paid_date' => 'date',

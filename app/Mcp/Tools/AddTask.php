@@ -31,7 +31,7 @@ class AddTask extends Tool
             ->string('project', 'The project/tag name to search for')->required()
             ->string('priority', 'Priority (P1, P2, P3, P4)')->required()
             ->integer('estimated_minutes', 'Estimated time in minutes')->required()
-            ->integer('assignee_id', 'The ID of the user to assign the task to (Defaults to 1)')
+            ->integer('assignee_id', 'The ID of the user to assign the task to (Defaults to authenticated user)')
             ->integer('timepro_task_id', 'Task ID (should not be present for new tasks)');
     }
 
@@ -58,7 +58,7 @@ class AddTask extends Tool
         $projectName = $arguments['project'] ?? '';
         $tag = Tag::where('name', 'LIKE', '%' . $projectName . '%')->first();
 
-        $assigneeId = $arguments['assignee_id'] ?? 1;
+        $assigneeId = $arguments['assignee_id'] ?? auth()->id() ?? 1;
 
         $task = Task::create([
             'title' => $arguments['task'],

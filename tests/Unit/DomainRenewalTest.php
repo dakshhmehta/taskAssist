@@ -159,4 +159,22 @@ class DomainRenewalTest extends TestCase
         // The test case: should NOT be due for renewal because it's already invoiced for 2026
         $this->assertFalse($domain->dueForRenewal(), 'Domain is already invoiced for the current period but it returned true.');
     }
+
+    public function test_hosting_domain_cleanup_before_save()
+    {
+        $hosting1 = \App\Models\Hosting::create([
+            'domain' => 'https://sub.example.com/some/path?arg=1',
+        ]);
+        $this->assertEquals('sub.example.com', $hosting1->domain);
+
+        $hosting2 = \App\Models\Hosting::create([
+            'domain' => 'example.com',
+        ]);
+        $this->assertEquals('example.com', $hosting2->domain);
+
+        $hosting3 = \App\Models\Hosting::create([
+            'domain' => 'HTTP://MY-DOMAIN.COM:8080/index.php',
+        ]);
+        $this->assertEquals('my-domain.com', $hosting3->domain);
+    }
 }

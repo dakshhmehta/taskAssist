@@ -27,6 +27,27 @@ class Hosting extends Model
         'ssl_expiry_date' => 'datetime',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($hosting) {
+            if ($hosting->domain) {
+                $domain = trim($hosting->domain);
+                if (!preg_match('/^https?:\/\//i', $domain)) {
+                    $domain = 'http://' . $domain;
+                }
+
+                $host = parse_url($domain, PHP_URL_HOST);
+                if ($host) {
+                    $hosting->domain = strtolower($host);
+                } else {
+                    $hosting->domain = strtolower(trim($hosting->domain));
+                }
+            }
+        });
+    }
+
     public function domainLink()
     {
         return $this->hasOne(Domain::class, 'tld', 'domain');
