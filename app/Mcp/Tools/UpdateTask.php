@@ -19,7 +19,7 @@ class UpdateTask extends Tool
      */
     public function description(): string
     {
-        return 'Update an existing task in the database.';
+        return 'Update an existing task in the database with task_id. Accepts task, project, priority, estimate, assignee_id. Only pass what is needed to update. Do not pass same data.';
     }
 
     /**
@@ -76,7 +76,7 @@ class UpdateTask extends Tool
 
         // Update Tag (Project) if provided
         if (isset($arguments['project'])) {
-            $tag = Tag::where('name', 'LIKE', '%' . $arguments['project'] . '%')->first();
+            $tag = Tag::where('name', 'LIKE', $arguments['project'])->first();
             if ($tag) {
                 $task->syncTags([$tag->name]);
             }

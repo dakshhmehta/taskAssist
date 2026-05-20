@@ -9,6 +9,7 @@ use App\Mcp\Tools\ListTeamMembers;
 use App\Mcp\Tools\RecordLeave;
 use App\Mcp\Tools\ListTags;
 use App\Mcp\Tools\SyncTasks;
+use App\Mcp\Tools\ListTasks;
 use App\Mcp\Tools\UpdateTask;
 use Laravel\Mcp\Server;
 
@@ -16,7 +17,7 @@ class TaskServer extends Server
 {
     public string $serverName = 'Task Server';
 
-    public string $serverVersion = '1.5.0';
+    public string $serverVersion = '1.6.0';
 
     public string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 
@@ -28,7 +29,8 @@ class TaskServer extends Server
         // RecordLeave::class,
         ListTeamMembers::class,
         ListTags::class,
-        // UpdateTask::class,
+        UpdateTask::class,
+        ListTasks::class,
     ];
 
     public array $resources = [

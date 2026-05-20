@@ -56,7 +56,15 @@ class AddTask extends Tool
 
         // Find Tag (Project)
         $projectName = $arguments['project'] ?? '';
-        $tag = Tag::where('name', 'LIKE', '%' . $projectName . '%')->first();
+        if (empty($projectName)) {
+            return ToolResult::error("Project/tag name was not provided. Please retry with the correct tag.");
+        }
+
+        $tag = Tag::where('name', $projectName)->first();
+
+        if (!$tag) {
+            return ToolResult::error("Tag '{$projectName}' not found. Please retry with the correct tag.");
+        }
 
         $assigneeId = $arguments['assignee_id'] ?? auth()->id() ?? 1;
 

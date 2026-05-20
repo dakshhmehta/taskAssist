@@ -51,7 +51,12 @@ class SyncTasks extends Tool
 
         // Find Tag (Project)
         $projectName = $arguments['project'] ?? '';
-        $tag = Tag::where('name', 'LIKE', $projectName . '%')->first();
+        $tag = Tag::where('name', $projectName )->first();
+
+        if(! $tag){
+            // Throw error as reponse, Tag is invalid. 
+            return ToolResult::error("Tag '{$projectName}' not found. Please use a valid tag.");
+        }
 
         $attributes = [
             'title' => $arguments['task'],
