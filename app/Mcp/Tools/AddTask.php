@@ -60,7 +60,7 @@ class AddTask extends Tool
             return ToolResult::error("Project/tag name was not provided. Please retry with the correct tag.");
         }
 
-        $tag = Tag::where('name', $projectName)->first();
+        $tag = Tag::findFromStringOfAnyType($projectName)->first();
 
         if (!$tag) {
             return ToolResult::error("Tag '{$projectName}' not found. Please retry with the correct tag.");

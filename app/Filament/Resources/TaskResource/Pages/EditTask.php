@@ -38,22 +38,6 @@ class EditTask extends EditRecord
                 ->action(fn(Task $task) => $task->endTimer())
                 ->visible(fn(Task $task) => $task->isTimeStarted(Auth::user()->id))
                 ->color('warning'),
-
-            Action::make('archive')
-                ->label('Archive')
-                ->icon('heroicon-o-archive-box')
-                ->action(fn(Task $task) => $task->ignore())
-                ->visible(fn(Task $task) => !$task->isIgnored())
-                ->requiresConfirmation()
-                ->color('warning'),
-
-            Action::make('unarchive')
-                ->label('Unarchive')
-                ->icon('heroicon-o-archive-box-arrow-down')
-                ->action(fn(Task $task) => $task->unIgnore())
-                ->visible(fn(Task $task) => $task->isIgnored())
-                ->requiresConfirmation()
-                ->color('success'),
         ];
 
     }

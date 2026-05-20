@@ -19,7 +19,7 @@ class SyncTasks extends Tool
      */
     public function description(): string
     {
-        return 'Sync a list of tasks from OpenClaw to the Laravel database. Updates existing tasks if _timepro.id is provided, otherwise creates new ones.';
+        return 'Sync a list of tasks from OpenClaw to the Laravel database. Updates existing tasks if _timepro.id is provided, otherwise creates new ones. This tool can also be used to update existing task by passing timepro_task_id';
     }
 
     /**
@@ -50,12 +50,15 @@ class SyncTasks extends Tool
         $isImportant = in_array($priority, ['P1', 'P2']);
 
         // Find Tag (Project)
-        $projectName = $arguments['project'] ?? '';
-        $tag = Tag::where('name', $projectName )->first();
-
-        if(! $tag){
-            // Throw error as reponse, Tag is invalid. 
-            return ToolResult::error("Tag '{$projectName}' not found. Please use a valid tag.");
+        $projectName = $arguments['project'] ?? null;
+        $tag = null;
+        if($projectName){
+            $tag = Tag::findFromStringOfAnyType($projectName)->first();
+    
+            if(! $tag){
+                // Throw error as reponse, Tag is invalid. 
+                return ToolResult::error("Tag '{$projectName}' not found. Please use a valid tag.");
+            }
         }
 
         $attributes = [
@@ -89,7 +92,7 @@ class SyncTasks extends Tool
             'status' => 'success',
             'message' => 'Task synced successfully.',
             'timepro_task_id' => $task->id,
-            'task' => $task->toArray(),
+            'task' => $task->refresh()->toArray(),
         ]);
     }
 }

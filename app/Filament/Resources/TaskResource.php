@@ -195,9 +195,9 @@ class TaskResource extends Resource
                     ->trueLabel('Archived Only')
                     ->falseLabel('Without Archived')
                     ->queries(
-                        true: fn (Builder $query) => $query->withoutGlobalScope('excludeIgnored')->whereNotNull('ignored_at'),
-                        false: fn (Builder $query) => $query->whereNull('ignored_at'),
-                        blank: fn (Builder $query) => $query->whereNull('ignored_at'),
+                        true: fn(Builder $query) => $query->withoutGlobalScope('excludeIgnored')->whereNotNull('ignored_at'),
+                        false: fn(Builder $query) => $query->whereNull('ignored_at'),
+                        blank: fn(Builder $query) => $query->whereNull('ignored_at'),
                     )
 
 
@@ -260,6 +260,33 @@ class TaskResource extends Resource
                                 $record->save();
                             }
                         })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $assigneeIds = $records->pluck('assignee_id')->unique();
+                            $records->each(fn($record) => $record->ignore());
+                            foreach ($assigneeIds as $id) {
+                                dispatch(new \App\Jobs\ScheduleTasksForUser($id));
+                            }
+                        })
+                        ->requiresConfirmation()
+                        ->color('warning')
+                        ->deselectRecordsAfterCompletion(),
+
+                    Tables\Actions\BulkAction::make('unarchive')
+                        ->label('Unarchive')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $assigneeIds = $records->pluck('assignee_id')->unique();
+                            $records->each(fn($record) => $record->unIgnore());
+                            foreach ($assigneeIds as $id) {
+                                dispatch(new \App\Jobs\ScheduleTasksForUser($id));
+                            }
+                        })
+                        ->requiresConfirmation()
+                        ->color('success')
                         ->deselectRecordsAfterCompletion(),
                     // Tables\Actions\DeleteBulkAction::make(),
                 ]),

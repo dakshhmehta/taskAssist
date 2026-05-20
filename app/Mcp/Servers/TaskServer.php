@@ -29,7 +29,7 @@ class TaskServer extends Server
         // RecordLeave::class,
         ListTeamMembers::class,
         ListTags::class,
-        UpdateTask::class,
+        // UpdateTask::class,
         ListTasks::class,
     ];
 
