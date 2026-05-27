@@ -211,7 +211,7 @@ class Invoice extends Model
 
     public function getNetTotalAttribute()
     {
-        return $this->total + $this->gst_amount;
+        return $this->total - $this->gst_amount;
     }
 
     public function getTypeAttribute()
