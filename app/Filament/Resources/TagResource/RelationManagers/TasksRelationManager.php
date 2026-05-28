@@ -18,9 +18,6 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Support\Facades\Auth;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TasksRelationManager extends RelationManager
 {
@@ -145,19 +142,58 @@ class TasksRelationManager extends RelationManager
             ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exports([
-                            ExcelExport::make()
-                                ->askForFilename()
-                                ->withColumns([
-                                    Column::make('title')->heading('Task'),
-                                    Column::make('completed_at')->heading('Completed On'),
-                                    Column::make('hms')->heading('H:M:S'),
-                                    Column::make('minutes_taken')->heading('Time Taken'),
-                                    Column::make('cost')->heading('Amount'),
-                                ])
+                    Tables\Actions\BulkAction::make('massEdit')
+                        ->label('Mass Edit')
+                        ->icon('heroicon-o-pencil-square')
+                        ->form([
+                            Select::make('assignee_id')
+                                ->label('Assignee')
+                                ->options(User::query()
+                                    ->when(!Auth::user()->is_admin, fn($query) => $query->where('is_disabled', false))
+                                    ->pluck('name', 'id'))
+                                ->placeholder('No change'),
+                            Forms\Components\Toggle::make('is_urgent')
+                                ->label('Urgent?'),
+                            Forms\Components\Toggle::make('is_important')
+                                ->label('Important?'),
                         ])
+                        ->action(function (\Illuminate\Support\Collection $records, array $data): void {
+                            foreach ($records as $record) {
+                                if (isset($data['assignee_id']) && $data['assignee_id'] !== null) {
+                                    $record->assignee_id = $data['assignee_id'];
+                                }
+                                $record->is_urgent = $data['is_urgent'];
+                                $record->is_important = $data['is_important'];
+                                $record->save();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $assigneeIds = $records->pluck('assignee_id')->unique();
+                            $records->each(fn($record) => $record->ignore());
+                            foreach ($assigneeIds as $id) {
+                                dispatch(new \App\Jobs\ScheduleTasksForUser($id));
+                            }
+                        })
+                        ->requiresConfirmation()
+                        ->color('warning')
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('unarchive')
+                        ->label('Unarchive')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $assigneeIds = $records->pluck('assignee_id')->unique();
+                            $records->each(fn($record) => $record->unIgnore());
+                            foreach ($assigneeIds as $id) {
+                                dispatch(new \App\Jobs\ScheduleTasksForUser($id));
+                            }
+                        })
+                        ->requiresConfirmation()
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ])->visible(Auth::user()->is_admin),
             ]);
     }
