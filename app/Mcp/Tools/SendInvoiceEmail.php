@@ -36,7 +36,7 @@ class SendInvoiceEmail extends Tool
         $invoice = Invoice::query()
             ->when($invoiceId, fn($q) => $q->where('id', $invoiceId))
             ->when(! $invoiceId && $invoiceNo, fn($q) => $q->where('invoice_no', $invoiceNo))
-            ->with(['items.itemable', 'client'])
+            ->with(['items.itemable', 'extras', 'client'])
             ->first();
 
         if (! $invoice) {
@@ -44,12 +44,13 @@ class SendInvoiceEmail extends Tool
         }
 
         $firstItem = $invoice->items->first()?->itemable;
+        $firstExtraTitle = $invoice->extras->first()?->line_title;
 
-        if (! $firstItem) {
-            return ToolResult::json(['status' => 'error', 'message' => 'Invoice has no items (domain/hosting/email). Cannot determine email subject.']);
+        if (! $firstItem && ! $firstExtraTitle) {
+            return ToolResult::json(['status' => 'error', 'message' => 'Invoice has no items (domain/hosting/email) or extras. Cannot determine email subject.']);
         }
 
-        EmailInvoiceJob::dispatch($invoice, $firstItem);
+        EmailInvoiceJob::dispatch($invoice, $firstItem, $firstExtraTitle);
 
         return ToolResult::json([
             'status' => 'success',

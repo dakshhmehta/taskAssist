@@ -26,15 +26,22 @@ class EmailInvoice implements ShouldQueue
     public $firstItem;
 
     /**
+     * @var string|null
+     */
+    public $firstExtraTitle;
+
+    /**
      * Create a new job instance.
      *
      * @param Invoice $invoice
      * @param mixed $firstItem
+     * @param string|null $firstExtraTitle
      */
-    public function __construct(Invoice $invoice, $firstItem)
+    public function __construct(Invoice $invoice, $firstItem, $firstExtraTitle = null)
     {
         $this->invoice = $invoice;
         $this->firstItem = $firstItem;
+        $this->firstExtraTitle = $firstExtraTitle;
     }
 
     /**
@@ -48,7 +55,7 @@ class EmailInvoice implements ShouldQueue
         $recipientEmail = $client->email ?? 'rominjoshi@yahoo.com';
 
         if ($recipientEmail) {
-            Mail::to($recipientEmail)->send(new InvoiceGenerated($this->invoice, $this->firstItem));
+            Mail::to($recipientEmail)->send(new InvoiceGenerated($this->invoice, $this->firstItem, $this->firstExtraTitle));
         }
     }
 }

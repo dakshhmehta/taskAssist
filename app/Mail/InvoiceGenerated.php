@@ -19,17 +19,19 @@ class InvoiceGenerated extends Mailable
 
     public $invoice;
     public $firstItem;
+    public $firstExtraTitle;
 
     /**
      * Create a new message instance.
      *
      * @param Invoice $invoice
-     * @param Domain|Hosting|Email $firstItem
+     * @param Domain|Hosting|Email|null $firstItem
      */
-    public function __construct(Invoice $invoice, $firstItem)
+    public function __construct(Invoice $invoice, $firstItem, $firstExtraTitle = null)
     {
         $this->invoice = $invoice;
         $this->firstItem = $firstItem;
+        $this->firstExtraTitle = $firstExtraTitle;
     }
 
     /**
@@ -37,7 +39,13 @@ class InvoiceGenerated extends Mailable
      */
     public function envelope(): Envelope
     {
-        // Subject line as first line item's domain and type [Domain/Hosting/Workspace]
+        if ($this->firstExtraTitle) {
+            $clientName = $this->invoice->client?->billing_name ?? 'Client';
+            return new Envelope(
+                subject: "{$this->firstExtraTitle} - {$clientName} Invoice",
+            );
+        }
+
         $itemType = match (get_class($this->firstItem)) {
             Domain::class => 'Domain',
             Hosting::class => 'Hosting',
