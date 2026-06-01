@@ -60,6 +60,20 @@
                 </td>
             </tr>
             @endforeach
+
+            @if($invoice->extras->isNotEmpty())
+            <tr>
+                <td colspan="4" style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color: #666;">Additional Services</td>
+            </tr>
+            @foreach($invoice->extras as $i => $extra)
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;"></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ $extra->line_title }}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ $extra->line_duration ?? '--' }}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">Rs. {{ number_format($extra->price / 1.18, 2) }}</td>
+            </tr>
+            @endforeach
+            @endif
         </tbody>
     </table>
 

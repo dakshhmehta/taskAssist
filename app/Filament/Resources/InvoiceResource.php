@@ -279,7 +279,7 @@ class InvoiceResource extends Resource
                 // Add the Email Invoice button
                 Action::make('email')
                     ->label('Email')
-                    ->action(fn(Invoice $invoice) => EmailInvoice::dispatch($invoice, $invoice->items()->first())),
+                    ->action(fn(Invoice $invoice) => EmailInvoice::dispatch($invoice, $invoice->items()->first()?->itemable, $invoice->extras()->first()?->line_title)),
                 
                 CommentsAction::make(),
             ])
