@@ -32,7 +32,7 @@ class TasksRelationManager extends RelationManager
             ->schema([
                 Select::make('assignee_id')
                     ->label('Assignee')
-                    ->options(User::all()->pluck('name', 'id'))
+                    ->options(User::where('is_disabled', false)->pluck('name', 'id'))
                     ->default(\Auth::user()->id)
                     ->required(),
                 Forms\Components\TextInput::make('title')

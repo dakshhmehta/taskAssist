@@ -19,7 +19,7 @@ class TaskServer extends Server
 {
     public string $serverName = 'Task Server';
 
-    public string $serverVersion = '1.7.0';
+    public string $serverVersion = '1.8.0';
 
     public string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 

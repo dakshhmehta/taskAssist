@@ -48,7 +48,7 @@ class UserLeaveResource extends Resource
             ->schema([
                 Select::make('user_id')
                     ->label('User')
-                    ->options(User::all()->pluck('name', 'id'))
+                    ->options(User::where('is_disabled', false)->pluck('name', 'id'))
                     ->default($user->id)
                     ->hidden(fn(): bool => !$user->is_admin)
                     ->reactive()
@@ -126,7 +126,7 @@ class UserLeaveResource extends Resource
             ->filters([
                 SelectFilter::make('user_id')
                     ->label('User')
-                    ->options(User::all()->pluck('name', 'id')),
+                    ->options(User::where('is_disabled', false)->pluck('name', 'id')),
                 SelectFilter::make('code')
                     ->options(config('leave_types')),
                 SelectFilter::make('status')

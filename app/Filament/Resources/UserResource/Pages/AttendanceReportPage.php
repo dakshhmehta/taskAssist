@@ -52,7 +52,7 @@ class AttendanceReportPage extends ViewRecord implements HasTable
                 ->form([
                     Select::make('user_id')
                         ->label('User')
-                        ->options(User::all()->pluck('name', 'id'))
+                        ->options(User::where('is_disabled', false)->pluck('name', 'id'))
                         ->default($this->record->id)
                         ->required()
                         ->visible($isAdmin),
