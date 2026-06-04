@@ -18,6 +18,9 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Support\Facades\Auth;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TasksRelationManager extends RelationManager
 {
@@ -194,6 +197,18 @@ class TasksRelationManager extends RelationManager
                         ->requiresConfirmation()
                         ->color('success')
                         ->deselectRecordsAfterCompletion(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->askForFilename()
+                                ->withColumns([
+                                    Column::make('title')->heading('Task'),
+                                    Column::make('completed_at')->heading('Completed On'),
+                                    Column::make('hms')->heading('H:M:S'),
+                                    Column::make('minutes_taken')->heading('Time Taken'),
+                                    Column::make('cost')->heading('Amount'),
+                                ])
+                        ]),
                 ])->visible(Auth::user()->is_admin),
             ]);
     }
