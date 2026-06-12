@@ -63,7 +63,7 @@ $rowCount = 1;
         </div>
         <div class="col duration">
             <p>&nbsp;</p>
-            <p>{{ \Ri\Accounting\Helper::getPeriod($invoice->date, $domain->expiry_date ?? $invoice->date->addYear()) }}</p>
+            <p>{{ \Ri\Accounting\Helper::getPeriod($invoice->date, $domain->expiry_date ?? $invoice->date->addYear(), 'domain-hosting') }}</p>
         </div>
         <div class="col price">
             <p>&nbsp;</p>
@@ -121,7 +121,7 @@ $rowCount = 1;
         </div>
         <div class="col duration">
             <p>&nbsp;</p>
-            <p>{{ \Ri\Accounting\Helper::getPeriod($invoice->date, $hosting->expiry_date ?? $invoice->date->addYear()) }}</p>
+            <p>{{ \Ri\Accounting\Helper::getPeriod($invoice->date, $hosting->expiry_date ?? $invoice->date->addYear(), 'domain-hosting') }}</p>
         </div>
         <div class="col price">
             <p>&nbsp;</p>
@@ -169,7 +169,7 @@ $rowCount = 1;
         </div>
         <div class="col duration">
             <p>&nbsp;</p>
-            <p>{{ \Ri\Accounting\Helper::getPeriod($invoice->date, $email->expiry_date ?? $invoice->date->addYear()) }}</p>
+            <p>{{ \Ri\Accounting\Helper::getPeriod($invoice->date, $email->expiry_date ?? $invoice->date->addYear(), 'domain-hosting') }}</p>
         </div>
         <div class="col price">
             <p>&nbsp;</p>

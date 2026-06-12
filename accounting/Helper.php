@@ -4,10 +4,15 @@ namespace Ri\Accounting;
 
 class Helper
 {
-    public static function getPeriod($currentDate, $futureDate)
+    public static function getPeriod($currentDate, $futureDate, $type = 'service')
     {
         $months = $futureDate->diffInMonths($currentDate);
         $years = $futureDate->diffInYears($currentDate);
+
+        if ($type === 'domain-hosting') {
+            $years = max(1, $years);
+            return $years . ' year';
+        }
 
         if ($years > 0) {
             if ($years == 1) {

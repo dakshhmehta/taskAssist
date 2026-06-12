@@ -288,7 +288,7 @@ class TaskResource extends Resource
                         ->requiresConfirmation()
                         ->color('success')
                         ->deselectRecordsAfterCompletion(),
-                    // Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
