@@ -2,10 +2,9 @@
 
 namespace App\Filament\Resources\ClientResource\Widgets;
 
+use App\Filament\Resources\ClientResource;
 use App\Models\Client;
-use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
@@ -24,6 +23,7 @@ class ClientReceivablesTable extends BaseWidget
                 })
             )
             ->paginated(false)
+            ->defaultSort('receivable_amount', 'desc')
             ->columns([
                 TextColumn::make('receivable_amount')
                     ->numeric()
@@ -35,7 +35,9 @@ class ClientReceivablesTable extends BaseWidget
                     ->tooltip(fn ($state) => $state)
                     ->sortable(),
                 TextColumn::make('display_name')
-                    ->label('Client'),
+                    ->label('Client')
+                    ->url(fn (Client $record) => ClientResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(),
             ])
             ->actions([
                 CommentsAction::make(),

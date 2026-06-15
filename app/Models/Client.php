@@ -24,7 +24,29 @@ class Client extends Model
 
     public function getReceivableSlabAttribute()
     {
-        return '< 10k';
+        $amount = $this->receivable_amount;
+
+        if ($amount <= 0) {
+            return 'No Dues';
+        }
+
+        if ($amount < 10000) {
+            return '< 10k';
+        }
+
+        if ($amount < 25000) {
+            return '< 25k';
+        }
+
+        if ($amount < 50000) {
+            return '< 50k';
+        }
+
+        if ($amount < 100000) {
+            return '< 1L';
+        }
+
+        return '> 1L';
     }
 
     public function accountNameColumn()
