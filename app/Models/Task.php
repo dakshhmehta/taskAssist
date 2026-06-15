@@ -36,6 +36,12 @@ class Task extends Model implements HasMedia
 
     protected $casts = [
         'due_date' => 'datetime',
+        'is_recurring' => 'boolean',
+        'recurrence_interval' => 'integer',
+        'recurrence_days' => 'array',
+        'recurrence_end_date' => 'date',
+        'recurrence_occurrences_count' => 'integer',
+        'recurrence_max_occurrences' => 'integer',
     ];
 
     protected $touches = ['tags'];
@@ -140,7 +146,84 @@ class Task extends Model implements HasMedia
         $this->completed_at = now();
         $this->save();
 
+        if ($this->is_recurring) {
+            $this->createNextRecurrence();
+        }
+
         // TODO: Fire Event for sending notification
+    }
+
+    public function createNextRecurrence()
+    {
+        if (!$this->is_recurring || !$this->recurrence_type) {
+            return null;
+        }
+
+        if ($this->recurrence_end_date && now()->startOfDay()->gt($this->recurrence_end_date)) {
+            return null;
+        }
+
+        if ($this->recurrence_max_occurrences && $this->recurrence_occurrences_count >= $this->recurrence_max_occurrences) {
+            return null;
+        }
+
+        $nextDueDate = $this->calculateNextDueDate();
+
+        if (!$nextDueDate) {
+            return null;
+        }
+
+        $newTask = $this->replicate();
+        $newTask->due_date = $nextDueDate;
+        $newTask->completed_at = null;
+        $newTask->ignored_at = null;
+        $newTask->recurrence_occurrences_count = $this->recurrence_occurrences_count + 1;
+        $newTask->save();
+
+        $this->tags->each(fn($tag) => $newTask->attachTag($tag));
+
+        dispatch(new ScheduleTasksForUser($newTask->assignee_id));
+
+        return $newTask;
+    }
+
+    public function calculateNextDueDate(): ?\Carbon\Carbon
+    {
+        $baseDate = $this->due_date ?? now();
+        $interval = $this->recurrence_interval ?: 1;
+
+        return match ($this->recurrence_type) {
+            'daily' => $baseDate->copy()->addDays($interval),
+            'weekly' => $this->nextWeeklyDate($baseDate, $interval),
+            'monthly' => $baseDate->copy()->addMonths($interval),
+            'yearly' => $baseDate->copy()->addYears($interval),
+            default => null,
+        };
+    }
+
+    protected function nextWeeklyDate(\Carbon\Carbon $baseDate, int $interval): ?\Carbon\Carbon
+    {
+        $days = $this->recurrence_days;
+
+        if (empty($days)) {
+            return $baseDate->copy()->addWeeks($interval);
+        }
+
+        $currentDayOfWeek = (int) $baseDate->format('w');
+        $targetDay = collect($days)
+            ->sort()
+            ->first(fn($day) => (int) $day > $currentDayOfWeek);
+
+        if ($targetDay !== null) {
+            $daysUntil = (int) $targetDay - $currentDayOfWeek;
+            return $baseDate->copy()->addDays($daysUntil);
+        }
+
+        $firstDay = collect($days)->sort()->first();
+        $daysUntil = 7 - $currentDayOfWeek + (int) $firstDay;
+        $daysUntil += (($interval - 1) * 7);
+
+        return $baseDate->copy()->addDays($daysUntil);
     }
 
     public function timesheet()

@@ -10,6 +10,8 @@ use Filament\Forms;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieTagsInput;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -89,6 +91,71 @@ class TaskResource extends Resource
                     ->required(),
                 Forms\Components\DateTimePicker::make('due_date')
                     ->hidden(fn($get) => $get('auto_schedule')),
+
+                Forms\Components\Toggle::make('is_recurring')
+                    ->label('Recurring Task')
+                    ->live()
+                    ->default(false),
+
+                Section::make('Recurrence Settings')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                Select::make('recurrence_type')
+                                    ->label('Repeat')
+                                    ->options([
+                                        'daily' => 'Daily',
+                                        'weekly' => 'Weekly',
+                                        'monthly' => 'Monthly',
+                                        'yearly' => 'Yearly',
+                                    ])
+                                    ->live()
+                                    ->required(),
+                                Forms\Components\TextInput::make('recurrence_interval')
+                                    ->label('Every')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->default(1)
+                                    ->suffix(fn($get) => match ($get('recurrence_type')) {
+                                        'daily' => 'day(s)',
+                                        'weekly' => 'week(s)',
+                                        'monthly' => 'month(s)',
+                                        'yearly' => 'year(s)',
+                                        default => '',
+                                    })
+                                    ->required(),
+                            ]),
+                        Select::make('recurrence_days')
+                            ->label('On Days')
+                            ->options([
+                                0 => 'Sunday',
+                                1 => 'Monday',
+                                2 => 'Tuesday',
+                                3 => 'Wednesday',
+                                4 => 'Thursday',
+                                5 => 'Friday',
+                                6 => 'Saturday',
+                            ])
+                            ->multiple()
+                            ->visible(fn($get) => $get('recurrence_type') === 'weekly'),
+                        Grid::make(2)
+                            ->schema([
+                                Forms\Components\DatePicker::make('recurrence_end_date')
+                                    ->label('End Date')
+                                    ->nullable()
+                                    ->minDate(now())
+                                    ->helperText('Optional. Leave blank to repeat indefinitely.'),
+                                Forms\Components\TextInput::make('recurrence_max_occurrences')
+                                    ->label('End After')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->nullable()
+                                    ->helperText('Optional. Max number of occurrences.'),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->visible(fn($get) => $get('is_recurring')),
+
                 SpatieTagsInput::make('tags')
                     ->columnSpanFull(),
 
@@ -116,6 +183,10 @@ class TaskResource extends Resource
                 Tables\Columns\IconColumn::make('is_urgent')
                     ->label('Urgent?')
                     ->boolean(),
+                Tables\Columns\IconColumn::make('is_recurring')
+                    ->label('Recurring')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('estimate_label')
                     ->label('Estimate'),
                 Tables\Columns\TextColumn::make('due_date')
