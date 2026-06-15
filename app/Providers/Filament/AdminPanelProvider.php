@@ -68,6 +68,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->topNavigation(true)
+            ->navigationGroups([
+                'Masters',
+                'Domain & Hosting',
+                'Tasks',
+                'Team',
+                'Reports',
+            ])
             ->authMiddleware([
                 Authenticate::class,
             ])

@@ -37,7 +37,9 @@ class ListTeamMembers extends Tool
     public function handle(array $arguments): ToolResult|Generator
     {
         $users = User::query()
-            ->when(! Auth::user()?->is_admin, fn($q) => $q->where('is_disabled', false))
+            ->when(! Auth::user()?->is_admin, fn($q) => $q->where(function ($q) {
+                $q->where('is_disabled', false)->orWhereNull('is_disabled');
+            }))
             ->get(['id', 'name', 'email']);
 
         return ToolResult::json($users->toArray());
