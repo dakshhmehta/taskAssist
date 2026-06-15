@@ -23,7 +23,7 @@ class Hosting extends Model
     protected $casts = [
         'expiry_date' => 'datetime',
         'suspended_at' => 'datetime',
-
+        'terminated_at' => 'datetime',
         'ssl_expiry_date' => 'datetime',
     ];
 
@@ -97,9 +97,14 @@ class Hosting extends Model
         return $this->suspended_at !== null;
     }
 
+    public function getIsTerminatedAttribute()
+    {
+        return $this->terminated_at !== null;
+    }
+
     public function scopeActive($q)
     {
-        return $q->whereNull('suspended_at');
+        return $q->whereNull('suspended_at')->whereNull('terminated_at');
     }
 
     public function renew($years = 1)

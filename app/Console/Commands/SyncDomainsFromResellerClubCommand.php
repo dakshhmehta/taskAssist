@@ -156,6 +156,11 @@ class SyncDomainsFromResellerClubCommand extends Command
             } else {
                 $hosting->suspended_at = null;
             }
+            if (($hostings[$i]['terminated'] ?? 0) == 1) {
+                $hosting->terminated_at = now();
+            } else {
+                $hosting->terminated_at = null;
+            }
 
             $hosting->package_id = $this->getHostingPackage($hostings[$i]);
             $hosting->server = $server;

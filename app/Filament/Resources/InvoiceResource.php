@@ -79,7 +79,7 @@ class InvoiceResource extends Resource
                                     return Domain::excludeIgnored()->get()->pluck('tld', 'id');
                                 }
                                 if ($type === Hosting::class) {
-                                    return Hosting::excludeIgnored()->get()->pluck('domain', 'id');
+                                    return Hosting::excludeIgnored()->active()->get()->pluck('domain', 'id');
                                 }
                                 if ($type === Email::class) {
                                     return Email::all()->pluck('domain_accounts', 'id');
