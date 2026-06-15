@@ -156,10 +156,12 @@ $rowCount = 1;
             <p><b>Google Workspace: {{ $email->itemable->domain }}</b></p>
             <p><b>HSN/SAC:</b> 998315</p>
             <table style="text-align: left;">
+                @unless(config('settings.hide_email_accounts_count_in_print'))
                 <tr>
                     <th style="padding-right: 50px;">Email Accounts:</th>
                     <td>{{ $email->itemable->accounts_count }}</td>
                 </tr>
+                @endunless
                 @if($email->line_description)
                 <tr>
                     <td colspan="2">{!! $email->line_description !!}</td>
