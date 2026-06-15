@@ -40,14 +40,22 @@ class CompleteTask extends Tool
 
         $task = Task::find($taskId);
 
-        if (!$task || $task->completed_at) {
+        if (! $task || $task->completed_at) {
             return ToolResult::json([
                 'status' => 'error',
                 'message' => "No open task found with ID: $taskId",
             ]);
         }
 
-        $task->complete(); // Uses the complete() method in Task model
+        if (! $task->isCompletable()) {
+            return ToolResult::json([
+                'status' => 'error',
+                'message' => "Task {$taskId} cannot be completed. The timer must be stopped and you must be the assignee or an admin.",
+            ]);
+        }
+
+        $task->endTimer();
+        $task->complete();
 
         dispatch(new ScheduleTasksForUser(1));
 

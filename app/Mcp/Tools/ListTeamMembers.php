@@ -4,6 +4,7 @@ namespace App\Mcp\Tools;
 
 use App\Models\User;
 use Generator;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\Title;
 use Laravel\Mcp\Server\Tools\ToolInputSchema;
@@ -35,7 +36,9 @@ class ListTeamMembers extends Tool
      */
     public function handle(array $arguments): ToolResult|Generator
     {
-        $users = User::all(['id', 'name', 'email']);
+        $users = User::query()
+            ->when(! Auth::user()?->is_admin, fn($q) => $q->where('is_disabled', false))
+            ->get(['id', 'name', 'email']);
 
         return ToolResult::json($users->toArray());
     }

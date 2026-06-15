@@ -9,6 +9,7 @@ use App\Mcp\Tools\GetTimesheet;
 use App\Mcp\Tools\ListTeamMembers;
 use App\Mcp\Tools\ListTags;
 use App\Mcp\Tools\RecordLeave;
+use App\Mcp\Tools\SetTimer;
 use App\Mcp\Tools\SetTimesheet;
 use App\Mcp\Tools\SyncTasks;
 use App\Mcp\Tools\ListTasks;
@@ -19,7 +20,7 @@ class TaskServer extends Server
 {
     public string $serverName = 'Task Server';
 
-    public string $serverVersion = '1.8.0';
+    public string $serverVersion = '1.10.0';
 
     public string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 
@@ -35,6 +36,7 @@ class TaskServer extends Server
         ListTasks::class,
         GetTimesheet::class,
         SetTimesheet::class,
+        SetTimer::class,
     ];
 
     public array $resources = [

@@ -8,6 +8,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Generator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\Title;
 use Laravel\Mcp\Server\Tools\ToolInputSchema;
@@ -40,6 +41,13 @@ class SetTimesheet extends Tool
             return ToolResult::json([
                 'status' => 'error',
                 'message' => "Task {$taskId} not found.",
+            ]);
+        }
+
+        if (! Gate::allows('update', $task)) {
+            return ToolResult::json([
+                'status' => 'error',
+                'message' => "You are not authorized to modify timesheets for task {$taskId}.",
             ]);
         }
 

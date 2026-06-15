@@ -6,6 +6,7 @@ use App\Jobs\ScheduleTasksForUser;
 use App\Models\Tag;
 use App\Models\Task;
 use Generator;
+use Illuminate\Support\Facades\Gate;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\Title;
 use Laravel\Mcp\Server\Tools\ToolInputSchema;
@@ -73,6 +74,12 @@ class SyncTasks extends Tool
         if ($taskId) {
             $task = Task::find($taskId);
             if ($task) {
+                if (! Gate::allows('update', $task)) {
+                    return ToolResult::json([
+                        'status' => 'error',
+                        'message' => "You are not authorized to update task {$taskId}.",
+                    ]);
+                }
                 $task->update($attributes);
             } else {
                 $task = Task::create($attributes);
