@@ -17,7 +17,7 @@ class MarkInvoiceAsPaid extends Tool
      */
     public function description(): string
     {
-        return 'Mark an invoice as paid by providing the invoice ID.';
+        return 'Mark an invoice as paid by invoice ID or invoice number.';
     }
 
     /**
@@ -25,7 +25,8 @@ class MarkInvoiceAsPaid extends Tool
      */
     public function schema(ToolInputSchema $schema): ToolInputSchema
     {
-        return $schema->string('invoice_id', 'The ID of the invoice to mark as paid.')->required()
+        return $schema->integer('invoice_id', 'The ID of the invoice to mark as paid.')
+            ->string('invoice_no', 'The invoice number (exact match) to mark as paid, e.g. "SI-00042/2025".')
             ->string('paid_date', 'Optional. The date the payment was received (Y-m-d). Defaults to today.')
             ->string('remarks', 'Optional. Payment remarks.');
     }
@@ -37,16 +38,29 @@ class MarkInvoiceAsPaid extends Tool
      */
     public function handle(array $arguments): ToolResult|Generator
     {
-        $id = $arguments['invoice_id'];
+        $invoiceId = $arguments['invoice_id'] ?? null;
+        $invoiceNo = $arguments['invoice_no'] ?? null;
         $paidDate = $arguments['paid_date'] ?? now()->format('Y-m-d');
         $remarks = $arguments['remarks'] ?? null;
 
-        $invoice = Invoice::find($id);
-
-        if (!$invoice) {
+        if (! $invoiceId && ! $invoiceNo) {
             return ToolResult::json([
                 'status' => 'error',
-                'message' => "Invoice with ID '{$id}' not found.",
+                'message' => 'Either invoice_id or invoice_no must be provided.',
+            ]);
+        }
+
+        if ($invoiceId) {
+            $invoice = Invoice::find($invoiceId);
+        } else {
+            $invoice = Invoice::where('invoice_no', $invoiceNo)->first();
+        }
+
+        if (! $invoice) {
+            $identifier = $invoiceId ? "ID '{$invoiceId}'" : "number '{$invoiceNo}'";
+            return ToolResult::json([
+                'status' => 'error',
+                'message' => "Invoice with {$identifier} not found.",
             ]);
         }
 
