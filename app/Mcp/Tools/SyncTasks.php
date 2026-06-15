@@ -33,7 +33,8 @@ class SyncTasks extends Tool
             ->string('priority', 'Priority (P1, P2, P3, P4)')->required()
             ->integer('estimated_minutes', 'Estimated time in minutes')->required()
             ->integer('assignee_id', 'The ID of the user to assign the task to (Defaults to authenticated user)')
-            ->integer('timepro_task_id', 'The existing Task ID in Laravel (if updating)');
+            ->integer('timepro_task_id', 'The existing Task ID in Laravel (if updating)')
+            ->string('description', 'Optional. Description of the task.');
     }
 
     /**
@@ -64,6 +65,7 @@ class SyncTasks extends Tool
 
         $attributes = [
             'title' => $arguments['task'],
+            'description' => $arguments['description'] ?? null,
             'estimate' => $arguments['estimated_minutes'] ?? 60,
             'is_urgent' => $isUrgent,
             'is_important' => $isImportant,
