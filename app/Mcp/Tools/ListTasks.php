@@ -73,6 +73,7 @@ class ListTasks extends Tool
             'tasks' => $tasks->map(fn($task) => [
                 'id' => $task->id,
                 'title' => $task->title,
+                'description' => $task->description,
                 'due_date' => $task->due_date,
                 'estimate' => $task->estimate,
                 'is_urgent' => $task->is_urgent,

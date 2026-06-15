@@ -90,7 +90,7 @@ class FindClient extends Tool
                 'billing_name' => $client->billing_name,
                 'nickname' => $client->nickname,
                 'email' => $client->email,
-                'receivable_amount' => $client->receivable_amount,
+                'receivable_amount' => $client->getReceivable(),
                 'account' => $client->account ? [
                     'id' => $client->account->id,
                     'name' => $client->account->name,
