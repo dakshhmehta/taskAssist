@@ -78,7 +78,47 @@ class CreateClient extends Tool
 
         try {
             return DB::transaction(function () use ($billingName, $nickname, $email, $address, $gstin) {
-                // 1. Create the Client. This automatically triggers the IsLedger saved observer which generates the Account.
+                $existing = Client::where('billing_name', $billingName)->first();
+
+                if ($existing) {
+                    if ($nickname !== null) {
+                        $existing->nickname = $nickname;
+                    }
+                    if ($email !== null) {
+                        $existing->email = $email;
+                    }
+                    $existing->save();
+
+                    $account = $existing->account()->first();
+                    if ($account) {
+                        $account->billing_name = $billingName;
+                        if ($address !== null) {
+                            $account->billing_address = $address;
+                        }
+                        if ($gstin !== null) {
+                            $account->gstin = $gstin;
+                        }
+                        $account->save();
+                    }
+
+                    return ToolResult::json([
+                        'status' => 'success',
+                        'message' => 'Client already exists. Updated existing record.',
+                        'client' => [
+                            'id' => $existing->id,
+                            'billing_name' => $existing->billing_name,
+                            'nickname' => $existing->nickname,
+                            'email' => $existing->email,
+                            'account' => $account ? [
+                                'id' => $account->id,
+                                'name' => $account->name,
+                                'billing_name' => $account->billing_name,
+                                'billing_address' => $account->billing_address,
+                                'gstin' => $account->gstin,
+                            ] : null,
+                        ],
+                    ]);
+                } else {
                 $client = Client::create([
                     'billing_name' => $billingName,
                     'nickname' => $nickname,
@@ -122,6 +162,7 @@ class CreateClient extends Tool
                         ] : null,
                     ],
                 ]);
+                }
             });
         } catch (\Exception $e) {
             return ToolResult::json([

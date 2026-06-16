@@ -6,13 +6,15 @@ use App\Filament\Resources\DomainInvoicesRelationManagerResource\RelationManager
 use App\Filament\Resources\DomainResource\Pages;
 use App\Jobs\GenerateInvoice;
 use App\Models\Domain;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -66,16 +68,36 @@ class DomainResource extends Resource
             ])
             ->defaultSort('expiry_date', 'DESC')
             ->filters([
-                TernaryFilter::make('ignored')
-                    ->label('Ignore')
-                    ->trueLabel('Include Ignored')
-                    ->falseLabel('Unignored Only')
-                    ->default(false)
-                    ->queries(
-                        true: fn(Builder $query) => $query->includeIgnored(),
-                        false: fn(Builder $query) => $query->excludeIgnored(),
-                        blank: fn(Builder $query) => $query->excludeIgnored(),
-                    ),
+                SelectFilter::make('ignored')
+                    ->label('Ignore Status')
+                    ->options([
+                        'unignored' => 'Unignored Only',
+                        'ignored' => 'Only Ignored',
+                        'all' => 'Include Ignored',
+                    ])
+                    ->default('unignored')
+                    ->query(function (Builder $query, $state) {
+                        return match ($state) {
+                            'ignored' => $query->whereNotNull('ignored_at'),
+                            'all' => $query->includeIgnored(),
+                            default => $query->excludeIgnored(),
+                        };
+                    }),
+                Filter::make('expiry_date_range')
+                    ->form([
+                        Forms\Components\DatePicker::make('expiry_date_from')
+                            ->label('Expiry From')
+                            ->placeholder('Select Start Date'),
+                        Forms\Components\DatePicker::make('expiry_date_to')
+                            ->label('Expiry To')
+                            ->placeholder('Select End Date'),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return $query
+                            ->when($data['expiry_date_from'], fn($q, $date) => $q->whereDate('expiry_date', '>=', $date))
+                            ->when($data['expiry_date_to'], fn($q, $date) => $q->whereDate('expiry_date', '<=', $date));
+                    })
+                    ->label('Expiry Date Range'),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),

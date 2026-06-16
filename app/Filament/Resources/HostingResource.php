@@ -13,8 +13,8 @@ use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -90,6 +90,36 @@ class HostingResource extends Resource
             ])
             ->defaultSort('expiry_date', 'ASC')
             ->filters([
+                SelectFilter::make('ignored')
+                    ->label('Ignore Status')
+                    ->options([
+                        'unignored' => 'Unignored Only',
+                        'ignored' => 'Only Ignored',
+                        'all' => 'Include Ignored',
+                    ])
+                    ->default('unignored')
+                    ->query(function (Builder $query, $state) {
+                        return match ($state) {
+                            'ignored' => $query->whereNotNull('ignored_at'),
+                            'all' => $query->includeIgnored(),
+                            default => $query->excludeIgnored(),
+                        };
+                    }),
+                Filter::make('expiry_date_range')
+                    ->form([
+                        Forms\Components\DatePicker::make('expiry_date_from')
+                            ->label('Expiry From')
+                            ->placeholder('Select Start Date'),
+                        Forms\Components\DatePicker::make('expiry_date_to')
+                            ->label('Expiry To')
+                            ->placeholder('Select End Date'),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return $query
+                            ->when($data['expiry_date_from'], fn($q, $date) => $q->whereDate('expiry_date', '>=', $date))
+                            ->when($data['expiry_date_to'], fn($q, $date) => $q->whereDate('expiry_date', '<=', $date));
+                    })
+                    ->label('Expiry Date Range'),
                 TernaryFilter::make('owned_domain')
                     ->label('Is Hosting Only?')
                     ->trueLabel('Yes')
