@@ -8,6 +8,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Support\Facades\DB;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class MyUpcomingTasks extends BaseWidget
@@ -20,20 +21,32 @@ class MyUpcomingTasks extends BaseWidget
         return $table
             ->query(function () {
                 $userId = \Auth::user()->id;
-
-                $scheduled = Task::where('assignee_id', $userId)
+                $scheduledIds = Task::query()
+                    ->select('id')
+                    ->where('assignee_id', $userId)
                     ->whereNotNull('due_date')
                     ->whereNull('completed_at')
                     ->orderBy('due_date', 'ASC')
                     ->limit(5);
 
-                $ticking = Task::where('assignee_id', $userId)
+                $scheduled = Task::query()
+                    ->select('tasks.*', DB::raw('0 as is_ticking'))
+                    ->whereIn('id', $scheduledIds);
+
+                $ticking = Task::query()
+                    ->select('tasks.*', DB::raw('1 as is_ticking'))
+                    ->where('assignee_id', $userId)
                     ->whereNull('completed_at')
                     ->whereHas('timesheet', function ($q) use ($userId) {
                         $q->where('user_id', $userId)->whereNull('end_at');
                     });
 
-                return $ticking->union($scheduled);
+                return Task::query()
+                    ->fromSub($ticking->union($scheduled), 'upcoming_tasks')
+                    ->select('upcoming_tasks.*')
+                    ->orderByDesc('is_ticking')
+                    ->orderByRaw('due_date IS NULL ASC')
+                    ->orderBy('due_date', 'ASC');
             })
             ->paginated(false)
             ->columns([
