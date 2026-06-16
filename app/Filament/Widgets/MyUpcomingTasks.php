@@ -19,12 +19,21 @@ class MyUpcomingTasks extends BaseWidget
     {
         return $table
             ->query(function () {
-                $tasks = Task::where('assignee_id', \Auth::user()->id)
+                $userId = \Auth::user()->id;
+
+                $scheduled = Task::where('assignee_id', $userId)
                     ->whereNotNull('due_date')
                     ->whereNull('completed_at')
-                    ->orderBy('due_date', 'ASC')->limit(5);
+                    ->orderBy('due_date', 'ASC')
+                    ->limit(5);
 
-                return $tasks;
+                $ticking = Task::where('assignee_id', $userId)
+                    ->whereNull('completed_at')
+                    ->whereHas('timesheet', function ($q) use ($userId) {
+                        $q->where('user_id', $userId)->whereNull('end_at');
+                    });
+
+                return $ticking->union($scheduled);
             })
             ->paginated(false)
             ->columns([
