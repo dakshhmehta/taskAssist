@@ -28,7 +28,8 @@ class ClientResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('billing_name')
-                    ->required(),
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('nickname'),
                 Forms\Components\TextInput::make('email')
                     ->email(),

@@ -13,13 +13,15 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Enums\ActionsPosition;
-use Filament\Tables\Filters\Filter;
 use Illuminate\Support\Facades\Auth;
+use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -146,6 +148,10 @@ class TasksRelationManager extends RelationManager
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('assignee_id')
+                    ->options(User::query()
+                        ->when(! Auth::user()->is_admin, fn($query) => $query->where('is_disabled', false))
+                        ->pluck('name', 'id')),
                 TernaryFilter::make('completed')
                     ->label('Completed?')
                     ->placeholder('All')
@@ -188,18 +194,40 @@ class TasksRelationManager extends RelationManager
                         true: fn(Builder $query) => $query->whereNotNull('estimate'),
                         false: fn(Builder $query) => $query->whereNull('estimate'),
                         blank: fn(Builder $query) => $query,
-                    )
+                    ),
+                TernaryFilter::make('ignored')
+                    ->label('Archived?')
+                    ->placeholder('Without Archived')
+                    ->trueLabel('Archived Only')
+                    ->falseLabel('Without Archived')
+                    ->queries(
+                        true: fn(Builder $query) => $query->withoutGlobalScope('excludeIgnored')->whereNotNull('ignored_at'),
+                        false: fn(Builder $query) => $query->whereNull('ignored_at'),
+                        blank: fn(Builder $query) => $query->whereNull('ignored_at'),
+                    ),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
+                Action::make('startTime')
+                    ->label('Start')
+                    ->action(fn(Task $task) => $task->startTimer())
+                    ->visible(fn(Task $task) => $task->canStartWork(Auth::user()->id))
+                    ->color('info'),
+                Action::make('stopTime')
+                    ->label('Stop')
+                    ->action(fn(Task $task) => $task->endTimer())
+                    ->visible(fn(Task $task) => $task->isTimeStarted(Auth::user()->id))
+                    ->color('warning'),
+                CommentsAction::make(),
                 Action::make('markCompleted')
                     ->label('Complete')
                     ->action(fn(Task $task) => $task->complete())
-                    ->visible(fn(Task $task) => !$task->is_completed)
+                    ->visible(fn(Task $task) => $task->isCompletable())
                     ->color('success'),
                 Tables\Actions\EditAction::make()
+                    ->visible(fn(Task $task) => ! $task->is_completed)
                     ->using(function($record, $data){
                         $record->update($data);
 
