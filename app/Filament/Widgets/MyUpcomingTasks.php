@@ -8,7 +8,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class MyUpcomingTasks extends BaseWidget
@@ -21,32 +23,10 @@ class MyUpcomingTasks extends BaseWidget
         return $table
             ->query(function () {
                 $userId = \Auth::user()->id;
-                $scheduledIds = Task::query()
-                    ->select('id')
-                    ->where('assignee_id', $userId)
-                    ->whereNotNull('due_date')
-                    ->whereNull('completed_at')
-                    ->orderBy('due_date', 'ASC')
-                    ->limit(5);
-
-                $scheduled = Task::query()
-                    ->select('tasks.*', DB::raw('0 as is_ticking'))
-                    ->whereIn('id', $scheduledIds);
-
-                $ticking = Task::query()
-                    ->select('tasks.*', DB::raw('1 as is_ticking'))
-                    ->where('assignee_id', $userId)
-                    ->whereNull('completed_at')
-                    ->whereHas('timesheet', function ($q) use ($userId) {
-                        $q->where('user_id', $userId)->whereNull('end_at');
-                    });
 
                 return Task::query()
-                    ->fromSub($ticking->union($scheduled), 'upcoming_tasks')
-                    ->select('upcoming_tasks.*')
-                    ->orderByDesc('is_ticking')
-                    ->orderByRaw('due_date IS NULL ASC')
-                    ->orderBy('due_date', 'ASC');
+                    ->where('assignee_id', $userId)
+                    ->whereNull('completed_at');
             })
             ->paginated(false)
             ->columns([
@@ -81,5 +61,35 @@ class MyUpcomingTasks extends BaseWidget
                     ->visible(fn(Task $task) => $task->isCompletable())
                     ->color('success'),
             ]);
+    }
+
+    public function getTableRecords(): EloquentCollection | Paginator | CursorPaginator
+    {
+        if ($this->cachedTableRecords) {
+            return $this->cachedTableRecords;
+        }
+
+        $userId = \Auth::user()->id;
+
+        $tickingTasks = Task::query()
+            ->where('assignee_id', $userId)
+            ->whereNull('completed_at')
+            ->whereHas('timesheet', function ($q) use ($userId) {
+                $q->where('user_id', $userId)->whereNull('end_at');
+            })
+            ->get();
+
+        $scheduledTasks = Task::query()
+            ->where('assignee_id', $userId)
+            ->whereNotNull('due_date')
+            ->whereNull('completed_at')
+            ->whereNotIn('id', $tickingTasks->pluck('id'))
+            ->orderBy('due_date', 'ASC')
+            ->limit(max(0, 6 - $tickingTasks->count()))
+            ->get();
+
+        return $this->cachedTableRecords = $tickingTasks
+            ->concat($scheduledTasks)
+            ->values();
     }
 }
