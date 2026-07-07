@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:sync-rc')->cron('0 */2 * * *');
         $schedule->command('make:tasks-schedule')->cron('0 8 * * *');
         $schedule->command('tasks:process-recurring')->cron('0 8 * * *');
+        $schedule->command('renewals:send-upcoming-reminder')->dailyAt('10:00');
         $schedule->command('sites:check-ssl')->cron('0 9 * * *');
         $schedule->command('sites:detect')->cron('*/5 * * * *');
         $schedule->command('tasks:send-daily-summary')->cron('30 19 * * *');

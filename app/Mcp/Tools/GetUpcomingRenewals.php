@@ -2,8 +2,7 @@
 
 namespace App\Mcp\Tools;
 
-use App\Models\Domain;
-use App\Models\Email;
+use App\Services\UpcomingRenewalsService;
 use Carbon\Carbon;
 use Generator;
 use Laravel\Mcp\Server\Tool;
@@ -19,7 +18,7 @@ class GetUpcomingRenewals extends Tool
      */
     public function description(): string
     {
-        return 'Get the upcoming domain and email (GSuite) renewals.';
+        return 'Get the upcoming domain, hosting, and email (GSuite) renewals.';
     }
 
     /**
@@ -42,7 +41,6 @@ class GetUpcomingRenewals extends Tool
     {
         $domainFilter = $arguments['domain'] ?? null;
         $tillDateStr = $arguments['tillDate'] ?? null;
-        $today = now()->startOfDay();
 
         if ($tillDateStr) {
             $tillDate = Carbon::parse($tillDateStr)->endOfDay();
@@ -50,68 +48,9 @@ class GetUpcomingRenewals extends Tool
             $tillDate = now()->addDays(7);
         }
 
-        $renewals = [];
-
-        // Fetch Domains
-        $domainQuery = Domain::query()
-            ->whereNotNull('expiry_date')
-            ->with('client.account')
-            ->excludeIgnored();
-
-        if ($domainFilter) {
-            $domainQuery->where('tld', 'like', "%{$domainFilter}%");
-        } else {
-            $domainQuery->where('expiry_date', '<=', $tillDate);
-        }
-
-        $domains = $domainQuery
-            ->orderByRaw('CASE WHEN expiry_date < ? THEN 0 ELSE 1 END ASC', [$today->format('Y-m-d H:i:s')])
-            ->orderBy('expiry_date', 'ASC')
-            ->get();
-
-        foreach ($domains as $domain) {
-            $isExpired = $domain->expiry_date->lt($today);
-
-            $renewals[] = [
-                'type' => 'Domain',
-                'domain' => $domain->tld,
-                'expiry_date' => $domain->expiry_date->format('Y-m-d H:i:s'),
-                'is_expired' => $isExpired,
-                'days_overdue' => $isExpired ? $domain->expiry_date->diffInDays($today) : null,
-                'days_until_expiry' => $isExpired ? null : $today->diffInDays($domain->expiry_date, false),
-                'client' => $domain->client,
-            ];
-        }
-
-        // Fetch GSuites (Emails)
-        $emailQuery = Email::query()
-            ->whereNotNull('expiry_date')
-            ->excludeIgnored();
-
-        if ($domainFilter) {
-            $emailQuery->where('domain', 'like', "%{$domainFilter}%");
-        } else {
-            $emailQuery->where('expiry_date', '<=', $tillDate);
-        }
-
-        $emails = $emailQuery
-            ->orderByRaw('CASE WHEN expiry_date < ? THEN 0 ELSE 1 END ASC', [$today->format('Y-m-d H:i:s')])
-            ->orderBy('expiry_date', 'ASC')
-            ->get();
-
-        foreach ($emails as $email) {
-            $isExpired = $email->expiry_date->lt($today);
-
-            $renewals[] = [
-                'type' => 'GSuite',
-                'domain' => $email->domain,
-                'expiry_date' => $email->expiry_date->format('Y-m-d H:i:s'),
-                'accounts' => $email->accounts_count ?? 'Unknown',
-                'is_expired' => $isExpired,
-                'days_overdue' => $isExpired ? $email->expiry_date->diffInDays($today) : null,
-                'days_until_expiry' => $isExpired ? null : $today->diffInDays($email->expiry_date, false),
-            ];
-        }
+        $renewals = app(UpcomingRenewalsService::class)
+            ->getRenewals($domainFilter, $tillDate)
+            ->all();
 
         return ToolResult::json([
             'renewals' => $renewals,

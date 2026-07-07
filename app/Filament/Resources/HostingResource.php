@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\HostingResource\Pages;
+use App\Filament\Resources\HostingResource\RelationManagers\ActivitylogRelationManager;
 use App\Jobs\GenerateInvoice;
 use App\Models\Hosting;
 use App\Models\HostingPackage;
@@ -145,6 +146,7 @@ class HostingResource extends Resource
                     ->options(HostingPackage::all()->pluck('storage', 'id')),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Action::make('visit')
                     ->label('Open URL')
@@ -211,7 +213,7 @@ class HostingResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ActivitylogRelationManager::class,
         ];
     }
 
@@ -220,6 +222,7 @@ class HostingResource extends Resource
         return [
             'index' => Pages\ListHostings::route('/'),
             'create' => Pages\CreateHosting::route('/create'),
+            'view' => Pages\ViewHosting::route('/{record}'),
             'edit' => Pages\EditHosting::route('/{record}/edit'),
         ];
     }
