@@ -9,6 +9,8 @@ use App\Models\Invoice;
 use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
+use App\Services\InvoicePricingService;
+use Carbon\Carbon;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Forms;
@@ -92,7 +94,6 @@ class InvoiceResource extends Resource
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(function (callable $set, callable $get, $state) {
-                                // Auto-populate expiry_date from itemable when item is selected
                                 if ($state) {
                                     $type = $get('itemable_type');
                                     $itemable = null;
@@ -106,12 +107,35 @@ class InvoiceResource extends Resource
                                     }
 
                                     if ($itemable && isset($itemable->expiry_date)) {
-                                        $set('expiry_date', $itemable->expiry_date);
+                                        $set('expiry_date', $itemable->expiry_date?->format('Y-m-d'));
+                                    }
+
+                                    if ($itemable) {
+                                        $invoiceDate = Carbon::parse($get('../../date') ?? now());
+                                        $price = null;
+
+                                        if ($type === Domain::class) {
+                                            $price = InvoicePricingService::getDomainPrice(
+                                                $itemable->tld,
+                                                $invoiceDate,
+                                                $itemable->expiry_date,
+                                            );
+                                        } elseif ($type === Hosting::class) {
+                                            $price = InvoicePricingService::getHostingPrice($itemable);
+                                        } elseif ($type === Email::class) {
+                                            $price = InvoicePricingService::getEmailPrice(
+                                                $itemable,
+                                                $invoiceDate,
+                                                $itemable->expiry_date,
+                                            );
+                                        }
+
+                                        if ($price > 0) {
+                                            $set('price', $price);
+                                        }
                                     }
                                 }
                             }),
-                        // TODO: Auto fill based on domain extension from the config/pricing file
-                        // OR in case hosting package, take it from Hosting Package pricing from the database
                         Forms\Components\TextInput::make('price')
                             ->label('Price')
                             ->numeric()

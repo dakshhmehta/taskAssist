@@ -16,6 +16,8 @@ class SendUpcomingRenewalsReminderCommand extends Command
 
     public function handle(UpcomingRenewalsService $upcomingRenewalsService): int
     {
+        $recipient = config('mail.boss_email');
+
         try {
             $referenceDate = $this->option('date')
                 ? Carbon::parse($this->option('date'))->startOfDay()
@@ -39,7 +41,7 @@ class SendUpcomingRenewalsReminderCommand extends Command
         $expiredRenewals = $renewals->where('is_expired', true)->values();
         $upcomingRenewals = $renewals->where('is_expired', false)->values();
 
-        Mail::to('rominjoshi@yahoo.com')->send(
+        Mail::to($recipient)->send(
             new UpcomingRenewalsReminderMail(
                 referenceDate: $referenceDate,
                 windowDays: 30,
@@ -48,7 +50,7 @@ class SendUpcomingRenewalsReminderCommand extends Command
             )
         );
 
-        $this->info('Sent upcoming renewals reminder to rominjoshi@yahoo.com');
+        $this->info("Sent upcoming renewals reminder to {$recipient}");
         $this->info('Expired items: ' . $expiredRenewals->count());
         $this->info('Upcoming items: ' . $upcomingRenewals->count());
 

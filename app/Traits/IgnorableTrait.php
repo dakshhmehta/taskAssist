@@ -8,7 +8,7 @@ trait IgnorableTrait
 {
     public function scopeIncludeIgnored(Builder $query)
     {
-        return $query->whereNull('ignored_at')->orWhereNotNull('ignored_at');
+        return $query;
     }
 
     public function scopeExcludeIgnored(Builder $query)
