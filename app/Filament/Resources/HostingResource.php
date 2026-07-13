@@ -16,8 +16,9 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
@@ -91,21 +92,17 @@ class HostingResource extends Resource
             ])
             ->defaultSort('expiry_date', 'ASC')
             ->filters([
-                SelectFilter::make('ignored')
+                TernaryFilter::make('ignored')
                     ->label('Ignore Status')
-                    ->options([
-                        'unignored' => 'Unignored Only',
-                        'ignored' => 'Only Ignored',
-                        'all' => 'Include Ignored',
-                    ])
-                    ->default('unignored')
-                    ->query(function (Builder $query, $state) {
-                        return match ($state) {
-                            'ignored' => $query->whereNotNull('ignored_at'),
-                            'all' => $query->includeIgnored(),
-                            default => $query->excludeIgnored(),
-                        };
-                    }),
+                    ->placeholder('All')
+                    ->trueLabel('Only Ignored')
+                    ->falseLabel('Unignored Only')
+                    ->default(false)
+                    ->queries(
+                        true: fn (Builder $query) => $query->whereNotNull('ignored_at'),
+                        false: fn (Builder $query) => $query->whereNull('ignored_at'),
+                        blank: fn (Builder $query) => $query,
+                    ),
                 Filter::make('expiry_date_range')
                     ->form([
                         Forms\Components\DatePicker::make('expiry_date_from')
