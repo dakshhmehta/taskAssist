@@ -26,7 +26,9 @@ class CompleteTask extends Tool
      */
     public function schema(ToolInputSchema $schema): ToolInputSchema
     {
-        return $schema->integer('timepro_task_id', 'The ID of the task to complete')->required();
+        return $schema
+            ->integer('timepro_task_id', 'The ID of the task to complete')->required()
+            ->string('closing_remarks', 'Optional completion note to add as a task comment before closing.');
     }
 
     /**
@@ -37,6 +39,7 @@ class CompleteTask extends Tool
     public function handle(array $arguments): ToolResult|Generator
     {
         $taskId = $arguments['timepro_task_id'] ?? null;
+        $closingRemarks = isset($arguments['closing_remarks']) ? trim((string) $arguments['closing_remarks']) : null;
 
         $task = Task::find($taskId);
 
@@ -55,6 +58,15 @@ class CompleteTask extends Tool
         }
 
         $task->endTimer();
+
+        if (filled($closingRemarks)) {
+            $task->filamentComments()->create([
+                'subject_type' => $task->getMorphClass(),
+                'comment' => $closingRemarks,
+                'user_id' => auth()->id(),
+            ]);
+        }
+
         $task->complete();
 
         dispatch(new ScheduleTasksForUser(1));

@@ -16,7 +16,6 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -92,17 +91,21 @@ class HostingResource extends Resource
             ])
             ->defaultSort('expiry_date', 'ASC')
             ->filters([
-                TernaryFilter::make('ignored')
+                SelectFilter::make('ignored')
                     ->label('Ignore Status')
                     ->placeholder('All')
-                    ->trueLabel('Only Ignored')
-                    ->falseLabel('Unignored Only')
-                    ->default(false)
-                    ->queries(
-                        true: fn (Builder $query) => $query->whereNotNull('ignored_at'),
-                        false: fn (Builder $query) => $query->whereNull('ignored_at'),
-                        blank: fn (Builder $query) => $query,
-                    ),
+                    ->options([
+                        'unignored' => 'Unignored Only',
+                        'ignored' => 'Only Ignored',
+                    ])
+                    ->default('unignored')
+                    ->query(function (Builder $query, array $data) {
+                        return match ($data['value'] ?? null) {
+                            'ignored' => $query->whereNotNull('ignored_at'),
+                            'unignored' => $query->whereNull('ignored_at'),
+                            default => $query,
+                        };
+                    }),
                 Filter::make('expiry_date_range')
                     ->form([
                         Forms\Components\DatePicker::make('expiry_date_from')

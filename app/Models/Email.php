@@ -68,9 +68,18 @@ class Email extends Model
     {
         if (! $this->client_id) {
             $lastInvoice = $this->getLastInvoice();
-            if ($lastInvoice) {
+            if ($lastInvoice && $lastInvoice->client_id && $this->exists) {
                 $this->client_id = $lastInvoice->client_id;
-                $this->save();
+
+                try {
+                    $this->save();
+                } catch (\Exception $e) {
+                    \Log::critical(
+                        'Email (#' . $this->id . ', domain: ' . $this->domain . ') has invoice #' . $lastInvoice->id
+                        . ' with client_id ' . $lastInvoice->client_id . ' but failed to save own client_id: '
+                        . $e->getMessage()
+                    );
+                }
             }
         }
 

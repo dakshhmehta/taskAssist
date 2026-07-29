@@ -67,7 +67,9 @@ class SetTimesheet extends Tool
             ]);
         }
 
-        $defaultDate = $task->completed_at?->format('Y-m-d') ?? now()->format('Y-m-d');
+        $defaultDate = $task->completed_at
+            ? $this->normalizeEntryDate($task->completed_at)->format('Y-m-d')
+            : now()->format('Y-m-d');
 
         try {
             [$deleted, $created] = DB::transaction(function () use ($taskId, $userId, $entries, $defaultDate) {
@@ -77,13 +79,13 @@ class SetTimesheet extends Tool
 
                 foreach ($entries as $entry) {
                     $duration = (int) ($entry['duration_minutes'] ?? 0);
-                    $date = $entry['date'] ?? $defaultDate;
+                    $date = $this->normalizeEntryDate($entry['date'] ?? $defaultDate);
 
                     Timesheet::create([
                         'task_id' => $taskId,
                         'user_id' => $userId,
-                        'start_at' => Carbon::parse("{$date} 00:00:00"),
-                        'end_at' => Carbon::parse("{$date} 00:00:00")->addMinutes($duration),
+                        'start_at' => $date->copy()->startOfDay(),
+                        'end_at' => $date->copy()->startOfDay()->addMinutes($duration),
                     ]);
                 }
 
@@ -104,5 +106,14 @@ class SetTimesheet extends Tool
                 'message' => 'Failed to set timesheet: ' . $e->getMessage(),
             ]);
         }
+    }
+
+    private function normalizeEntryDate(mixed $date): Carbon
+    {
+        if ($date instanceof Carbon) {
+            return $date->copy();
+        }
+
+        return Carbon::parse($date);
     }
 }
