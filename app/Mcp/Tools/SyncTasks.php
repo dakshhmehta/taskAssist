@@ -46,8 +46,30 @@ class SyncTasks extends Tool
     {
         $taskId = $arguments['timepro_task_id'] ?? null;
 
-        // Map Priority
+        if (empty($arguments['task'] ?? '')) {
+            return ToolResult::error('Task title is required.');
+        }
+
+        $validPriorities = ['P1', 'P2', 'P3', 'P4'];
         $priority = $arguments['priority'] ?? 'P2';
+
+        if (!in_array($priority, $validPriorities, true)) {
+            return ToolResult::error("Invalid priority '{$priority}'. Must be one of: P1, P2, P3, P4.");
+        }
+
+        $validEstimates = array_keys(config('options.estimate'));
+        $estimate = $arguments['estimated_minutes'] ?? 60;
+
+        if (!in_array((int) $estimate, $validEstimates, true)) {
+            return ToolResult::error("Invalid estimated_minutes '{$estimate}'. Must be one of: " . implode(', ', $validEstimates) . ".");
+        }
+
+        $assigneeId = $arguments['assignee_id'] ?? auth()->id() ?? 1;
+
+        if (!\App\Models\User::where('id', $assigneeId)->exists()) {
+            return ToolResult::error("Assignee with ID {$assigneeId} not found.");
+        }
+
         $isUrgent = in_array($priority, ['P1', 'P3']);
         $isImportant = in_array($priority, ['P1', 'P2']);
 
@@ -66,10 +88,10 @@ class SyncTasks extends Tool
         $attributes = [
             'title' => $arguments['task'],
             'description' => $arguments['description'] ?? null,
-            'estimate' => $arguments['estimated_minutes'] ?? 60,
+            'estimate' => $estimate,
             'is_urgent' => $isUrgent,
             'is_important' => $isImportant,
-            'assignee_id' => $arguments['assignee_id'] ?? auth()->id() ?? 1,
+            'assignee_id' => $assigneeId,
             'auto_schedule' => true,
         ];
 
