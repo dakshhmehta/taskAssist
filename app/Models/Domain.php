@@ -36,6 +36,10 @@ class Domain extends Model
         $this->client_id = $this->getLastInvoice()?->client_id;
 
         $this->save();
+
+        if ($this->hosting) {
+            $this->hosting->update(['expiry_date' => $this->expiry_date]);
+        }
     }
 
     public function hosting()

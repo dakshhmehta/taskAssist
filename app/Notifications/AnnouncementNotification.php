@@ -19,7 +19,7 @@ class AnnouncementNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     public function toArray(object $notifiable): array
@@ -34,10 +34,15 @@ class AnnouncementNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject('Announcement: ' . $this->announcement->title)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line($this->announcement->body)
+            ->greeting('Hello ' . $notifiable->name . ',');
+
+        if ($this->announcement->body) {
+            $mail->line($this->announcement->body);
+        }
+
+        return $mail
             ->line('Posted by: ' . $this->announcement->user->name)
             ->salutation('Thanks, ' . config('app.name'));
     }

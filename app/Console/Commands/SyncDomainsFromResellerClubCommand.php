@@ -92,6 +92,10 @@ class SyncDomainsFromResellerClubCommand extends Command
             $domain->expiry_date = date('Y-m-d H:i:s', $domains[$i]['orders.endtime']);
             $domain->save();
 
+            if ($domain->hosting) {
+                $domain->hosting->update(['expiry_date' => $domain->expiry_date]);
+            }
+
             $_tlds[] = $domain->tld;
 
             $domainTableData[] = [$domain->tld, $domain->expiry_date->format('d-m-Y')];

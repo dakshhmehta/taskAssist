@@ -156,6 +156,12 @@ class HostingResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->visible(fn(Hosting $hosting) => $hosting->isRenewable())
                     ->action(fn(Hosting $hosting) => $hosting->renew()),
+                Action::make('sync')
+                    ->label('Sync')
+                    ->icon('heroicon-o-arrows-right-left')
+                    ->visible(fn(Hosting $hosting) => (bool) $hosting->domainLink)
+                    ->action(fn(Hosting $hosting) => $hosting->sync())
+                    ->color('info'),
 
                 Action::make('generateInvoice')
                     ->label('Generate Invoice')
