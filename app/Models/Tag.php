@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Jobs\ScheduleTasksForUser;
+use App\Traits\IgnorableTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 use Spatie\Tags\Tag as BaseTag;
 
@@ -12,15 +15,57 @@ use Spatie\Tags\Tag as BaseTag;
 
 class Tag extends BaseTag
 {
+    use IgnorableTrait;
+
     protected $fillable = ['name', 'slug', 'type', 'order_column', 'cost'];
 
     protected static function booted()
     {
         static::deleting(function (Tag $tag) {
-            if ($tag->tasks()->count() > 0) {
+            if (DB::table('taggables')->where('tag_id', $tag->id)->count() > 0) {
                 return false;
             }
         });
+    }
+
+    public function ignore()
+    {
+        $this->ignored_at = now();
+        $this->save();
+
+        $assigneeIds = [];
+
+        $this->tasks()
+            ->whereNull('completed_at')
+            ->get()
+            ->each(function ($task) use (&$assigneeIds) {
+                $task->ignore();
+                $assigneeIds[] = $task->assignee_id;
+            });
+
+        foreach (array_unique($assigneeIds) as $id) {
+            dispatch(new ScheduleTasksForUser($id));
+        }
+    }
+
+    public function unIgnore()
+    {
+        $this->ignored_at = null;
+        $this->save();
+
+        $assigneeIds = [];
+
+        Task::withoutGlobalScope('excludeIgnored')
+            ->whereHas('tags', fn($q) => $q->where('tags.id', $this->id))
+            ->get()
+            ->each(function ($task) use (&$assigneeIds) {
+                $task->unIgnore();
+                $assigneeIds[] = $task->assignee_id;
+            });
+
+        foreach (array_unique($assigneeIds) as $id) {
+            dispatch(new ScheduleTasksForUser($id));
+        }
     }
 
     public function tasks()

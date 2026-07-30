@@ -70,6 +70,10 @@ class ScheduleTasksForUser implements ShouldQueue
         $dailyLimit = $user->work_hours * 60;
         $date = now();
 
+        if ($date->hour >= 14) {
+            $date = $date->addDay();
+        }
+
         // Exclude task hours for the period that are fixed
         $blockedTime = Task::orderBy('id', 'ASC')
             ->whereNull('completed_at') // Incomplete

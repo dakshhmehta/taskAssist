@@ -11,7 +11,10 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class TagResource extends Resource
@@ -55,13 +58,51 @@ class TagResource extends Resource
             ])
             ->defaultSort('updated_at', 'desc')
             ->filters([
-                //
+                TernaryFilter::make('ignored')
+                    ->label('Archived?')
+                    ->placeholder('Without Archived')
+                    ->trueLabel('Archived Only')
+                    ->falseLabel('Without Archived')
+                    ->queries(
+                        true: fn(Builder $query) => $query->whereNotNull('ignored_at'),
+                        false: fn(Builder $query) => $query->whereNull('ignored_at'),
+                        blank: fn(Builder $query) => $query->whereNull('ignored_at'),
+                    ),
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('archive')
+                    ->label('Archive')
+                    ->icon('heroicon-o-archive-box')
+                    ->action(fn(Tag $tag) => $tag->ignore())
+                    ->visible(fn(Tag $tag) => !$tag->isIgnored() && Auth::user()->is_admin)
+                    ->requiresConfirmation()
+                    ->color('warning'),
+                Tables\Actions\Action::make('unarchive')
+                    ->label('Unarchive')
+                    ->icon('heroicon-o-archive-box-arrow-down')
+                    ->action(fn(Tag $tag) => $tag->unIgnore())
+                    ->visible(fn(Tag $tag) => $tag->isIgnored() && Auth::user()->is_admin)
+                    ->requiresConfirmation()
+                    ->color('success'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->action(fn(\Illuminate\Support\Collection $records) => $records->each->ignore())
+                        ->requiresConfirmation()
+                        ->color('warning')
+                        ->deselectRecordsAfterCompletion()
+                        ->visible(Auth::user()->is_admin),
+                    Tables\Actions\BulkAction::make('unarchive')
+                        ->label('Unarchive')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->action(fn(\Illuminate\Support\Collection $records) => $records->each->unIgnore())
+                        ->requiresConfirmation()
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion()
+                        ->visible(Auth::user()->is_admin),
                     Tables\Actions\DeleteBulkAction::make()
                         ->action(function (\Illuminate\Support\Collection $records) {
                             $deleted = 0;
