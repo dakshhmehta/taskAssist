@@ -7,6 +7,7 @@ use App\Filament\Resources\TagResource\RelationManagers\TasksRelationManager;
 use App\Models\Tag;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -61,7 +62,30 @@ class TagResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $deleted = 0;
+
+                            foreach ($records as $record) {
+                                if (Gate::denies('delete', $record)) {
+                                    Notification::make()
+                                        ->danger()
+                                        ->title("Cannot delete tag '{$record->name}' — tag has associated tasks.")
+                                        ->send();
+                                    continue;
+                                }
+
+                                $record->delete();
+                                $deleted++;
+                            }
+
+                            if ($deleted > 0) {
+                                Notification::make()
+                                    ->success()
+                                    ->title("{$deleted} tag(s) deleted successfully.")
+                                    ->send();
+                            }
+                        }),
                 ]),
             ]);
     }

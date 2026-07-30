@@ -289,6 +289,7 @@ class TasksRelationManager extends RelationManager
                         ->requiresConfirmation()
                         ->color('success')
                         ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\DeleteBulkAction::make(),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

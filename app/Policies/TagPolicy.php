@@ -43,9 +43,17 @@ class TagPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Tag $tag): bool
+    public function delete(User $user, Tag $tag): bool|Response
     {
-        return $user->is_admin;
+        if (!$user->is_admin) {
+            return false;
+        }
+
+        if ($tag->tasks()->count() > 0) {
+            return Response::deny("Cannot delete tag '{$tag->name}' — tag has associated tasks.");
+        }
+
+        return true;
     }
 
     /**
@@ -59,9 +67,17 @@ class TagPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Tag $tag): bool
+    public function forceDelete(User $user, Tag $tag): bool|Response
     {
-        return $user->is_admin;
+        if (!$user->is_admin) {
+            return false;
+        }
+
+        if ($tag->tasks()->count() > 0) {
+            return Response::deny("Cannot delete tag '{$tag->name}' — tag has associated tasks.");
+        }
+
+        return true;
     }
 
     /**

@@ -13,6 +13,16 @@ use Spatie\Tags\Tag as BaseTag;
 class Tag extends BaseTag
 {
     protected $fillable = ['name', 'slug', 'type', 'order_column', 'cost'];
+
+    protected static function booted()
+    {
+        static::deleting(function (Tag $tag) {
+            if ($tag->tasks()->count() > 0) {
+                return false;
+            }
+        });
+    }
+
     public function tasks()
     {
         return $this->morphedByMany(Task::class, 'taggable');
