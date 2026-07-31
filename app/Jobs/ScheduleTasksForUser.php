@@ -68,6 +68,8 @@ class ScheduleTasksForUser implements ShouldQueue
             ->merge($p4Tasks);
 
         $dailyLimit = $user->work_hours * 60;
+        $workingDayStartHour = 10;
+        $elapsedMinutesToday = 0;
         $date = now();
 
         if ($date->hour >= 14) {
@@ -97,15 +99,18 @@ class ScheduleTasksForUser implements ShouldQueue
             \Log::debug($task->estimate . ' - ' . $task->title);
 
             if ($dailyLimit - $task->estimate >= 0) {
-                $task->due_date = $date->format('Y-m-d');
+                $task->due_date = $date->copy()->setTime($workingDayStartHour, 0)->addMinutes($elapsedMinutesToday);
                 $task->save();
 
                 $dailyLimit = $dailyLimit - $task->estimate;
+                $elapsedMinutesToday += $task->estimate;
 
                 \Log::debug('Time Left = ' . $dailyLimit);
 
                 if ($dailyLimit == 0) {
                     \Log::debug('Switch to next day');
+
+                    $elapsedMinutesToday = 0;
 
                     // Exclude task hours for the period that are fixed
                     $blockedTime = Task::orderBy('id', 'ASC')
@@ -128,6 +133,7 @@ class ScheduleTasksForUser implements ShouldQueue
             } else {
                 \Log::debug('Switch to next day');
 
+                $elapsedMinutesToday = 0;
                 $dailyLimit = $user->work_hours * 60;
                 do {
                     $date = $date->addDay();

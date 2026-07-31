@@ -15,7 +15,7 @@ use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 class YouAreWorkingOn extends BaseWidget
 {
     protected int | string | array $columnSpan = 12;
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 0;
 
     public function table(Table $table): Table
     {
@@ -35,9 +35,6 @@ class YouAreWorkingOn extends BaseWidget
             ->columns([
                 TextColumn::make('display_title')
                     ->label('Title'),
-                TextColumn::make('due_date')
-                    ->label('Due Date')
-                    ->dateTime('d-m-Y h:i A'),
             ])
             ->recordUrl(
                 fn(Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
