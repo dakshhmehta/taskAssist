@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TagResource\RelationManagers;
 
+use App\Filament\Resources\TaskResource;
 use App\Jobs\ScheduleTasksForUser;
 use App\Models\Task;
 use App\Models\User;
@@ -19,6 +20,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Enums\ActionsPosition;
 use Illuminate\Support\Facades\Auth;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
@@ -128,6 +130,7 @@ class TasksRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('title')
+            ->recordUrl(fn (Task $record) => TaskResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
@@ -233,10 +236,11 @@ class TasksRelationManager extends RelationManager
 
                         dispatch(new ScheduleTasksForUser($record->assignee_id));
                     }),
-                // Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                     Tables\Actions\BulkAction::make('massEdit')
                         ->label('Mass Edit')
                         ->icon('heroicon-o-pencil-square')
@@ -302,7 +306,7 @@ class TasksRelationManager extends RelationManager
                                     Column::make('cost')->heading('Amount'),
                                 ])
                         ]),
-                ])->visible(Auth::user()->is_admin),
+                ]),
             ]);
     }
 }

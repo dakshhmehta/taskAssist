@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaskResource\Pages;
+use App\Filament\Resources\TaskResource\RelationManagers\ActivitiesRelationManager;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
@@ -367,7 +368,7 @@ class TaskResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ActivitiesRelationManager::class,
         ];
     }
 

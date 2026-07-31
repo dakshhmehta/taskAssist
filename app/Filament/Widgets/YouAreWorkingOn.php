@@ -17,6 +17,19 @@ class YouAreWorkingOn extends BaseWidget
     protected int | string | array $columnSpan = 12;
     protected static ?int $sort = 0;
 
+    public static function canView(): bool
+    {
+        $userId = \Auth::user()->id;
+
+        return Task::query()
+            ->where('assignee_id', $userId)
+            ->whereNull('completed_at')
+            ->whereHas('timesheet', function ($q) use ($userId) {
+                $q->where('user_id', $userId)->whereNull('end_at');
+            })
+            ->exists();
+    }
+
     public function table(Table $table): Table
     {
         return $table
