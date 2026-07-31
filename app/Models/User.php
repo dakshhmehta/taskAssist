@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Romininteractive\Transaction\Traits\HasTransactions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -40,6 +41,7 @@ class User extends Authenticatable
         'biometric_id',
         'is_probation',
         'is_disabled',
+        'calendar_token',
     ];
 
     /**
@@ -270,5 +272,28 @@ class User extends Authenticatable
     public function getCLAttribute()
     {
         return (int) $this->balance(['cl']);
+    }
+
+    public function generateCalendarToken(): string
+    {
+        $this->calendar_token = Str::random(40);
+        $this->save();
+
+        return $this->calendar_token;
+    }
+
+    public function revokeCalendarToken(): void
+    {
+        $this->calendar_token = null;
+        $this->save();
+    }
+
+    public function getCalendarUrlAttribute(): ?string
+    {
+        if (! $this->calendar_token) {
+            return null;
+        }
+
+        return url("/calendar/{$this->calendar_token}.ics");
     }
 }

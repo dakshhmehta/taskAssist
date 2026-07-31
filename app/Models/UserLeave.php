@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Jobs\ScheduleTasksForUser;
 use App\Traits\CustomLogOptions;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Romininteractive\Transaction\Traits\HasTransactions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -27,6 +29,15 @@ class UserLeave extends Model
         static::saving(function (UserLeave $leave) {
             if ($leave->user_id == null) {
                 $leave->user_id = Auth::user()->id;
+            }
+
+            if ($leave->code === 'CL' && $leave->from_date && $leave->isDirty('from_date')) {
+                $minDate = Carbon::today()->addDays(4);
+                if ($leave->from_date->lt($minDate)) {
+                    throw ValidationException::withMessages([
+                        'from_date' => 'CL must be applied at least 4 days in advance. Earliest available date: ' . $minDate->format('d-m-Y'),
+                    ]);
+                }
             }
         });
 

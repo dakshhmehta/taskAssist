@@ -124,7 +124,29 @@ class UserResource extends Resource
                     ->label('Attendance Report')
                     ->color('info')
                     ->visible(fn($record) => $record->id == auth()->user()->id || auth()->user()->is_admin)
-                    ->url(fn($record) => UserResource::getUrl('attendance-report', ['record' => $record]))
+                    ->url(fn($record) => UserResource::getUrl('attendance-report', ['record' => $record])),
+                Action::make('calendarFeed')
+                    ->label('Calendar Feed')
+                    ->icon('heroicon-o-calendar')
+                    ->color('success')
+                    ->visible(fn (User $record) => ! $record->is_disabled)
+                    ->modalHeading(fn (User $record) => "Calendar Feed — {$record->name}")
+                    ->modalWidth('md')
+                    ->modalSubmitActionLabel('Regenerate')
+                    ->action(function (User $record) {
+                        $record->generateCalendarToken();
+                    })
+                    ->form([
+                        TextInput::make('calendar_url')
+                            ->label('Calendar Feed URL')
+                            ->readOnly()
+                            ->afterStateHydrated(function (TextInput $component, User $record) {
+                                if (! $record->calendar_token) {
+                                    $record->generateCalendarToken();
+                                }
+                                $component->state($record->calendar_url);
+                            }),
+                    ]),
                 // Action::make('activities')->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
                 //     ->color('info')
             ])

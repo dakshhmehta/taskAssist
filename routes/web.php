@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\WeeklyPlanController;
 use App\Http\Controllers\WordPressDataController;
@@ -17,3 +18,5 @@ Route::group(['middleware' => 'auth'], function(){
 Route::get('invoices/{id}/print', [InvoicesController::class, 'getPrint'])->name('invoices.print');
 
 Route::get('wp-plugin-info.json', [WordPressDataController::class, 'getPluginInfo']);
+
+Route::get('/calendar/{token}.ics', [CalendarFeedController::class, 'show']);
