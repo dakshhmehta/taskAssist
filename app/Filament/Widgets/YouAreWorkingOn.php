@@ -5,7 +5,6 @@ namespace App\Filament\Widgets;
 use App\Models\Task;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Contracts\Pagination\CursorPaginator;
@@ -13,10 +12,10 @@ use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
-class MyUpcomingTasks extends BaseWidget
+class YouAreWorkingOn extends BaseWidget
 {
     protected int | string | array $columnSpan = 12;
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 2;
 
     public function table(Table $table): Table
     {
@@ -26,9 +25,13 @@ class MyUpcomingTasks extends BaseWidget
 
                 return Task::query()
                     ->where('assignee_id', $userId)
-                    ->whereNull('completed_at');
+                    ->whereNull('completed_at')
+                    ->whereHas('timesheet', function ($q) use ($userId) {
+                        $q->where('user_id', $userId)->whereNull('end_at');
+                    });
             })
             ->paginated(false)
+            ->heading('You are working on')
             ->columns([
                 TextColumn::make('display_title')
                     ->label('Title'),
@@ -40,20 +43,12 @@ class MyUpcomingTasks extends BaseWidget
                 fn(Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
             )
             ->actions([
-                Action::make('startTime')
-                    ->label('Start')
-                    ->action(fn(Task $task) => $task->startTimer())
-                    ->visible(fn(Task $task) => $task->canStartWork(\Auth::user()->id))
-                    ->color('info'),
-
                 Action::make('stopTime')
                     ->label('Stop')
                     ->action(fn(Task $task) => $task->endTimer())
-                    ->visible(fn(Task $task) => $task->isTimeStarted(\Auth::user()->id))
                     ->color('warning'),
 
                 CommentsAction::make(),
-
 
                 Action::make('markCompleted')
                     ->label('Complete')
@@ -73,13 +68,10 @@ class MyUpcomingTasks extends BaseWidget
 
         return $this->cachedTableRecords = Task::query()
             ->where('assignee_id', $userId)
-            ->whereNotNull('due_date')
             ->whereNull('completed_at')
-            ->whereDoesntHave('timesheet', function ($q) use ($userId) {
+            ->whereHas('timesheet', function ($q) use ($userId) {
                 $q->where('user_id', $userId)->whereNull('end_at');
             })
-            ->orderBy('due_date', 'ASC')
-            ->limit(5)
             ->get();
     }
 }
