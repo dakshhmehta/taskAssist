@@ -142,7 +142,8 @@ class InvoiceResource extends Resource
                             ->required(),
                         Forms\Components\TextInput::make('discount_value')
                             ->label('Discount')
-                            ->numeric(),
+                            ->numeric()
+                            ->default(0),
 
                         // TODO:  In case of the domain, take the expiry date from domain model
                         Forms\Components\DatePicker::make('expiry_date')
@@ -172,7 +173,8 @@ class InvoiceResource extends Resource
                             ->required(),
                         Forms\Components\TextInput::make('discount_value')
                             ->label('Discount')
-                            ->numeric(),
+                            ->numeric()
+                            ->default(0),
                     ])
                     ->columns(5)
                     ->columnSpan(12)

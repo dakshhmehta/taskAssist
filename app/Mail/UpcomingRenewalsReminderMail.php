@@ -22,7 +22,13 @@ class UpcomingRenewalsReminderMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Upcoming Renewals Check (' . $this->windowDays . '-day window) - ' . $this->referenceDate->format('d-m-Y'))
+        $expiredCount = $this->expiredRenewals->count();
+
+        return $this->subject(
+            $expiredCount > 0
+                ? "URGENT: {$expiredCount} Renewal" . ($expiredCount === 1 ? ' is' : 's are') . " Overdue — Action Required"
+                : "Upcoming Renewals Check ({$this->windowDays}-day window) - {$this->referenceDate->format('d-m-Y')}"
+        )
             ->markdown('emails.upcoming_renewals');
     }
 }

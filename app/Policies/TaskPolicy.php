@@ -43,6 +43,14 @@ class TaskPolicy
     }
 
     /**
+     * Determine whether the user can delete any models.
+     */
+    public function deleteAny(User $user): bool
+    {
+        return $user->is_admin;
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Task $task): bool
