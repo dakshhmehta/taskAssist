@@ -16,7 +16,7 @@ use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 class MyUpcomingTasks extends BaseWidget
 {
     protected int | string | array $columnSpan = 12;
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 0;
 
     public function table(Table $table): Table
     {
@@ -29,6 +29,7 @@ class MyUpcomingTasks extends BaseWidget
                     ->whereNull('completed_at');
             })
             ->paginated(false)
+            ->heading('My Upcoming Tasks')
             ->columns([
                 TextColumn::make('display_title')
                     ->label('Title'),
@@ -54,7 +55,6 @@ class MyUpcomingTasks extends BaseWidget
 
                 CommentsAction::make(),
 
-
                 Action::make('markCompleted')
                     ->label('Complete')
                     ->action(fn(Task $task) => $task->complete())
@@ -71,15 +71,25 @@ class MyUpcomingTasks extends BaseWidget
 
         $userId = \Auth::user()->id;
 
-        return $this->cachedTableRecords = Task::query()
+        $tickingTasks = Task::query()
+            ->where('assignee_id', $userId)
+            ->whereNull('completed_at')
+            ->whereHas('timesheet', function ($q) use ($userId) {
+                $q->where('user_id', $userId)->whereNull('end_at');
+            })
+            ->get();
+
+        $scheduledTasks = Task::query()
             ->where('assignee_id', $userId)
             ->whereNotNull('due_date')
             ->whereNull('completed_at')
-            ->whereDoesntHave('timesheet', function ($q) use ($userId) {
-                $q->where('user_id', $userId)->whereNull('end_at');
-            })
+            ->whereNotIn('id', $tickingTasks->pluck('id'))
             ->orderBy('due_date', 'ASC')
-            ->limit(5)
+            ->limit(max(0, 5 - $tickingTasks->count()))
             ->get();
+
+        return $this->cachedTableRecords = $tickingTasks
+            ->concat($scheduledTasks)
+            ->values();
     }
 }
