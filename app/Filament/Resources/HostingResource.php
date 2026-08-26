@@ -7,8 +7,10 @@ use App\Filament\Resources\HostingResource\RelationManagers\ActivitylogRelationM
 use App\Jobs\GenerateInvoice;
 use App\Models\Hosting;
 use App\Models\HostingPackage;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -16,6 +18,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -75,9 +78,9 @@ class HostingResource extends Resource
                     ->searchable(),
                 TextColumn::make('server')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('package.storage')
+                TextColumn::make('package.storage')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('expiry_date')
+                TextColumn::make('expiry_date')
                     ->label('Expiry')
                     ->dateTime('d-m-Y')
                     ->searchable()
@@ -117,8 +120,8 @@ class HostingResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data) {
                         return $query
-                            ->when($data['expiry_date_from'], fn($q, $date) => $q->whereDate('expiry_date', '>=', $date))
-                            ->when($data['expiry_date_to'], fn($q, $date) => $q->whereDate('expiry_date', '<=', $date));
+                            ->when($data['expiry_date_from'], fn ($q, $date) => $q->whereDate('expiry_date', '>=', $date))
+                            ->when($data['expiry_date_to'], fn ($q, $date) => $q->whereDate('expiry_date', '<=', $date));
                     })
                     ->label('Expiry Date Range'),
                 TernaryFilter::make('owned_domain')
@@ -126,9 +129,9 @@ class HostingResource extends Resource
                     ->trueLabel('Yes')
                     ->falseLabel('All')
                     ->queries(
-                        true: fn(Builder $query) => $query->whereDoesntHave('domainLink'),
-                        false: fn(Builder $query) => $query,
-                        blank: fn(Builder $query) => $query,
+                        true: fn (Builder $query) => $query->whereDoesntHave('domainLink'),
+                        false: fn (Builder $query) => $query,
+                        blank: fn (Builder $query) => $query,
                     ),
                 TernaryFilter::make('suspended')
                     ->label('Suspended?')
@@ -137,9 +140,9 @@ class HostingResource extends Resource
                     ->falseLabel('No')
                     ->default(false)
                     ->queries(
-                        true: fn(Builder $query) => $query->whereNotNull('suspended_at'),
-                        false: fn(Builder $query) => $query->whereNull('suspended_at'),
-                        blank: fn(Builder $query) => $query,
+                        true: fn (Builder $query) => $query->whereNotNull('suspended_at'),
+                        false: fn (Builder $query) => $query->whereNull('suspended_at'),
+                        blank: fn (Builder $query) => $query,
                     ),
                 SelectFilter::make('package_id')
                     ->label('Package')
@@ -150,22 +153,22 @@ class HostingResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Action::make('visit')
                     ->label('Open URL')
-                    ->url(fn(Hosting $hosting) => url('http://'.$hosting->domain)),
+                    ->url(fn (Hosting $hosting) => url('http://'.$hosting->domain)),
                 Action::make('renew')
                     ->label('Renew')
                     ->icon('heroicon-o-arrow-path')
-                    ->visible(fn(Hosting $hosting) => $hosting->isRenewable())
-                    ->action(fn(Hosting $hosting) => $hosting->renew()),
+                    ->visible(fn (Hosting $hosting) => $hosting->isRenewable())
+                    ->action(fn (Hosting $hosting) => $hosting->renew()),
                 Action::make('sync')
                     ->label('Sync')
                     ->icon('heroicon-o-arrows-right-left')
-                    ->visible(fn(Hosting $hosting) => (bool) $hosting->domainLink)
-                    ->action(fn(Hosting $hosting) => $hosting->sync())
+                    ->visible(fn (Hosting $hosting) => (bool) $hosting->domainLink)
+                    ->action(fn (Hosting $hosting) => $hosting->sync())
                     ->color('info'),
 
                 Action::make('generateInvoice')
                     ->label('Generate Invoice')
-                    ->visible(fn(Hosting $hosting) => $hosting->dueForRenewal())
+                    ->visible(fn (Hosting $hosting) => $hosting->dueForRenewal())
                     ->color('success')
                     ->action(function (Hosting $hosting) {
                         GenerateInvoice::dispatch([$hosting], $hosting->expiry_date->subYear());
@@ -189,7 +192,7 @@ class HostingResource extends Resource
 
                             $invoiceCount = 0;
                             foreach ($groupedByClient as $clientId => $hostings) {
-                                if (!$clientId) {
+                                if (! $clientId) {
                                     continue; // Skip hostings without a client
                                 }
 
@@ -198,7 +201,7 @@ class HostingResource extends Resource
 
                                 // Get the earliest expiry date
                                 $earliestExpiryDate = $hostings->min('expiry_date');
-                                $invoiceDate = \Carbon\Carbon::parse($earliestExpiryDate)->subYear();
+                                $invoiceDate = Carbon::parse($earliestExpiryDate)->subYear();
 
                                 // Dispatch the job
                                 GenerateInvoice::dispatch($items, $invoiceDate);
@@ -206,7 +209,7 @@ class HostingResource extends Resource
                             }
 
                             // Show success notification
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Invoices Generated')
                                 ->body("Successfully queued {$invoiceCount} invoice(s) for generation.")
                                 ->success()
