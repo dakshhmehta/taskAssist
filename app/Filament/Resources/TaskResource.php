@@ -323,13 +323,10 @@ class TaskResource extends Resource
                                 ->label('Important?'),
                         ])
                         ->action(function (\Illuminate\Support\Collection $records, array $data): void {
+                            $actingUserId = Auth::user()->id;
+
                             foreach ($records as $record) {
-                                if (isset($data['assignee_id']) && $data['assignee_id'] !== null) {
-                                    $record->assignee_id = $data['assignee_id'];
-                                }
-                                $record->is_urgent = $data['is_urgent'];
-                                $record->is_important = $data['is_important'];
-                                $record->save();
+                                $record->applyMassEdit($data, $actingUserId);
                             }
                         })
                         ->deselectRecordsAfterCompletion(),

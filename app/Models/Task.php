@@ -13,6 +13,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Tags\HasTags;
 use TomatoPHP\FilamentMediaManager\Traits\InteractsWithMediaFolders;
+use App\Notifications\NewTaskAssignedNotification;
 use App\Traits\IgnorableTrait;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -61,6 +62,39 @@ class Task extends Model implements HasMedia
     public function assignee()
     {
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    /**
+     * Notify the current assignee that this task was assigned/changed to them.
+     * Skips notification when the assignee is the user performing the action
+     * (you don't notify yourself of your own assignment).
+     */
+    public function notifyNewAssignment(?int $actingUserId = null): void
+    {
+        if ($this->assignee_id && $this->assignee_id !== $actingUserId) {
+            $this->assignee->notify(new NewTaskAssignedNotification($this));
+        }
+    }
+
+    /**
+     * Apply the "mass edit" field set (assignee / urgent / important) and
+     * notify the new assignee when the assignee actually changed.
+     */
+    public function applyMassEdit(array $data, ?int $actingUserId = null): void
+    {
+        $oldAssigneeId = $this->assignee_id;
+
+        if (isset($data['assignee_id']) && $data['assignee_id'] !== null) {
+            $this->assignee_id = $data['assignee_id'];
+        }
+
+        $this->is_urgent = $data['is_urgent'];
+        $this->is_important = $data['is_important'];
+        $this->save();
+
+        if ($this->assignee_id !== $oldAssigneeId) {
+            $this->notifyNewAssignment($actingUserId);
+        }
     }
 
     public function lastComment(){

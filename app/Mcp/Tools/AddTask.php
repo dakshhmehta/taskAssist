@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Jobs\ScheduleTasksForUser;
 use App\Models\Tag;
 use App\Models\Task;
+use App\Notifications\NewTaskAssignedNotification;
 use Generator;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\Title;
@@ -103,6 +104,10 @@ class AddTask extends Tool
         }
 
         dispatch(new ScheduleTasksForUser($assigneeId));
+
+        if ($assigneeId != auth()->id()) {
+            $task->assignee->notify(new NewTaskAssignedNotification($task));
+        }
 
         return ToolResult::json([
             'status' => 'success',

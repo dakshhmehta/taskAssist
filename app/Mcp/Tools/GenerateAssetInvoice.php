@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Jobs\GenerateInvoice as GenerateInvoiceJob;
+use App\Models\Client;
 use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
@@ -36,8 +37,6 @@ class GenerateAssetInvoice extends Tool
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
     public function handle(array $arguments): ToolResult|Generator
     {
@@ -61,7 +60,7 @@ class GenerateAssetInvoice extends Tool
             ]);
         }
 
-        if (!$model) {
+        if (! $model) {
             return ToolResult::json([
                 'status' => 'error',
                 'message' => "Asset of type '{$type}' with domain '{$domainName}' not found.",
@@ -70,9 +69,9 @@ class GenerateAssetInvoice extends Tool
 
         $warning = null;
         if ($clientIdInput !== null) {
-            if (!$model->client_id) {
+            if (! $model->client_id) {
                 // Verify that the client exists
-                if (!\App\Models\Client::where('id', $clientIdInput)->exists()) {
+                if (! Client::where('id', $clientIdInput)->exists()) {
                     return ToolResult::json([
                         'status' => 'error',
                         'message' => "Client with ID {$clientIdInput} does not exist.",
@@ -85,7 +84,7 @@ class GenerateAssetInvoice extends Tool
             }
         }
 
-        if (!$model->client_id) {
+        if (! $model->client_id) {
             return ToolResult::json([
                 'status' => 'error',
                 'message' => "Asset '{$domainName}' ({$type}) does not have a client assigned. Cannot generate invoice.",
@@ -93,10 +92,12 @@ class GenerateAssetInvoice extends Tool
         }
 
         try {
+            // Start with the resolved asset; domain type additionally bundles related assets.
+            $items = [$model];
+
             // If we adding domain, and has hosting, include hosting as well
             if ($type === 'domain') {
                 $hosting = Hosting::where('domain', $domainName)->first();
-                $items = [$model];
                 if ($hosting) {
                     $items[] = $hosting;
                 }
@@ -116,7 +117,7 @@ class GenerateAssetInvoice extends Tool
 
             $response = [
                 'status' => 'success',
-                'message' => "Invoice generated successfully for '{$domainName}' ({$type})." . ($warning ? " Warning: {$warning}" : ""),
+                'message' => "Invoice generated successfully for '{$domainName}' ({$type}).".($warning ? " Warning: {$warning}" : ''),
                 'invoice' => $lastInvoice ? [
                     'id' => $lastInvoice->id,
                     'invoice_no' => $lastInvoice->invoice_no,
@@ -134,7 +135,7 @@ class GenerateAssetInvoice extends Tool
         } catch (\Exception $e) {
             return ToolResult::json([
                 'status' => 'error',
-                'message' => "Failed to generate invoice: " . $e->getMessage(),
+                'message' => 'Failed to generate invoice: '.$e->getMessage(),
             ]);
         }
     }

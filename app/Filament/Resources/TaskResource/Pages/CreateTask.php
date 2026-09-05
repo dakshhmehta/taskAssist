@@ -4,7 +4,6 @@ namespace App\Filament\Resources\TaskResource\Pages;
 
 use App\Filament\Resources\TaskResource;
 use App\Jobs\ScheduleTasksForUser;
-use App\Notifications\NewTaskAssignedNotification;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
@@ -19,8 +18,6 @@ class CreateTask extends CreateRecord
 
         dispatch(new ScheduleTasksForUser($this->record->assignee_id));
 
-        if ($this->record->assignee_id != Auth::user()->id) {
-            $this->record->assignee->notify(new NewTaskAssignedNotification($this->record));
-        }
+        $this->record->notifyNewAssignment(Auth::user()->id);
     }
 }

@@ -86,6 +86,7 @@ class UpdateTask extends Tool
         dispatch(new ScheduleTasksForUser($task->assignee_id));
         if (isset($arguments['assignee_id']) && $arguments['assignee_id'] != $oldAssigneeId) {
             dispatch(new ScheduleTasksForUser($oldAssigneeId));
+            $task->notifyNewAssignment(auth()->id());
         }
 
         return ToolResult::json([
