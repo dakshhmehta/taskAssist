@@ -15,13 +15,10 @@ class AttendanceStats extends BaseWidget
     protected function getStats(): array
     {
         // 1. Total Time Worked (from timesheet)
-        $timeWorked = Timesheet::select(\DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
-            ->whereNotNull('start_at')
-            ->whereNotNull('end_at')
-            ->where('start_at', '>=', $this->filterData['startDate'])
-            ->where('end_at', '<=', $this->filterData['endDate'])
-            ->where('user_id', $this->user->id)
-            ->first();
+        $timeWorkedMinutes = $this->user->workedMinutesForPeriod(
+            now()->parse($this->filterData['startDate']),
+            now()->parse($this->filterData['endDate']),
+        );
 
         // 2. Total Office Working Hrs (from checkins data with matched check-out)
         $officeHours = \DB::table('user_checkins as a')
@@ -118,7 +115,7 @@ class AttendanceStats extends BaseWidget
         }
 
         return [
-            Stat::make('Total Time Worked', $timeWorked && $timeWorked->time ? Timesheet::toHMS($timeWorked->time) : '00:00'),
+            Stat::make('Total Time Worked', $timeWorkedMinutes ? Timesheet::toHMS($timeWorkedMinutes) : '00:00'),
             Stat::make('Total Office Hours', $officeHours && $officeHours->total_minutes ? Timesheet::toHMS($officeHours->total_minutes) : '00:00'),
             Stat::make('Avg Productivity', $avgProductivity !== null ? number_format($avgProductivity, 2) . '%' : 'N/A'),
             Stat::make('Avg Late Check-in', $avgLateMinutes > 0 ? Timesheet::toHMS($avgLateMinutes) : '00:00')

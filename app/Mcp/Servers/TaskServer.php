@@ -13,6 +13,7 @@ use App\Mcp\Tools\SetTimer;
 use App\Mcp\Tools\SetTimesheet;
 use App\Mcp\Tools\SyncTasks;
 use App\Mcp\Tools\ListTasks;
+use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Tools\UpdateTask;
 use Laravel\Mcp\Server;
 
@@ -34,6 +35,7 @@ class TaskServer extends Server
         ListTags::class,
         // UpdateTask::class,
         ListTasks::class,
+        ListNotifications::class,
         GetTimesheet::class,
         SetTimesheet::class,
         SetTimer::class,

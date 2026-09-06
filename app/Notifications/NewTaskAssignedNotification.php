@@ -36,10 +36,13 @@ class NewTaskAssignedNotification extends Notification
 
     public function toDatabase(User $notifiable): array
     {
-        return FilamentNotification::make()
+        return array_merge(FilamentNotification::make()
             ->title('You have been assigned a new task "'.$this->task->title.'"')
             ->body('in '.$this->task->tag.'<br/><br/>'.$this->task->description)
-            ->getDatabaseMessage();
+            ->getDatabaseMessage(), [
+                'user_id' => $notifiable->id,
+                'task_id' => $this->task->id,
+            ]);
     }
 
 

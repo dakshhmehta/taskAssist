@@ -183,6 +183,70 @@ class User extends Authenticatable
         return (int) $totalTimeWorked->time;
     }
 
+    public function completedTasksCountForPeriod(Carbon $startDate, Carbon $endDate): int
+    {
+        return $this->tasks()
+            ->whereBetween('completed_at', [
+                $startDate->copy()->startOfDay(),
+                $endDate->copy()->endOfDay(),
+            ])
+            ->count();
+    }
+
+    public function workedMinutesForPeriod(Carbon $startDate, Carbon $endDate): int
+    {
+        return $this->timesheet()
+            ->whereNotNull('start_at')
+            ->whereNotNull('end_at')
+            ->whereBetween('end_at', [
+                $startDate->copy()->startOfDay(),
+                $endDate->copy()->endOfDay(),
+            ])
+            ->get()
+            ->sum(fn (Timesheet $timesheet) => $timesheet->end_at->diffInMinutes($timesheet->start_at));
+    }
+
+    public function sickLeaveDaysForPeriod(Carbon $startDate, Carbon $endDate): float
+    {
+        return (float) $this->leaves()
+            ->where('status', 'APPROVED')
+            ->where('code', 'SL')
+            ->whereDate('from_date', '>=', $startDate)
+            ->whereDate('to_date', '<=', $endDate)
+            ->get()
+            ->sum(fn (UserLeave $leave) => $leave->leave_days);
+    }
+
+    public function paymentDetailsForPeriod(Carbon $startDate, Carbon $endDate): array
+    {
+        $workedMinutes = $this->workedMinutesForPeriod($startDate, $endDate);
+        $sickLeaveDays = $this->sickLeaveDaysForPeriod($startDate, $endDate);
+        $workingDays = (float) config('settings.working_days');
+        $salary = (float) $this->salary;
+
+        if ($this->salary_type === 'monthly') {
+            $payableDays = max(0, $workingDays - $sickLeaveDays);
+            $netPayableAmount = $workingDays > 0
+                ? ($salary / $workingDays) * $payableDays
+                : 0;
+        } else {
+            $payableDays = null;
+            $netPayableAmount = ($workedMinutes / 60) * $salary;
+        }
+
+        return [
+            'completed_tasks' => $this->completedTasksCountForPeriod($startDate, $endDate),
+            'worked_minutes' => $workedMinutes,
+            'sick_leave_days' => $sickLeaveDays,
+            'payable_days' => $payableDays,
+            'working_days' => $workingDays,
+            'net_payable_amount' => $netPayableAmount,
+            'effective_hourly_rate' => $workedMinutes > 0
+                ? $netPayableAmount / ($workedMinutes / 60)
+                : null,
+        ];
+    }
+
     public function performanceThisWeekTimeBased($offset = 0)
     {
         $timeWorked = $this->timeWorkedThisWeek($offset);

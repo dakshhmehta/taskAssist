@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\UserResource\Widgets;
 
-use App\Models\Timesheet;
+use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -15,66 +15,32 @@ class SalaryDetails extends BaseWidget
     {
         $widgets = [];
 
-        $leaves =  $this->user->leaves()
-            ->where('status', 'APPROVED')
-            ->whereIn('code', ['SL'])
-            ->whereDate('from_date', '>=', $this->filterData['startDate'])
-            ->whereDate('to_date', '<=', $this->filterData['endDate'])
-            ->get();
+        $paymentDetails = $this->user->paymentDetailsForPeriod(
+            Carbon::parse($this->filterData['startDate']),
+            Carbon::parse($this->filterData['endDate']),
+        );
 
-        $leavesCount = $leaves->map(function ($leave) {
-            return $leave->leave_days;
-        })->sum();
-
-        // TODO: Allowed leavs formula to change?
-        $allowedLeaves = config('settings.monthly_allowed_leaves');
-
-        $widgets[] = (new Stat('Sick Leaves', $leavesCount));
+        $widgets[] = (new Stat('Sick Leaves', $paymentDetails['sick_leave_days']));
         
         $userSalary = $this->user->salary;
 
 
         // Salary Count
         if ($this->user->salary_type == 'monthly') {
-
-            $workingDays = config('settings.working_days');
-            $payableDays = $workingDays - $leavesCount;
-
-            $payableSalary = ($this->user->salary / $workingDays) * $payableDays;
-
-            $widgets[] = (new Stat('Payable Days', $payableDays))
-                ->description('Out of ' . $workingDays . ' working days');
-
-            $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
-                ->whereNotNull('start_at')
-                ->whereNotNull('end_at')
-                ->where('end_at', '>=', $this->filterData['startDate'])
-                ->where('end_at', '<=', $this->filterData['endDate'])
-                ->where('user_id', $this->user->id)
-                ->groupBy('user_id')
-                ->first();
-
-            $effectiveHourlyRate = sprintf("%.2f", $payableSalary / ($timeWorked->time / 60));
+            $widgets[] = (new Stat('Payable Days', $paymentDetails['payable_days']))
+                ->description('Out of ' . $paymentDetails['working_days'] . ' working days');
 
             if(auth()->user()->is_admin){
-                $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $payableSalary)))
-                    ->description("Total Salary = ".$userSalary.", Eff. Hourly Rate = ".$effectiveHourlyRate);
+                $description = 'Total Salary = ' . $userSalary;
+                if ($paymentDetails['effective_hourly_rate'] !== null) {
+                    $description .= ', Eff. Hourly Rate = ' . sprintf('%.2f', $paymentDetails['effective_hourly_rate']);
+                }
+
+                $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $paymentDetails['net_payable_amount'])))
+                    ->description($description);
             }
         } else {
-            $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
-                ->whereNotNull('start_at')
-                ->whereNotNull('end_at')
-                ->where('end_at', '>=', $this->filterData['startDate'])
-                ->where('end_at', '<=', $this->filterData['endDate'])
-                ->where('user_id', $this->user->id)
-                ->groupBy('user_id')
-                ->first();
-
-            $timeWorked = ($timeWorked->time / 60);
-
-            $payableSalary = $timeWorked * $userSalary;
-
-            $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $payableSalary)))
+            $widgets[] = (new Stat('Payable Salary', sprintf("%.2f", $paymentDetails['net_payable_amount'])))
                 ->description('Hourly Rate = '.$userSalary);
         }
 

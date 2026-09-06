@@ -19,10 +19,10 @@ class TasksCount extends BaseWidget
             ->whereDate('created_at', '<=', $this->filterData['endDate'])
             ->count();
 
-        $completedCount = $this->user->tasks()
-            ->whereDate('completed_at', '>=', $this->filterData['startDate'])
-            ->whereDate('completed_at', '<=', $this->filterData['endDate'])
-            ->count();
+        $completedCount = $this->user->completedTasksCountForPeriod(
+            now()->parse($this->filterData['startDate']),
+            now()->parse($this->filterData['endDate']),
+        );
 
         // $timeWorked = Timesheet::select('user_id', \DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_at, end_at)) AS time'))
         // ->whereNotNull('start_at')
