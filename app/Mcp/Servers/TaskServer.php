@@ -5,6 +5,7 @@ namespace App\Mcp\Servers;
 use App\Mcp\Tools\AddTask;
 use App\Mcp\Tools\CompleteTask;
 use App\Mcp\Tools\GetDailyBriefing;
+use App\Mcp\Tools\GetTask;
 use App\Mcp\Tools\GetTimesheet;
 use App\Mcp\Tools\ListTeamMembers;
 use App\Mcp\Tools\ListTags;
@@ -35,6 +36,7 @@ class TaskServer extends Server
         ListTags::class,
         // UpdateTask::class,
         ListTasks::class,
+        GetTask::class,
         ListNotifications::class,
         GetTimesheet::class,
         SetTimesheet::class,
