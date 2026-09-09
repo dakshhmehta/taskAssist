@@ -7,6 +7,7 @@ use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
 use App\Models\Invoice;
+use App\Models\InvoiceExtra;
 use App\Models\InvoiceItem;
 use App\Services\InvoicePricingService;
 use Illuminate\Bus\Queueable;
@@ -28,14 +29,29 @@ class GenerateInvoice implements ShouldQueue
     public $invoiceDate;
 
     /**
+     * Extra ad-hoc line items, each: ['line_title' => ..., 'price' => ..., 'discount_value' => ..., ...]
+     */
+    public $extras;
+
+    public $footnote;
+
+    /**
+     * Per-item discount values keyed by the item index in $items.
+     */
+    public $itemDiscounts;
+
+    /**
      * Create a new job instance.
      *
      * @param array $items Array of Domain, Hosting, or Email objects
      */
-    public function __construct(array $items, $invoiceDate = null)
+    public function __construct(array $items, $invoiceDate = null, array $extras = [], ?string $footnote = null, array $itemDiscounts = [])
     {
         $this->items = $items;
         $this->invoiceDate = $invoiceDate;
+        $this->extras = $extras;
+        $this->footnote = $footnote;
+        $this->itemDiscounts = $itemDiscounts;
     }
 
     /**
@@ -66,7 +82,7 @@ class GenerateInvoice implements ShouldQueue
 
 
         // 3. Add all items array to the invoice items
-        foreach ($this->items as $item) {
+        foreach ($this->items as $index => $item) {
             if ($item == null) continue;
 
             // Determine the itemable type
@@ -89,11 +105,28 @@ class GenerateInvoice implements ShouldQueue
                 'itemable_type' => $itemableType,
                 'itemable_id' => $item->id,
                 'price' => $price,
+                'discount_value' => $this->itemDiscounts[$index] ?? 0,
                 'expiry_date' => $item->expiry_date ?? null,
             ]);
         }
 
+        foreach ($this->extras as $extra) {
+            InvoiceExtra::create([
+                'invoice_id' => $invoice->id,
+                'line_title' => $extra['line_title'] ?? '',
+                'line_description' => $extra['line_description'] ?? '',
+                'line_duration' => $extra['line_duration'] ?? '',
+                'price' => $extra['price'] ?? 0,
+                'discount_value' => $extra['discount_value'] ?? 0,
+            ]);
+        }
+
+        if ($this->footnote) {
+            $invoice->footnote = $this->footnote;
+            $invoice->save();
+        }
+
         // 6. Send a copy of invoice along with View Invoice button and invoice items, sub total, gst and grand total details as body
-        EmailInvoice::dispatch($invoice, $firstItem);
+        EmailInvoice::dispatch($invoice, $firstItem, $this->extras[0]['line_title'] ?? null);
     }
 }
