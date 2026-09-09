@@ -71,6 +71,8 @@ class ConvertToTaxInvoice extends Tool
                 'tax_invoice' => [
                     'id' => $taxInvoice->id,
                     'invoice_no' => $taxInvoice->invoice_no,
+                    'type' => $taxInvoice->type,
+                    'lut_no' => $taxInvoice->lut_no,
                     'date' => $taxInvoice->date->format('Y-m-d'),
                     'total' => number_format($taxInvoice->total, 2),
                     'client' => $taxInvoice->client?->name,

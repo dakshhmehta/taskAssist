@@ -41,7 +41,7 @@ class GetInvoice extends Tool
         return ToolResult::json([
             'status' => 'success',
             'invoice' => $invoice->append([
-                'total', 'gst_amount', 'cgst', 'sgst', 'igst', 'net_total', 'is_same_state', 'type'
+                'total', 'gst_amount', 'cgst', 'sgst', 'igst', 'net_total', 'is_same_state', 'type', 'lut_no'
             ])->toArray(),
         ]);
     }

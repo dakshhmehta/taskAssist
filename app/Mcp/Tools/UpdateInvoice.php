@@ -102,7 +102,7 @@ class UpdateInvoice extends Tool
         return ToolResult::json([
             'status' => 'success',
             'message' => 'Invoice updated successfully.',
-            'invoice' => $invoice->append(['total', 'net_total', 'type'])->toArray(),
+            'invoice' => $invoice->append(['total', 'net_total', 'type', 'lut_no'])->toArray(),
         ]);
     }
 }

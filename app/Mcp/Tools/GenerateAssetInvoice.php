@@ -124,6 +124,8 @@ class GenerateAssetInvoice extends Tool
                 'invoice' => $lastInvoice ? [
                     'id' => $lastInvoice->id,
                     'invoice_no' => $lastInvoice->invoice_no,
+                    'type' => $lastInvoice->type,
+                    'lut_no' => $lastInvoice->lut_no,
                     'date' => $lastInvoice->date->format('Y-m-d'),
                     'client' => $lastInvoice->client?->name,
                     'total' => $lastInvoice->total,
@@ -305,6 +307,8 @@ class GenerateAssetInvoice extends Tool
                 'invoice' => $lastInvoice ? [
                     'id' => $lastInvoice->id,
                     'invoice_no' => $lastInvoice->invoice_no,
+                    'type' => $lastInvoice->type,
+                    'lut_no' => $lastInvoice->lut_no,
                     'date' => $lastInvoice->date->format('Y-m-d'),
                     'client' => $lastInvoice->client?->name,
                     'total' => $lastInvoice->total,

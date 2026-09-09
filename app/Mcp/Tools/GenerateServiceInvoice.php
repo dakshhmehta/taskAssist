@@ -213,7 +213,7 @@ class GenerateServiceInvoice extends Tool
                 'status' => 'success',
                 'message' => "Invoice '{$invoice->invoice_no}' created successfully for {$client->display_name}.",
                 'invoice' => $invoice->append([
-                    'total', 'gst_amount', 'cgst', 'sgst', 'igst', 'net_total', 'is_same_state', 'type',
+                    'total', 'gst_amount', 'cgst', 'sgst', 'igst', 'net_total', 'is_same_state', 'type', 'lut_no',
                 ])->toArray(),
             ];
 

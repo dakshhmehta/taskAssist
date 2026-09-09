@@ -91,6 +91,8 @@ class MarkInvoiceAsPaid extends Tool
                 'invoice' => [
                     'id' => $invoice->id,
                     'invoice_no' => $invoice->invoice_no,
+                    'type' => $invoice->type,
+                    'lut_no' => $invoice->lut_no,
                     'paid_date' => $invoice->paid_date->format('Y-m-d'),
                     'remarks' => $invoice->payment_remarks,
                     'total' => number_format($invoice->total, 2),

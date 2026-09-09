@@ -225,6 +225,11 @@ class Invoice extends Model
         return 'PROFORMA';
     }
 
+    public function getLutNoAttribute()
+    {
+        return config('app.gstin_lut_no');
+    }
+
     public function hasItemsUnbilled(){
         $items = $this->items;
     }
