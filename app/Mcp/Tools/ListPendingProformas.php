@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Models\Invoice;
+use App\Support\FinancialYear;
 use Carbon\Carbon;
 use Generator;
 use Laravel\Mcp\Server\Tool;
@@ -41,10 +42,7 @@ class ListPendingProformas extends Tool
         if (isset($arguments['start_date'])) {
             $startDate = Carbon::parse($arguments['start_date'])->startOfDay();
         } else {
-            // Financial year in India starts from April 1st
-            $startDate = $now->month >= 4
-                ? Carbon::create($now->year, 4, 1)->startOfDay()
-                : Carbon::create($now->year - 1, 4, 1)->startOfDay();
+            $startDate = FinancialYear::startsOn($now);
         }
 
         // Proforma invoices do not start with 'SI-' and do not have an associated tax invoice

@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Mcp\Tools\ListNotifications;
+use App\Mcp\Servers\ResellerServer;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\NewTaskAssignedNotification;
@@ -50,6 +51,7 @@ class ListNotificationsTest extends TestCase
         $this->assertCount(1, $response['notifications']);
         $this->assertSame($activeUser->id, $response['notifications'][0]['user']['id']);
         $this->assertSame($task->id, $response['notifications'][0]['task']['id']);
+        $this->assertSame('task_assigned', $response['notifications'][0]['data']['event']);
     }
 
     public function test_it_applies_user_date_and_read_status_filters(): void
@@ -72,6 +74,48 @@ class ListNotificationsTest extends TestCase
         $this->assertContains($readNotification->id, $notificationIds);
         $this->assertContains($unreadNotification->id, $notificationIds);
         $this->assertNotContains($outsideDateRange->id, $notificationIds);
+    }
+
+    public function test_it_is_registered_with_the_mcp_server(): void
+    {
+        $this->assertContains(ListNotifications::class, (new ResellerServer)->tools);
+    }
+
+    public function test_it_returns_task_comment_and_completion_notifications_for_the_admin(): void
+    {
+        $admin = User::factory()->create();
+        $assignee = User::factory()->create();
+        $task = Task::create([
+            'title' => 'Review notification events',
+            'assignee_id' => $assignee->id,
+        ]);
+
+        $this->actingAs($assignee);
+
+        $task->filamentComments()->create([
+            'subject_type' => $task->getMorphClass(),
+            'user_id' => $assignee->id,
+            'comment' => 'The task needs a review.',
+        ]);
+        $task->complete();
+
+        $result = (new ListNotifications)->handle([
+            'user_id' => $admin->id,
+            'includes_read' => true,
+        ]);
+        $response = json_decode($result->toArray()['content'][0]['text'], true);
+
+        $this->assertCount(2, $response['notifications']);
+        $this->assertEqualsCanonicalizing(
+            ['task_commented', 'task_completed'],
+            collect($response['notifications'])->pluck('data.event')->all()
+        );
+
+        foreach ($response['notifications'] as $notification) {
+            $this->assertSame($task->id, $notification['data']['task_id']);
+            $this->assertSame($assignee->id, $notification['data']['actor_id']);
+            $this->assertSame($task->id, $notification['task']['id']);
+        }
     }
 
     private function createNotification(User $user, string $createdAt, ?string $readAt = null): DatabaseNotification

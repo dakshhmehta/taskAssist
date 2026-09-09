@@ -6,7 +6,6 @@ use App\Models\Task;
 use App\Models\User;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -16,12 +15,15 @@ class NewTaskAssignedNotification extends Notification
 
     protected $task;
 
+    protected $actorId;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct(Task $task)
+    public function __construct(Task $task, ?int $actorId = null)
     {
         $this->task = $task;
+        $this->actorId = $actorId;
     }
 
     /**
@@ -42,6 +44,8 @@ class NewTaskAssignedNotification extends Notification
             ->getDatabaseMessage(), [
                 'user_id' => $notifiable->id,
                 'task_id' => $this->task->id,
+                'actor_id' => $this->actorId,
+                'event' => 'task_assigned',
             ]);
     }
 

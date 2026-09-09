@@ -14,6 +14,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Tags\HasTags;
 use TomatoPHP\FilamentMediaManager\Traits\InteractsWithMediaFolders;
 use App\Notifications\NewTaskAssignedNotification;
+use App\Notifications\TaskCompletedNotification;
 use App\Traits\IgnorableTrait;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -37,7 +38,9 @@ class Task extends Model implements HasMedia
 
     protected $casts = [
         'due_date' => 'datetime',
+        'is_important' => 'boolean',
         'is_recurring' => 'boolean',
+        'is_urgent' => 'boolean',
         'recurrence_interval' => 'integer',
         'recurrence_days' => 'array',
         'recurrence_end_date' => 'date',
@@ -72,8 +75,17 @@ class Task extends Model implements HasMedia
     public function notifyNewAssignment(?int $actingUserId = null): void
     {
         if ($this->assignee_id && $this->assignee_id !== $actingUserId) {
-            $this->assignee->notify(new NewTaskAssignedNotification($this));
+            $this->assignee->notify(new NewTaskAssignedNotification($this, $actingUserId));
         }
+    }
+
+    public function notifyAdminAndAssignee(object $notification, ?int $actingUserId = null): void
+    {
+        User::query()
+            ->whereIn('id', array_filter(array_unique([1, $this->assignee_id])))
+            ->get()
+            ->reject(fn (User $user) => $user->id === $actingUserId)
+            ->each(fn (User $user) => $user->notify($notification));
     }
 
     /**
@@ -180,11 +192,14 @@ class Task extends Model implements HasMedia
         $this->completed_at = now();
         $this->save();
 
+        $this->notifyAdminAndAssignee(
+            new TaskCompletedNotification($this, Auth::user()),
+            Auth::id()
+        );
+
         if ($this->is_recurring) {
             $this->createNextRecurrence();
         }
-
-        // TODO: Fire Event for sending notification
     }
 
     public function createNextRecurrence()

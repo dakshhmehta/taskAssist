@@ -12,6 +12,7 @@ use App\Mcp\Tools\GetNewAssetsWithoutInvoices;
 use App\Mcp\Tools\GetResellerBalance;
 use App\Mcp\Tools\GetUpcomingRenewals;
 use App\Mcp\Tools\ListPendingProformas;
+use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Tools\MarkInvoiceAsPaid;
 use App\Mcp\Tools\SendInvoiceEmail;
 use App\Mcp\Tools\UpdateInvoice;
@@ -39,6 +40,7 @@ class ResellerServer extends Server
         MarkInvoiceAsPaid::class,
         CreateClient::class,
         FindClient::class,
+        ListNotifications::class,
     ];
 
     public array $resources = [

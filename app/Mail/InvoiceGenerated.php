@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
 use App\Models\Invoice;
+use App\Support\FinancialYear;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -40,18 +41,10 @@ class InvoiceGenerated extends Mailable
     public function envelope(): Envelope
     {
         if ($this->firstExtraTitle) {
-            $clientName = $this->invoice->client?->billing_name ?? 'Client';
             return new Envelope(
-                subject: "{$this->firstExtraTitle} - {$clientName} Invoice",
+                subject: $this->subjectFor($this->firstExtraTitle),
             );
         }
-
-        $itemType = match (get_class($this->firstItem)) {
-            Domain::class => 'Domain',
-            Hosting::class => 'Hosting',
-            Email::class => 'Workspace',
-            default => 'Service',
-        };
 
         $domain = match (get_class($this->firstItem)) {
             Domain::class => $this->firstItem->tld,
@@ -61,8 +54,13 @@ class InvoiceGenerated extends Mailable
         };
 
         return new Envelope(
-            subject: "{$domain} - {$itemType} Invoice",
+            subject: $this->subjectFor($domain),
         );
+    }
+
+    protected function subjectFor(string $lineItem): string
+    {
+        return 'Invoice No. '.$this->invoice->invoice_no.' - '.$lineItem.' - '.FinancialYear::label($this->invoice->date);
     }
 
     /**
