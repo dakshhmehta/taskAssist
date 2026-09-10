@@ -78,6 +78,15 @@ class GenerateAssetInvoice extends Tool
             ]);
         }
 
+        if ($model instanceof Hosting && ($model->is_suspended || $model->is_terminated)) {
+            $state = $model->is_terminated ? 'terminated' : 'suspended';
+
+            return ToolResult::json([
+                'status' => 'error',
+                'message' => "Asset '{$domainName}' (hosting) is {$state} and cannot be invoiced.",
+            ]);
+        }
+
         $warning = $this->assignClient($model, $domainName, $clientIdInput);
 
         if (is_string($warning) && str_starts_with($warning, 'error:')) {
@@ -224,6 +233,15 @@ class GenerateAssetInvoice extends Tool
                 return ToolResult::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: Asset of type '{$type}' with domain '{$entryDomain}' not found.",
+                ]);
+            }
+
+            if ($model instanceof Hosting && ($model->is_suspended || $model->is_terminated)) {
+                $state = $model->is_terminated ? 'terminated' : 'suspended';
+
+                return ToolResult::json([
+                    'status' => 'error',
+                    'message' => "Cart entry #{$index}: hosting '{$entryDomain}' is {$state} and cannot be invoiced.",
                 ]);
             }
 

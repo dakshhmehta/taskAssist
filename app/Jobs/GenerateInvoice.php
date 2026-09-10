@@ -63,6 +63,16 @@ class GenerateInvoice implements ShouldQueue
             throw new \Exception('No items provided for invoice generation.');
         }
 
+        // Suspended/terminated hostings must never appear on an invoice.
+        $this->items = array_values(array_filter(
+            $this->items,
+            fn ($item) => ! ($item instanceof Hosting && ($item->is_suspended || $item->is_terminated))
+        ));
+
+        if (empty($this->items)) {
+            throw new \Exception('No billable items provided for invoice generation.');
+        }
+
         // 1. Get the first item to determine client
         $firstItem = $this->items[0];
 

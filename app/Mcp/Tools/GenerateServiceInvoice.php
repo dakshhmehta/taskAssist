@@ -118,6 +118,15 @@ class GenerateServiceInvoice extends Tool
                 ]);
             }
 
+            if ($model instanceof Hosting && ($model->is_suspended || $model->is_terminated)) {
+                $state = $model->is_terminated ? 'terminated' : 'suspended';
+
+                return ToolResult::json([
+                    'status' => 'error',
+                    'message' => "Item #{$index}: hosting '{$model->domain}' is {$state} and cannot be invoiced.",
+                ]);
+            }
+
             if (! $model->client_id) {
                 $model->client_id = $client->id;
                 $model->save();
