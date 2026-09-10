@@ -69,6 +69,7 @@ class ScheduleTasksForUser implements ShouldQueue
 
         $dailyLimit = $user->work_hours * 60;
         $workingDayStartHour = 10;
+        $bufferMinutes = 15;
         $elapsedMinutesToday = 0;
         $date = now();
 
@@ -102,8 +103,8 @@ class ScheduleTasksForUser implements ShouldQueue
                 $task->due_date = $date->copy()->setTime($workingDayStartHour, 0)->addMinutes($elapsedMinutesToday);
                 $task->save();
 
-                $dailyLimit = $dailyLimit - $task->estimate;
-                $elapsedMinutesToday += $task->estimate;
+                $dailyLimit = $dailyLimit - $task->estimate - $bufferMinutes;
+                $elapsedMinutesToday += $task->estimate + $bufferMinutes;
 
                 \Log::debug('Time Left = ' . $dailyLimit);
 
