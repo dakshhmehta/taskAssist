@@ -42,6 +42,7 @@ class User extends Authenticatable
         'is_probation',
         'is_disabled',
         'calendar_token',
+        'notes',
     ];
 
     /**

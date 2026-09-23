@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Resources\TaskResource\Widgets\UserWorkingTaskList;
+use App\Filament\Pages\MyNotes;
 use App\Filament\Resources\UserResource\Widgets\UserPerformance;
 use App\Filament\Resources\UserResource\Widgets\UserStar;
 use App\Filament\Widgets\QuoteOfDay;
@@ -34,6 +35,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->profile(isSimple: false)
+            ->userMenuItems([
+                \Filament\Navigation\MenuItem::make()
+                    ->label('My Notes')
+                    ->icon('heroicon-o-pencil-square')
+                    ->url(fn (): string => MyNotes::getUrl())
+                    ->sort(1),
+            ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('180s')
             ->colors([
