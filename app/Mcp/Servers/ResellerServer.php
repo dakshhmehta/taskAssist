@@ -15,6 +15,7 @@ use App\Mcp\Tools\ListPendingProformas;
 use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Tools\MarkInvoiceAsPaid;
 use App\Mcp\Tools\SendInvoiceEmail;
+use App\Mcp\Tools\UpdateClient;
 use App\Mcp\Tools\UpdateInvoice;
 use Laravel\Mcp\Server;
 
@@ -22,7 +23,7 @@ class ResellerServer extends Server
 {
     public string $serverName = 'Reseller Server';
 
-    public string $serverVersion = '0.10.0';
+    public string $serverVersion = '0.11.0';
 
     public string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
 
@@ -40,6 +41,7 @@ class ResellerServer extends Server
         MarkInvoiceAsPaid::class,
         CreateClient::class,
         FindClient::class,
+        UpdateClient::class,
         ListNotifications::class,
     ];
 
