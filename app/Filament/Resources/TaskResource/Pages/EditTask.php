@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TaskResource\Pages;
 
+use App\Filament\Actions\TaskCommentsAction;
 use App\Filament\Resources\TaskResource;
 use App\Jobs\ScheduleTasksForUser;
 use App\Models\Task;
@@ -19,7 +20,8 @@ class EditTask extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
-            CommentsAction::make(),
+            CommentsAction::make()
+                ->label(fn(): string => TaskCommentsAction::label($this->record)),
 
             Action::make('markCompleted')
                 ->label('Complete')

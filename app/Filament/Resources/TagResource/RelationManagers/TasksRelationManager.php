@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TagResource\RelationManagers;
 
+use App\Filament\Actions\TaskCommentsAction;
 use App\Filament\Resources\TaskResource;
 use App\Jobs\ScheduleTasksForUser;
 use App\Models\Task;
@@ -23,7 +24,6 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Enums\ActionsPosition;
 use Illuminate\Support\Facades\Auth;
-use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -150,6 +150,7 @@ class TasksRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->sortable(),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('filamentComments'))
             ->filters([
                 SelectFilter::make('assignee_id')
                     ->options(User::query()
@@ -223,7 +224,7 @@ class TasksRelationManager extends RelationManager
                     ->action(fn(Task $task) => $task->endTimer())
                     ->visible(fn(Task $task) => $task->isTimeStarted(Auth::user()->id))
                     ->color('warning'),
-                CommentsAction::make(),
+                TaskCommentsAction::make(),
                 Action::make('markCompleted')
                     ->label('Complete')
                     ->action(fn(Task $task) => $task->complete())

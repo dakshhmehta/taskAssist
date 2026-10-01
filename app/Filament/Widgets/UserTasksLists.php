@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Actions\TaskCommentsAction;
 use App\Models\Task;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
@@ -9,7 +10,6 @@ use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Facades\Auth;
-use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class UserTasksLists extends BaseWidget
 {
@@ -41,6 +41,7 @@ class UserTasksLists extends BaseWidget
         return $table
         ->query(function () use ($date) {
             $tasks = Task::where('due_date', '<=', $date->endOfDay()->format('Y-m-d H:i:s'))
+                ->withCount('filamentComments')
                 ->whereNotNull('due_date')
                 ->whereNull('completed_at')
                 ->orderBy('assignee_id')
@@ -58,7 +59,7 @@ class UserTasksLists extends BaseWidget
             fn (Task $record): string => route('filament.admin.resources.tasks.edit', ['record' => $record]),
         )
         ->actions([
-            CommentsAction::make(),
+            TaskCommentsAction::make(),
 
             Action::make('markCompleted')
                 ->label('Complete')

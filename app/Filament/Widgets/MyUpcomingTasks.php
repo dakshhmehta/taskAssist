@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Actions\TaskCommentsAction;
 use App\Models\Task;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
@@ -11,7 +12,6 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class MyUpcomingTasks extends BaseWidget
 {
@@ -25,6 +25,7 @@ class MyUpcomingTasks extends BaseWidget
                 $userId = \Auth::user()->id;
 
                 return Task::query()
+                    ->withCount('filamentComments')
                     ->where('assignee_id', $userId)
                     ->whereNull('completed_at');
             })
@@ -53,7 +54,7 @@ class MyUpcomingTasks extends BaseWidget
                     ->visible(fn(Task $task) => $task->isTimeStarted(\Auth::user()->id))
                     ->color('warning'),
 
-                CommentsAction::make(),
+                TaskCommentsAction::make(),
 
                 Action::make('markCompleted')
                     ->label('Complete')
@@ -72,6 +73,7 @@ class MyUpcomingTasks extends BaseWidget
         $userId = \Auth::user()->id;
 
         $tickingTasks = Task::query()
+            ->withCount('filamentComments')
             ->where('assignee_id', $userId)
             ->whereNull('completed_at')
             ->whereHas('timesheet', function ($q) use ($userId) {
@@ -80,6 +82,7 @@ class MyUpcomingTasks extends BaseWidget
             ->get();
 
         $scheduledTasks = Task::query()
+            ->withCount('filamentComments')
             ->where('assignee_id', $userId)
             ->whereNotNull('due_date')
             ->whereNull('completed_at')

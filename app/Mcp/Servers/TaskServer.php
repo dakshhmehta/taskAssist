@@ -3,6 +3,7 @@
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\AddTask;
+use App\Mcp\Tools\AddTaskComment;
 use App\Mcp\Tools\CompleteTask;
 use App\Mcp\Tools\GetDailyBriefing;
 use App\Mcp\Tools\GetTask;
@@ -22,7 +23,7 @@ class TaskServer extends Server
 {
     public string $serverName = 'Task Server';
 
-    public string $serverVersion = '1.12.0';
+    public string $serverVersion = '1.13.0';
 
     public string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 
@@ -37,6 +38,7 @@ class TaskServer extends Server
         // UpdateTask::class,
         ListTasks::class,
         GetTask::class,
+        AddTaskComment::class,
         ListNotifications::class,
         GetTimesheet::class,
         SetTimesheet::class,

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Actions\TaskCommentsAction;
 use App\Filament\Resources\TaskResource\Pages;
 use App\Filament\Resources\TaskResource\RelationManagers\ActivitiesRelationManager;
 use App\Models\Tag;
@@ -27,7 +28,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
-use Parallax\FilamentComments\Tables\Actions\CommentsAction;
 
 class TaskResource extends Resource
 {
@@ -215,6 +215,7 @@ class TaskResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->modifyQueryUsing(fn(Builder $query) => $query->withCount('filamentComments'))
             ->defaultSort('due_date', 'ASC')
             ->filters([
                 SelectFilter::make('assignee_id')
@@ -291,7 +292,7 @@ class TaskResource extends Resource
                     ->visible(fn(Task $task) => $task->isTimeStarted(Auth::user()->id))
                     ->color('warning'),
 
-                CommentsAction::make(),
+                TaskCommentsAction::make(),
 
                 Action::make('markCompleted')
                     ->label('Complete')
