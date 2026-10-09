@@ -117,6 +117,11 @@ class User extends Authenticatable
         return $this->id == 1;
     }
 
+    public static function admins()
+    {
+        return static::all()->filter(fn (User $user) => $user->is_admin);
+    }
+
     // public function getPerformanceAttribute()
     // {
     //     if ($this->utilization <= 100) {

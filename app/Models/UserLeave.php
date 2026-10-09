@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use App\Jobs\ScheduleTasksForUser;
+use App\Mail\LeaveRequestSubmittedMail;
+use App\Mail\LeaveStatusChangedMail;
 use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Romininteractive\Transaction\Traits\HasTransactions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -49,6 +52,18 @@ class UserLeave extends Model
                 $txn = $leave->user->debit($days, $leave->from_date, 'Leave application accepted from ' . $leave->from_date->format('d-m-Y') . ' to ' . $leave->to_date->format('d-m-Y') . ($leave->half_day ? ' (Half Day)' : ''));
                 $txn->changeType('cl');
                 $txn->associate($leave);
+            }
+        });
+
+        static::created(function (UserLeave $leave) {
+            if ($leave->status === 'NEW') {
+                $leave->notifyAdminsOfNewRequest();
+            }
+        });
+
+        static::updated(function (UserLeave $leave) {
+            if ($leave->wasChanged('status') && in_array($leave->status, ['APPROVED', 'REJECTED'], true)) {
+                $leave->notifyUserOfStatusChange();
             }
         });
     }
@@ -94,5 +109,38 @@ class UserLeave extends Model
         $this->admin_remarks = $reason;
 
         return $this->save();
+    }
+
+    public function notifyAdminsOfNewRequest(): void
+    {
+        if ($this->isRaisedByAdmin()) {
+            return;
+        }
+
+        $recipients = User::admins()->pluck('email')->filter()->all();
+
+        if (empty($recipients)) {
+            return;
+        }
+
+        Mail::to($recipients)->send(new LeaveRequestSubmittedMail($this));
+    }
+
+    public function notifyUserOfStatusChange(): void
+    {
+        if ($this->isRaisedByAdmin()) {
+            return;
+        }
+
+        if (! $this->user?->email) {
+            return;
+        }
+
+        Mail::to($this->user->email)->send(new LeaveStatusChangedMail($this));
+    }
+
+    public function isRaisedByAdmin(): bool
+    {
+        return (bool) $this->user?->is_admin;
     }
 }
