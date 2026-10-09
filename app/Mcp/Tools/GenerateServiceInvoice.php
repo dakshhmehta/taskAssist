@@ -204,7 +204,7 @@ class GenerateServiceInvoice extends Tool
                 InvoiceExtra::create([
                     'invoice_id' => $invoice->id,
                     'line_title' => $extraData['line_title'] ?? '',
-                    'line_description' => $extraData['line_description'] ?? null,
+                    'line_description' => $extraData['line_description'] ?? '',
                     'line_duration' => $extraData['line_duration'] ?? null,
                     'price' => $extraData['price'] ?? 0,
                     'discount_value' => $extraData['discount_value'] ?? 0,

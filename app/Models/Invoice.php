@@ -136,31 +136,27 @@ class Invoice extends Model
 
     public static function nextInvoiceNumber($prefix = 'DH-')
     {
-        // Define the prefix and the current year
-        $suffix = '\/2025';
+        // Use the current year dynamically so numbering keeps working across years.
+        $suffix = '/' . now()->year;
 
-        // Find the latest invoice number using the prefix and suffix
-        $latestInvoice = self::where('invoice_no', 'LIKE', "{$prefix}%{$suffix}")
-            ->orderBy('date', 'desc')
-            ->orderBy('id', 'desc')
-            ->first();
+        // Highest sequence already used for this prefix in the current year.
+        $lastNumber = 0;
 
-        if ($latestInvoice) {
-            // Extract the number from the latest invoice
-            preg_match("/{$prefix}(\d+){$suffix}/", $latestInvoice->invoice_no, $matches);
-            $lastNumber = isset($matches[1]) ? (int)$matches[1] : 0;
-        } else {
-            // If no invoice found, start from 0
-            $lastNumber = 0;
-        }
+        self::where('invoice_no', 'LIKE', $prefix . '%' . $suffix)
+            ->pluck('invoice_no')
+            ->each(function ($invoiceNo) use ($prefix, $suffix, &$lastNumber) {
+                $pattern = '/' . preg_quote($prefix, '/') . '(\d+)' . preg_quote($suffix, '/') . '/';
+
+                if (preg_match($pattern, $invoiceNo, $matches)) {
+                    $lastNumber = max($lastNumber, (int) $matches[1]);
+                }
+            });
 
         // Increment the number
         $newNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
 
-        $number = stripslashes("{$prefix}{$newNumber}{$suffix}");
-
         // Generate the new invoice number
-        return $number;
+        return "{$prefix}{$newNumber}{$suffix}";
     }
 
     public function getGstAmountAttribute()
