@@ -304,7 +304,7 @@ class GenerateAssetInvoice extends Tool
                 }
 
                 $lastInvoice = \App\Models\Invoice::create([
-                    'invoice_no' => \App\Models\Invoice::nextInvoiceNumber('DH-'),
+                    'invoice_no' => \App\Models\Invoice::nextInvoiceNumber('DH-', $invoiceDate),
                     'date' => $invoiceDate ?? now(),
                     'client_id' => $client->id,
                 ]);

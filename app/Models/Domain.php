@@ -30,6 +30,10 @@ class Domain extends Model
     {
         $rc = ResellerClub::fetch($this->tld);
 
+        if (! is_array($rc) || ! isset($rc[1]['orders.endtime'])) {
+            throw new \Exception('Invalid ResellerClub data received for ' . $this->tld);
+        }
+
         $this->expiry_date = date('Y-m-d H:i:s', $rc[1]['orders.endtime']);
 
 

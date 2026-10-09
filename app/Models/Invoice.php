@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\FinancialYear;
 use App\Traits\TaxableInvoice;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -134,12 +135,13 @@ class Invoice extends Model
         return $result . "" . ($points ? "and " . $points . " paise" : "only");
     }
 
-    public static function nextInvoiceNumber($prefix = 'DH-')
+    public static function nextInvoiceNumber($prefix = 'DH-', $date = null)
     {
-        // Use the current year dynamically so numbering keeps working across years.
-        $suffix = '/' . now()->year;
+        // Numbering follows the financial year (April - March), so dates from
+        // January to March still belong to the previous year's series.
+        $suffix = '/' . FinancialYear::startYear($date ?? now());
 
-        // Highest sequence already used for this prefix in the current year.
+        // Highest sequence already used for this prefix in the financial year.
         $lastNumber = 0;
 
         self::where('invoice_no', 'LIKE', $prefix . '%' . $suffix)

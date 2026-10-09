@@ -85,7 +85,7 @@ class GenerateInvoice implements ShouldQueue
 
         // 1. Set the Invoice Date to Today and Serial number with nextInvoiceNumber helper method
         $invoice = Invoice::create([
-            'invoice_no' => Invoice::nextInvoiceNumber('DH-'),
+            'invoice_no' => Invoice::nextInvoiceNumber('DH-', $this->invoiceDate),
             'date' => $this->invoiceDate ?? now(),
             'client_id' => $client->id,
         ]);

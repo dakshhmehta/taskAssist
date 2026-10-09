@@ -191,7 +191,7 @@ class GenerateServiceInvoice extends Tool
 
         try {
             $invoice = Invoice::create([
-                'invoice_no' => Invoice::nextInvoiceNumber($invoicePrefix),
+                'invoice_no' => Invoice::nextInvoiceNumber($invoicePrefix, $date),
                 'date' => $date,
                 'client_id' => $client->id,
             ]);
