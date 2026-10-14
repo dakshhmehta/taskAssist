@@ -4,15 +4,16 @@ namespace App\Mcp\Tools;
 
 use App\Models\User;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('List Team Members')]
 class ListTeamMembers extends Tool
 {
+    protected string $title = 'List Team Members';
+
     /**
      * A description of the tool.
      */
@@ -24,24 +25,22 @@ class ListTeamMembers extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema;
+        return [];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
         $users = User::query()
-            ->when(! Auth::user()?->is_admin, fn($q) => $q->where(function ($q) {
+            ->when(! Auth::user()?->is_admin, fn ($q) => $q->where(function ($q) {
                 $q->where('is_disabled', false)->orWhereNull('is_disabled');
             }))
             ->get(['id', 'name', 'email']);
 
-        return ToolResult::json($users->toArray());
+        return Response::json($users->toArray());
     }
 }

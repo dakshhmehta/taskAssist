@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Servers\ResellerServer;
+use App\Mcp\Tools\ListNotifications;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\NewTaskAssignedNotification;
@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class ListNotificationsTest extends TestCase
@@ -44,8 +45,8 @@ class ListNotificationsTest extends TestCase
             'data' => ['message' => 'Disabled user notification'],
         ]);
 
-        $result = (new ListNotifications)->handle([]);
-        $response = json_decode($result->toArray()['content'][0]['text'], true);
+        $result = (new ListNotifications)->handle(new Request([]));
+        $response = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $response['status']);
         $this->assertCount(1, $response['notifications']);
@@ -62,13 +63,13 @@ class ListNotificationsTest extends TestCase
         $unreadNotification = $this->createNotification($user, '2026-09-03 10:00:00');
         $outsideDateRange = $this->createNotification($user, '2026-09-04 10:00:00');
 
-        $result = (new ListNotifications)->handle([
+        $result = (new ListNotifications)->handle(new Request([
             'user_id' => $user->id,
             'from_date' => '2026-09-02',
             'to_date' => '2026-09-03',
             'includes_read' => true,
-        ]);
-        $response = json_decode($result->toArray()['content'][0]['text'], true);
+        ]));
+        $response = json_decode((string) $result->content(), true);
         $notificationIds = collect($response['notifications'])->pluck('id')->all();
 
         $this->assertContains($readNotification->id, $notificationIds);
@@ -78,7 +79,7 @@ class ListNotificationsTest extends TestCase
 
     public function test_it_is_registered_with_the_mcp_server(): void
     {
-        $this->assertContains(ListNotifications::class, (new ResellerServer)->tools);
+        $this->assertContains(ListNotifications::class, $this->mcpServerToolClasses(ResellerServer::class));
     }
 
     public function test_it_returns_task_comment_and_completion_notifications_for_the_admin(): void
@@ -99,11 +100,11 @@ class ListNotificationsTest extends TestCase
         ]);
         $task->complete();
 
-        $result = (new ListNotifications)->handle([
+        $result = (new ListNotifications)->handle(new Request([
             'user_id' => $admin->id,
             'includes_read' => true,
-        ]);
-        $response = json_decode($result->toArray()['content'][0]['text'], true);
+        ]));
+        $response = json_decode((string) $result->content(), true);
 
         $this->assertCount(2, $response['notifications']);
         $this->assertEqualsCanonicalizing(

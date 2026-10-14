@@ -11,7 +11,7 @@
         "guzzlehttp/guzzle": "^7.9",
         "laravel-notification-channels/telegram": "^5.0",
         "laravel/framework": "^10.10",
-        "laravel/mcp": "^0.1.1",
+        "laravel/mcp": "^0.5.3",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "parallax/filament-comments": "^1.3",

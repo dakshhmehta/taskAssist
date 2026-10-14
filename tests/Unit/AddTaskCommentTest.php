@@ -8,6 +8,7 @@ use App\Models\Comment;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class AddTaskCommentTest extends TestCase
@@ -29,12 +30,12 @@ class AddTaskCommentTest extends TestCase
 
         $this->actingAs($user);
 
-        $result = (new AddTaskComment)->handle([
+        $result = (new AddTaskComment)->handle(new Request([
             'timepro_task_id' => $task->id,
             'comment' => 'OTP update verified on #8604.',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertSame($task->id, $payload['task_id']);
@@ -52,12 +53,12 @@ class AddTaskCommentTest extends TestCase
 
         $this->actingAs($user);
 
-        $result = (new AddTaskComment)->handle([
+        $result = (new AddTaskComment)->handle(new Request([
             'timepro_task_id' => 999999,
             'comment' => 'This task does not exist.',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('error', $payload['status']);
         $this->assertSame(0, Comment::count());
@@ -70,12 +71,12 @@ class AddTaskCommentTest extends TestCase
 
         $this->actingAs($user);
 
-        $result = (new AddTaskComment)->handle([
+        $result = (new AddTaskComment)->handle(new Request([
             'timepro_task_id' => $task->id,
             'comment' => '   ',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('error', $payload['status']);
         $this->assertSame(0, $task->fresh()->filamentComments()->count());
@@ -83,9 +84,7 @@ class AddTaskCommentTest extends TestCase
 
     public function test_task_server_exposes_the_add_task_comment_tool(): void
     {
-        $server = new TaskServer;
-
-        $toolNames = collect($server->tools)
+        $toolNames = collect($this->mcpServerToolClasses(TaskServer::class))
             ->map(fn (string $tool) => (new $tool)->name())
             ->all();
 

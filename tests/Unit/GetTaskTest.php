@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\Timesheet;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class GetTaskTest extends TestCase
@@ -39,8 +40,8 @@ class GetTaskTest extends TestCase
 
         activity()->performedOn($task)->log('Task viewed');
 
-        $result = (new GetTask)->handle(['timepro_task_id' => $task->id]);
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $result = (new GetTask)->handle(new Request(['timepro_task_id' => $task->id]));
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertSame($task->id, $payload['task']['id']);
@@ -55,14 +56,14 @@ class GetTaskTest extends TestCase
 
     public function test_it_returns_error_for_an_unknown_task(): void
     {
-        $result = (new GetTask)->handle(['timepro_task_id' => 999999]);
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $result = (new GetTask)->handle(new Request(['timepro_task_id' => 999999]));
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('error', $payload['status']);
     }
 
     public function test_it_is_registered_with_the_task_server(): void
     {
-        $this->assertContains(GetTask::class, (new TaskServer)->tools);
+        $this->assertContains(GetTask::class, $this->mcpServerToolClasses(TaskServer::class));
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\Timesheet;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class SetTimesheetTest extends TestCase
@@ -25,9 +26,9 @@ class SetTimesheetTest extends TestCase
 
         $this->actingAs($user);
 
-        $tool = new SetTimesheet();
+        $tool = new SetTimesheet;
 
-        $result = $tool->handle([
+        $result = $tool->handle(new Request([
             'task_id' => $task->id,
             'user_id' => $user->id,
             'entries' => json_encode([
@@ -41,9 +42,9 @@ class SetTimesheetTest extends TestCase
                 ],
             ], JSON_THROW_ON_ERROR),
             'reason' => 'Corrected logged work',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertSame(2, $payload['created']);

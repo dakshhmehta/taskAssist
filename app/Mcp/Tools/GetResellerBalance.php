@@ -4,14 +4,15 @@ namespace App\Mcp\Tools;
 
 use App\ResellerClub;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Get Reseller Balance')]
 class GetResellerBalance extends Tool
 {
+    protected string $title = 'Get Reseller Balance';
+
     /**
      * A description of the tool.
      */
@@ -23,21 +24,19 @@ class GetResellerBalance extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema;
+        return [];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
         $balance = ResellerClub::getBalance();
 
-        return ToolResult::json([
+        return Response::json([
             'balance' => $balance,
         ]);
     }

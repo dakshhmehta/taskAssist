@@ -51,7 +51,7 @@ class InvoiceNumberTest extends TestCase
             Invoice::create([
                 'client_id' => $client->id,
                 'date' => '2026-05-01',
-                'invoice_no' => 'SR-' . str_pad($sequence, 5, '0', STR_PAD_LEFT) . '/2026',
+                'invoice_no' => 'SR-'.str_pad($sequence, 5, '0', STR_PAD_LEFT).'/2026',
             ]);
         }
 

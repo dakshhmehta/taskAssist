@@ -3,40 +3,40 @@
 namespace App\Mcp\Tools;
 
 use App\Models\Timesheet;
-use App\Models\User;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Get Timesheet')]
 class GetTimesheet extends Tool
 {
+    protected string $title = 'Get Timesheet';
+
     public function description(): string
     {
         return 'View timesheet entries for a task or user. Preview step before correcting timesheets.';
     }
 
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        $schema->integer('task_id', 'Filter by task ID.')
-            ->integer('user_id', 'Filter by user ID.')
-            ->string('from_date', 'Filter entries from this date (Y-m-d).')
-            ->string('to_date', 'Filter entries up to this date (Y-m-d).');
-
-        return $schema;
+        return [
+            'task_id' => $schema->integer()->description('Filter by task ID.'),
+            'user_id' => $schema->integer()->description('Filter by user ID.'),
+            'from_date' => $schema->string()->description('Filter entries from this date (Y-m-d).'),
+            'to_date' => $schema->string()->description('Filter entries up to this date (Y-m-d).'),
+        ];
     }
 
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $taskId = $arguments['task_id'] ?? null;
-        $userId = $arguments['user_id'] ?? null;
-        $fromDate = $arguments['from_date'] ?? null;
-        $toDate = $arguments['to_date'] ?? null;
+        $taskId = $request->get('task_id') ?? null;
+        $userId = $request->get('user_id') ?? null;
+        $fromDate = $request->get('from_date') ?? null;
+        $toDate = $request->get('to_date') ?? null;
 
         if (! $taskId && ! $userId) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'At least task_id or user_id must be provided.',
             ]);
@@ -44,13 +44,13 @@ class GetTimesheet extends Tool
 
         $query = Timesheet::query()
             ->with('user')
-            ->when($taskId, fn($q) => $q->where('task_id', $taskId))
-            ->when($userId, fn($q) => $q->where('user_id', $userId))
-            ->when($fromDate, fn($q) => $q->whereDate('start_at', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('start_at', '<=', $toDate))
+            ->when($taskId, fn ($q) => $q->where('task_id', $taskId))
+            ->when($userId, fn ($q) => $q->where('user_id', $userId))
+            ->when($fromDate, fn ($q) => $q->whereDate('start_at', '>=', $fromDate))
+            ->when($toDate, fn ($q) => $q->whereDate('start_at', '<=', $toDate))
             ->orderBy('start_at', 'DESC');
 
-        $entries = $query->get()->map(fn($entry) => [
+        $entries = $query->get()->map(fn ($entry) => [
             'id' => $entry->id,
             'task_id' => $entry->task_id,
             'user_id' => $entry->user_id,
@@ -61,7 +61,7 @@ class GetTimesheet extends Tool
             'duration_hms' => Timesheet::toHMS((int) optional($entry->start_at)->diffInMinutes($entry->end_at)),
         ]);
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'count' => $entries->count(),
             'entries' => $entries->toArray(),

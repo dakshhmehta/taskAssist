@@ -6,14 +6,15 @@ use App\Models\Invoice;
 use App\Support\FinancialYear;
 use Carbon\Carbon;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('List Pending Proformas')]
 class ListPendingProformas extends Tool
 {
+    protected string $title = 'List Pending Proformas';
+
     /**
      * A description of the tool.
      */
@@ -25,22 +26,22 @@ class ListPendingProformas extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->string('start_date', 'Optional. The start date to filter invoices from (format: Y-m-d). Defaults to the start of the current financial year.');
+        return [
+            'start_date' => $schema->string()->description('Optional. The start date to filter invoices from (format: Y-m-d). Defaults to the start of the current financial year.'),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
         $now = now();
 
-        if (isset($arguments['start_date'])) {
-            $startDate = Carbon::parse($arguments['start_date'])->startOfDay();
+        if ($request->get('start_date') !== null) {
+            $startDate = Carbon::parse($request->get('start_date'))->startOfDay();
         } else {
             $startDate = FinancialYear::startsOn($now);
         }
@@ -67,7 +68,7 @@ class ListPendingProformas extends Tool
             ];
         });
 
-        return ToolResult::json([
+        return Response::json([
             'start_date' => $startDate->format('Y-m-d'),
             'count' => $results->count(),
             'invoices' => $results->values()->toArray(),

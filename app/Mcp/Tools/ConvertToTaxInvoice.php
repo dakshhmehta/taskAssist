@@ -4,14 +4,15 @@ namespace App\Mcp\Tools;
 
 use App\Models\Invoice;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Convert to Tax Invoice')]
 class ConvertToTaxInvoice extends Tool
 {
+    protected string $title = 'Convert to Tax Invoice';
+
     /**
      * A description of the tool.
      */
@@ -23,24 +24,24 @@ class ConvertToTaxInvoice extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->string('invoice_id', 'The ID of the invoice to convert.')
-            ->string('invoice_no', 'The invoice number of the invoice to convert.');
+        return [
+            'invoice_id' => $schema->string()->description('The ID of the invoice to convert.'),
+            'invoice_no' => $schema->string()->description('The invoice number of the invoice to convert.'),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $id = $arguments['invoice_id'] ?? null;
-        $no = $arguments['invoice_no'] ?? null;
+        $id = $request->get('invoice_id') ?? null;
+        $no = $request->get('invoice_no') ?? null;
 
-        if (!$id && !$no) {
-            return ToolResult::json([
+        if (! $id && ! $no) {
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Either invoice_id or invoice_no must be provided.',
             ]);
@@ -55,8 +56,8 @@ class ConvertToTaxInvoice extends Tool
 
         $invoice = $query->first();
 
-        if (!$invoice) {
-            return ToolResult::json([
+        if (! $invoice) {
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Invoice not found.',
             ]);
@@ -65,7 +66,7 @@ class ConvertToTaxInvoice extends Tool
         try {
             $taxInvoice = $invoice->createTaxInvoice();
 
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'success',
                 'message' => "Invoice '{$invoice->invoice_no}' converted successfully to tax invoice '{$taxInvoice->invoice_no}'.",
                 'tax_invoice' => [
@@ -79,9 +80,9 @@ class ConvertToTaxInvoice extends Tool
                 ],
             ]);
         } catch (\Exception $e) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
-                'message' => 'Failed to convert invoice: ' . $e->getMessage(),
+                'message' => 'Failed to convert invoice: '.$e->getMessage(),
             ]);
         }
     }

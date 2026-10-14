@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class ListTasksTest extends TestCase
@@ -60,17 +61,16 @@ class ListTasksTest extends TestCase
             'estimate' => 60,
         ]);
 
-        $tool = new ListTasks();
+        $tool = new ListTasks;
 
         // Test listing up to today (2026-05-20), limit = -1
-        $result = $tool->handle([
+        $result = $tool->handle(new Request([
             'user_id' => $user->id,
             'limit' => -1,
             'till_date' => '2026-05-20',
-        ]);
+        ]));
 
-        $array = $result->toArray();
-        $response = json_decode($array['content'][0]['text'], true);
+        $response = json_decode((string) $result->content(), true);
 
         $this->assertEquals('success', $response['status']);
         $this->assertCount(2, $response['tasks']);
@@ -78,14 +78,13 @@ class ListTasksTest extends TestCase
         $this->assertEquals('Task 2', $response['tasks'][1]['title']);
 
         // Test limit
-        $resultWithLimit = $tool->handle([
+        $resultWithLimit = $tool->handle(new Request([
             'user_id' => $user->id,
             'limit' => 1,
             'till_date' => '2026-05-20',
-        ]);
+        ]));
 
-        $arrayWithLimit = $resultWithLimit->toArray();
-        $responseWithLimit = json_decode($arrayWithLimit['content'][0]['text'], true);
+        $responseWithLimit = json_decode((string) $resultWithLimit->content(), true);
         $this->assertCount(1, $responseWithLimit['tasks']);
         $this->assertEquals('Task 1', $responseWithLimit['tasks'][0]['title']);
     }

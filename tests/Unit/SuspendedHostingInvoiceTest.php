@@ -10,6 +10,7 @@ use App\Models\Domain;
 use App\Models\Hosting;
 use App\Models\Invoice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class SuspendedHostingInvoiceTest extends TestCase
@@ -26,13 +27,13 @@ class SuspendedHostingInvoiceTest extends TestCase
             'suspended_at' => now(),
         ]);
 
-        $result = (new GenerateServiceInvoice)->handle([
+        $result = (new GenerateServiceInvoice)->handle(new Request([
             'client_id' => $client->id,
             'items' => json_encode([
                 ['itemable_type' => 'hosting', 'itemable_id' => $hosting->id],
             ]),
-        ]);
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        ]));
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('error', $payload['status']);
         $this->assertStringContainsStringIgnoringCase('suspended', $payload['message']);
@@ -49,11 +50,11 @@ class SuspendedHostingInvoiceTest extends TestCase
             'terminated_at' => now(),
         ]);
 
-        $result = (new GenerateAssetInvoice)->handle([
+        $result = (new GenerateAssetInvoice)->handle(new Request([
             'domain' => 'terminated.com',
             'type' => 'hosting',
-        ]);
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        ]));
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('error', $payload['status']);
         $this->assertStringContainsStringIgnoringCase('terminated', $payload['message']);

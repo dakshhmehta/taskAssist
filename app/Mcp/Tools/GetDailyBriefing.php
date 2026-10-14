@@ -4,14 +4,15 @@ namespace App\Mcp\Tools;
 
 use App\Models\Task;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Get Daily Briefing')]
 class GetDailyBriefing extends Tool
 {
+    protected string $title = 'Get Daily Briefing';
+
     /**
      * A description of the tool.
      */
@@ -23,17 +24,15 @@ class GetDailyBriefing extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema;
+        return [];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
         $today = now()->format('Y-m-d');
 
@@ -56,7 +55,7 @@ class GetDailyBriefing extends Tool
             return $format($userTasks);
         });
 
-        return ToolResult::json([
+        return Response::json([
             'today' => $grouped->toArray(),
         ]);
     }

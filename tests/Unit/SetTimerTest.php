@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\Timesheet;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class SetTimerTest extends TestCase
@@ -15,9 +16,9 @@ class SetTimerTest extends TestCase
 
     private function handle(array $arguments): array
     {
-        $result = (new SetTimer)->handle($arguments);
+        $result = (new SetTimer)->handle(new Request($arguments));
 
-        return json_decode($result->toArray()['content'][0]['text'], true);
+        return json_decode((string) $result->content(), true);
     }
 
     private function runningTimesheets(int $userId): int

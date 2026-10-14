@@ -11,6 +11,7 @@ use App\Models\Hosting;
 use App\Models\Invoice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class GenerateAssetInvoiceTest extends TestCase
@@ -29,10 +30,10 @@ class GenerateAssetInvoiceTest extends TestCase
         ]);
 
         $tool = new GenerateAssetInvoice;
-        $result = $tool->handle([
+        $result = $tool->handle(new Request([
             'domain' => 'hostingtest.com',
             'type' => 'hosting',
-        ]);
+        ]));
 
         Bus::assertDispatched(GenerateInvoice::class, function (GenerateInvoice $job) use ($hosting) {
             return count($job->items) === 1
@@ -56,10 +57,10 @@ class GenerateAssetInvoiceTest extends TestCase
         ]);
 
         $tool = new GenerateAssetInvoice;
-        $tool->handle([
+        $tool->handle(new Request([
             'domain' => 'emailtest.com',
             'type' => 'email',
-        ]);
+        ]));
 
         Bus::assertDispatched(GenerateInvoice::class, function (GenerateInvoice $job) use ($email) {
             return count($job->items) === 1
@@ -89,7 +90,7 @@ class GenerateAssetInvoiceTest extends TestCase
         ]);
 
         $tool = new GenerateAssetInvoice;
-        $result = $tool->handle([
+        $result = $tool->handle(new Request([
             'cart' => json_encode([
                 ['type' => 'domain', 'domain' => 'cartdomain.com', 'discount_value' => 100],
                 ['type' => 'hosting', 'domain' => 'carthost.com'],
@@ -97,9 +98,9 @@ class GenerateAssetInvoiceTest extends TestCase
                 ['type' => 'extra', 'line_title' => 'Setup fee', 'price' => 500, 'discount_value' => 50],
             ]),
             'footnote' => 'Pay within 7 days.',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status'], $payload['message'] ?? 'No message in payload.');
         $this->assertStringStartsWith('DH-', $payload['invoice']['invoice_no']);

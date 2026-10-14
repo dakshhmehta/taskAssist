@@ -6,14 +6,15 @@ use App\Jobs\ScheduleTasksForUser;
 use App\Models\Tag;
 use App\Models\Task;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Update Task')]
 class UpdateTask extends Tool
 {
+    protected string $title = 'Update Task';
+
     /**
      * A description of the tool.
      */
@@ -25,58 +26,58 @@ class UpdateTask extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->integer('task_id', 'The ID of the task to update')->required()
-            ->string('task', 'The new title of the task')
-            ->string('project', 'The new project/tag name to search for')
-            ->string('priority', 'New Priority (P1, P2, P3, P4)')
-            ->integer('estimated_minutes', 'New estimated time in minutes')
-            ->integer('assignee_id', 'The new ID of the user to assign the task to');
+        return [
+            'task_id' => $schema->integer()->description('The ID of the task to update')->required(),
+            'task' => $schema->string()->description('The new title of the task'),
+            'project' => $schema->string()->description('The new project/tag name to search for'),
+            'priority' => $schema->string()->description('New Priority (P1, P2, P3, P4)'),
+            'estimated_minutes' => $schema->integer()->description('New estimated time in minutes'),
+            'assignee_id' => $schema->integer()->description('The new ID of the user to assign the task to'),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $task = Task::find($arguments['task_id']);
+        $task = Task::find($request->get('task_id'));
 
-        if (!$task) {
-            return ToolResult::json([
+        if (! $task) {
+            return Response::json([
                 'status' => 'error',
-                'message' => "Task with ID {$arguments['task_id']} not found.",
+                'message' => "Task with ID {$request->get('task_id')} not found.",
             ]);
         }
 
         $oldAssigneeId = $task->assignee_id;
         $updateData = [];
 
-        if (isset($arguments['task'])) {
-            $updateData['title'] = $arguments['task'];
+        if ($request->get('task') !== null) {
+            $updateData['title'] = $request->get('task');
         }
 
-        if (isset($arguments['estimated_minutes'])) {
-            $updateData['estimate'] = $arguments['estimated_minutes'];
+        if ($request->get('estimated_minutes') !== null) {
+            $updateData['estimate'] = $request->get('estimated_minutes');
         }
 
-        if (isset($arguments['priority'])) {
-            $priority = $arguments['priority'];
+        if ($request->get('priority') !== null) {
+            $priority = $request->get('priority');
             $updateData['is_urgent'] = in_array($priority, ['P1', 'P3']);
             $updateData['is_important'] = in_array($priority, ['P1', 'P2']);
         }
 
-        if (isset($arguments['assignee_id'])) {
-            $updateData['assignee_id'] = $arguments['assignee_id'];
+        if ($request->get('assignee_id') !== null) {
+            $updateData['assignee_id'] = $request->get('assignee_id');
         }
 
         $task->update($updateData);
 
         // Update Tag (Project) if provided
-        if (isset($arguments['project'])) {
-            $tag = Tag::where('name', 'LIKE', $arguments['project'])->first();
+        if ($request->get('project') !== null) {
+            $tag = Tag::where('name', 'LIKE', $request->get('project'))->first();
             if ($tag) {
                 $task->syncTags([$tag->name]);
             }
@@ -84,12 +85,12 @@ class UpdateTask extends Tool
 
         // Reschedule for the assignee(s)
         dispatch(new ScheduleTasksForUser($task->assignee_id));
-        if (isset($arguments['assignee_id']) && $arguments['assignee_id'] != $oldAssigneeId) {
+        if ($request->get('assignee_id') !== null && $request->get('assignee_id') != $oldAssigneeId) {
             dispatch(new ScheduleTasksForUser($oldAssigneeId));
             $task->notifyNewAssignment(auth()->id());
         }
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'message' => 'Task updated successfully.',
             'task' => $task->toArray(),

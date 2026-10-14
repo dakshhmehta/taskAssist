@@ -5,14 +5,15 @@ namespace App\Mcp\Tools;
 use App\Jobs\ScheduleTasksForUser;
 use App\Models\UserLeave;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Record Leave')]
 class RecordLeave extends Tool
 {
+    protected string $title = 'Record Leave';
+
     /**
      * A description of the tool.
      */
@@ -24,30 +25,30 @@ class RecordLeave extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->string('from_date', 'Start date (YYYY-MM-DD)')
-            ->string('to_date', 'End date (YYYY-MM-DD)')
-            ->boolean('half_day', 'Is this a half-day leave?')
-            ->string('description', 'Reason or description for the leave')
-            ->integer('user_id', 'The ID of the user to record leave for (Defaults to 1)');
+        return [
+            'from_date' => $schema->string()->description('Start date (YYYY-MM-DD)'),
+            'to_date' => $schema->string()->description('End date (YYYY-MM-DD)'),
+            'half_day' => $schema->boolean()->description('Is this a half-day leave?'),
+            'description' => $schema->string()->description('Reason or description for the leave'),
+            'user_id' => $schema->integer()->description('The ID of the user to record leave for (Defaults to 1)'),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $userId = $arguments['user_id'] ?? 1;
+        $userId = $request->get('user_id') ?? 1;
 
         $leave = UserLeave::create([
             'user_id' => $userId,
-            'from_date' => $arguments['from_date'],
-            'to_date' => $arguments['to_date'],
-            'half_day' => $arguments['half_day'] ?? false,
-            'reason' => $arguments['description'] ?? 'Added via MCP',
+            'from_date' => $request->get('from_date'),
+            'to_date' => $request->get('to_date'),
+            'half_day' => $request->get('half_day') ?? false,
+            'reason' => $request->get('description') ?? 'Added via MCP',
             'status' => 'APPROVED',
             'approved_at' => now(),
             'approved_by_user_id' => 1,
@@ -55,7 +56,7 @@ class RecordLeave extends Tool
 
         dispatch(new ScheduleTasksForUser($userId));
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'message' => "Leave recorded from {$leave->from_date->format('Y-m-d')} to {$leave->to_date->format('Y-m-d')}.",
         ]);

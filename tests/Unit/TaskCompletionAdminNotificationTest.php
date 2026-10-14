@@ -9,6 +9,7 @@ use App\Notifications\TaskCompletedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Notification;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class TaskCompletionAdminNotificationTest extends TestCase
@@ -40,9 +41,9 @@ class TaskCompletionAdminNotificationTest extends TestCase
         $task = Task::create(['title' => 'Admin closed task', 'assignee_id' => $member->id]);
 
         $this->actingAs($admin);
-        $result = (new CompleteTask)->handle(['timepro_task_id' => $task->id]);
+        $result = (new CompleteTask)->handle(new Request(['timepro_task_id' => $task->id]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         Notification::assertSentTo($member, TaskCompletedNotification::class);
@@ -59,9 +60,9 @@ class TaskCompletionAdminNotificationTest extends TestCase
         $task = Task::create(['title' => 'Member closed task', 'assignee_id' => $member->id]);
 
         $this->actingAs($member);
-        $result = (new CompleteTask)->handle(['timepro_task_id' => $task->id]);
+        $result = (new CompleteTask)->handle(new Request(['timepro_task_id' => $task->id]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         Notification::assertSentTo($admin, TaskCompletedNotification::class);

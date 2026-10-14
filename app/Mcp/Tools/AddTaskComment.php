@@ -4,14 +4,15 @@ namespace App\Mcp\Tools;
 
 use App\Models\Task;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Add Task Comment')]
 class AddTaskComment extends Tool
 {
+    protected string $title = 'Add Task Comment';
+
     /**
      * A description of the tool.
      */
@@ -23,32 +24,31 @@ class AddTaskComment extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema
-            ->integer('timepro_task_id', 'The ID of the task to comment on')->required()
-            ->string('comment', 'The comment text to add')->required();
+        return [
+            'timepro_task_id' => $schema->integer()->description('The ID of the task to comment on')->required(),
+            'comment' => $schema->string()->description('The comment text to add')->required(),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $taskId = $arguments['timepro_task_id'] ?? null;
-        $comment = trim((string) ($arguments['comment'] ?? ''));
+        $taskId = $request->get('timepro_task_id') ?? null;
+        $comment = trim((string) ($request->get('comment') ?? ''));
 
         if (! $taskId) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'timepro_task_id is required.',
             ]);
         }
 
         if ($comment === '') {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'comment is required.',
             ]);
@@ -57,7 +57,7 @@ class AddTaskComment extends Tool
         $task = Task::find($taskId);
 
         if (! $task) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "No task found with ID: {$taskId}",
             ]);
@@ -69,7 +69,7 @@ class AddTaskComment extends Tool
             'user_id' => auth()->id() ?? 1,
         ]);
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'task_id' => $task->id,
             'comment' => array_merge($created->toArray(), [

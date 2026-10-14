@@ -7,14 +7,15 @@ use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Find Client')]
 class FindClient extends Tool
 {
+    protected string $title = 'Find Client';
+
     /**
      * A description of the tool.
      */
@@ -26,22 +27,22 @@ class FindClient extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->string('query', 'The search term (name, email, or domain name).')->required();
+        return [
+            'query' => $schema->string()->description('The search term (name, email, or domain name).')->required(),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $query = trim($arguments['query']);
+        $query = trim($request->get('query'));
 
         if ($query === '') {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Search query cannot be empty.',
             ]);
@@ -73,7 +74,7 @@ class FindClient extends Tool
         $uniqueClientIds = $clientIds->unique()->values()->all();
 
         if (empty($uniqueClientIds)) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'success',
                 'message' => 'No clients found matching the query.',
                 'clients' => [],
@@ -101,7 +102,7 @@ class FindClient extends Tool
             ];
         });
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'message' => 'Search completed successfully.',
             'clients' => $results->toArray(),

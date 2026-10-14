@@ -12,42 +12,43 @@ use App\Models\InvoiceItem;
 use App\Services\InvoicePricingService;
 use Carbon\Carbon;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Generate Service Invoice')]
 class GenerateServiceInvoice extends Tool
 {
+    protected string $title = 'Generate Service Invoice';
+
     public function description(): string
     {
         return 'Create an invoice for a client with custom items (domain, hosting, email) and optional extras. Items support auto-pricing from config when price is omitted.';
     }
 
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        $schema->integer('client_id', 'The ID of the client to invoice.')
-            ->string('items', 'Optional. JSON array of invoice items. Each item: {"itemable_type":"domain|hosting|email","itemable_id":42,"price":1500,"discount_value":0,"expiry_date":"2026-06-15","line_description":"..."} . Price auto-calculates from config if omitted.')
-            ->string('extras', 'Optional. JSON array of extra line items. Each extra: {"line_title":"...","line_description":"...","line_duration":"...","price":500,"discount_value":0}')
-            ->string('date', 'Optional. Invoice date (Y-m-d). Defaults to today.')
-            ->string('invoice_prefix', 'Optional. Invoice number prefix. Auto-generates with "SR-" prefix if omitted.')
-            ->string('footnote', 'Optional. Footnote text for the invoice.');
-
-        return $schema;
+        return [
+            'client_id' => $schema->integer()->description('The ID of the client to invoice.'),
+            'items' => $schema->string()->description('Optional. JSON array of invoice items. Each item: {"itemable_type":"domain|hosting|email","itemable_id":42,"price":1500,"discount_value":0,"expiry_date":"2026-06-15","line_description":"..."} . Price auto-calculates from config if omitted.'),
+            'extras' => $schema->string()->description('Optional. JSON array of extra line items. Each extra: {"line_title":"...","line_description":"...","line_duration":"...","price":500,"discount_value":0}'),
+            'date' => $schema->string()->description('Optional. Invoice date (Y-m-d). Defaults to today.'),
+            'invoice_prefix' => $schema->string()->description('Optional. Invoice number prefix. Auto-generates with "SR-" prefix if omitted.'),
+            'footnote' => $schema->string()->description('Optional. Footnote text for the invoice.'),
+        ];
     }
 
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $clientId = $arguments['client_id'] ?? null;
-        $itemsJson = $arguments['items'] ?? null;
-        $extrasJson = $arguments['extras'] ?? null;
-        $date = $arguments['date'] ?? now()->format('Y-m-d');
-        $invoicePrefix = $arguments['invoice_prefix'] ?? 'SR-';
-        $footnote = $arguments['footnote'] ?? null;
+        $clientId = $request->get('client_id') ?? null;
+        $itemsJson = $request->get('items') ?? null;
+        $extrasJson = $request->get('extras') ?? null;
+        $date = $request->get('date') ?? now()->format('Y-m-d');
+        $invoicePrefix = $request->get('invoice_prefix') ?? 'SR-';
+        $footnote = $request->get('footnote') ?? null;
 
         if (! $clientId) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'client_id is required.',
             ]);
@@ -56,7 +57,7 @@ class GenerateServiceInvoice extends Tool
         $client = Client::find($clientId);
 
         if (! $client) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Client not found.',
             ]);
@@ -67,9 +68,9 @@ class GenerateServiceInvoice extends Tool
             $items = json_decode($itemsJson, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
-                    'message' => 'Invalid items JSON: ' . json_last_error_msg(),
+                    'message' => 'Invalid items JSON: '.json_last_error_msg(),
                 ]);
             }
 
@@ -85,14 +86,14 @@ class GenerateServiceInvoice extends Tool
             $itemableId = $item['itemable_id'] ?? null;
 
             if (! in_array($type, ['domain', 'hosting', 'email'])) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Item #{$index}: Invalid itemable_type '{$type}'. Use domain, hosting, or email.",
                 ]);
             }
 
             if (! $itemableId) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Item #{$index}: itemable_id is required.",
                 ]);
@@ -112,7 +113,7 @@ class GenerateServiceInvoice extends Tool
             };
 
             if (! $model) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Item #{$index}: {$type} with ID {$itemableId} not found.",
                 ]);
@@ -121,7 +122,7 @@ class GenerateServiceInvoice extends Tool
             if ($model instanceof Hosting && ($model->is_suspended || $model->is_terminated)) {
                 $state = $model->is_terminated ? 'terminated' : 'suspended';
 
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Item #{$index}: hosting '{$model->domain}' is {$state} and cannot be invoiced.",
                 ]);
@@ -171,9 +172,9 @@ class GenerateServiceInvoice extends Tool
             $extras = json_decode($extrasJson, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
-                    'message' => 'Invalid extras JSON: ' . json_last_error_msg(),
+                    'message' => 'Invalid extras JSON: '.json_last_error_msg(),
                 ]);
             }
 
@@ -183,7 +184,7 @@ class GenerateServiceInvoice extends Tool
         }
 
         if (empty($invoiceItems) && empty($extras)) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'At least one invoice item or extra is required.',
             ]);
@@ -230,11 +231,11 @@ class GenerateServiceInvoice extends Tool
                 $response['warnings'] = $warnings;
             }
 
-            return ToolResult::json($response);
+            return Response::json($response);
         } catch (\Exception $e) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
-                'message' => 'Failed to create invoice: ' . $e->getMessage(),
+                'message' => 'Failed to create invoice: '.$e->getMessage(),
             ]);
         }
     }

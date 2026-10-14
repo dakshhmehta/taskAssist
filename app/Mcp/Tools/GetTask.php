@@ -4,30 +4,33 @@ namespace App\Mcp\Tools;
 
 use App\Models\Task;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Get Task')]
 class GetTask extends Tool
 {
+    protected string $title = 'Get Task';
+
     public function description(): string
     {
         return 'Get full task details by task ID. Returns the task with its assignee user object, tags, timesheet entries, comments, and activity log.';
     }
 
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->integer('timepro_task_id', 'The ID of the task to retrieve.');
+        return [
+            'timepro_task_id' => $schema->integer()->description('The ID of the task to retrieve.'),
+        ];
     }
 
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $taskId = $arguments['timepro_task_id'] ?? null;
+        $taskId = $request->get('timepro_task_id') ?? null;
 
         if (! $taskId) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'timepro_task_id is required.',
             ]);
@@ -38,13 +41,13 @@ class GetTask extends Tool
             ->find($taskId);
 
         if (! $task) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "No task found with ID: {$taskId}",
             ]);
         }
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'task' => array_merge($task->append([
                 'is_completed', 'in_progress', 'minutes_taken', 'hms', 'performance', 'cost', 'display_title',

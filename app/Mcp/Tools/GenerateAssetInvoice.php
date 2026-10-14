@@ -8,14 +8,15 @@ use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Generate Invoice')]
 class GenerateAssetInvoice extends Tool
 {
+    protected string $title = 'Generate Invoice';
+
     /**
      * A description of the tool.
      */
@@ -27,43 +28,45 @@ class GenerateAssetInvoice extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->string('domain', 'The domain name to generate the invoice for. Required unless cart is provided.')
-            ->string('type', 'The type of asset (domain, hosting, email). Defaults to domain if not specified.')
-            ->string('cart', 'Optional. JSON array invoiced together. Asset entry: {"type":"domain|hosting|email","domain":"example.com","discount_value":0}. Extra entry: {"type":"extra","line_title":"...","price":500,"discount_value":0,"line_description":"...","line_duration":"..."}.')
-            ->string('footnote', 'Optional. Custom footnote text stored on the invoice.')
-            ->string('invoice_date', 'Optional. The date for the invoice (Y-m-d). Defaults to today.')
-            ->integer('client_id', 'Optional. The ID of the client to assign to the asset if not already assigned.');
+        return [
+            'domain' => $schema->string()->description('The domain name to generate the invoice for. Required unless cart is provided.'),
+            'type' => $schema->string()->description('The type of asset (domain, hosting, email). Defaults to domain if not specified.'),
+            'cart' => $schema->string()->description('Optional. JSON array invoiced together. Asset entry: {"type":"domain|hosting|email","domain":"example.com","discount_value":0}. Extra entry: {"type":"extra","line_title":"...","price":500,"discount_value":0,"line_description":"...","line_duration":"..."}.'),
+            'footnote' => $schema->string()->description('Optional. Custom footnote text stored on the invoice.'),
+            'invoice_date' => $schema->string()->description('Optional. The date for the invoice (Y-m-d). Defaults to today.'),
+            'client_id' => $schema->integer()->description('Optional. The ID of the client to assign to the asset if not already assigned.'),
+        ];
     }
 
     /**
      * Execute the tool call.
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $cartJson = $arguments['cart'] ?? null;
-        $footnote = $arguments['footnote'] ?? null;
-        $invoiceDate = $arguments['invoice_date'] ?? null;
-        $clientIdInput = $arguments['client_id'] ?? null;
+        $cartJson = $request->get('cart') ?? null;
+        $footnote = $request->get('footnote') ?? null;
+        $invoiceDate = $request->get('invoice_date') ?? null;
+        $clientIdInput = $request->get('client_id') ?? null;
 
         if ($cartJson) {
             return $this->handleCart($cartJson, $footnote, $invoiceDate, $clientIdInput);
         }
 
-        $domainName = $arguments['domain'] ?? null;
+        $domainName = $request->get('domain') ?? null;
 
         if (! $domainName) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Either domain or cart must be provided.',
             ]);
         }
 
-        $type = strtolower($arguments['type'] ?? 'domain');
+        $type = strtolower($request->get('type') ?? 'domain');
 
         if (! in_array($type, ['domain', 'hosting', 'email'], true)) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Invalid type '{$type}'. Supported types are: domain, hosting, email.",
             ]);
@@ -72,7 +75,7 @@ class GenerateAssetInvoice extends Tool
         $model = $this->resolveAsset($type, $domainName);
 
         if (! $model) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Asset of type '{$type}' with domain '{$domainName}' not found.",
             ]);
@@ -81,7 +84,7 @@ class GenerateAssetInvoice extends Tool
         if ($model instanceof Hosting && ($model->is_suspended || $model->is_terminated)) {
             $state = $model->is_terminated ? 'terminated' : 'suspended';
 
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Asset '{$domainName}' (hosting) is {$state} and cannot be invoiced.",
             ]);
@@ -90,14 +93,14 @@ class GenerateAssetInvoice extends Tool
         $warning = $this->assignClient($model, $domainName, $clientIdInput);
 
         if (is_string($warning) && str_starts_with($warning, 'error:')) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => substr($warning, 6),
             ]);
         }
 
         if (! $model->client_id) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Asset '{$domainName}' ({$type}) does not have a client assigned. Cannot generate invoice.",
             ]);
@@ -145,9 +148,9 @@ class GenerateAssetInvoice extends Tool
                 $response['warning'] = $warning;
             }
 
-            return ToolResult::json($response);
+            return Response::json($response);
         } catch (\Exception $e) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Failed to generate invoice: '.$e->getMessage(),
             ]);
@@ -157,19 +160,19 @@ class GenerateAssetInvoice extends Tool
     /**
      * Handle a multi-entry cart billed together on one DH invoice.
      */
-    protected function handleCart(string $cartJson, ?string $footnote, ?string $invoiceDate, mixed $clientIdInput): ToolResult|Generator
+    protected function handleCart(string $cartJson, ?string $footnote, ?string $invoiceDate, mixed $clientIdInput): Response|Generator
     {
         $entries = json_decode($cartJson, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Invalid cart JSON: '.json_last_error_msg(),
             ]);
         }
 
         if (! is_array($entries) || empty($entries)) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Cart must be a non-empty JSON array.',
             ]);
@@ -183,7 +186,7 @@ class GenerateAssetInvoice extends Tool
 
         foreach ($entries as $index => $entry) {
             if (! is_array($entry)) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index} must be an object.",
                 ]);
@@ -193,7 +196,7 @@ class GenerateAssetInvoice extends Tool
 
             if ($type === 'extra') {
                 if (empty($entry['line_title'])) {
-                    return ToolResult::json([
+                    return Response::json([
                         'status' => 'error',
                         'message' => "Cart entry #{$index}: line_title is required for extra entries.",
                     ]);
@@ -212,7 +215,7 @@ class GenerateAssetInvoice extends Tool
             }
 
             if (! in_array($type, ['domain', 'hosting', 'email'], true)) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: Invalid type '{$type}'. Use domain, hosting, email, or extra.",
                 ]);
@@ -221,7 +224,7 @@ class GenerateAssetInvoice extends Tool
             $entryDomain = $entry['domain'] ?? null;
 
             if (! $entryDomain) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: domain is required for asset entries.",
                 ]);
@@ -230,7 +233,7 @@ class GenerateAssetInvoice extends Tool
             $model = $this->resolveAsset($type, $entryDomain);
 
             if (! $model) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: Asset of type '{$type}' with domain '{$entryDomain}' not found.",
                 ]);
@@ -239,7 +242,7 @@ class GenerateAssetInvoice extends Tool
             if ($model instanceof Hosting && ($model->is_suspended || $model->is_terminated)) {
                 $state = $model->is_terminated ? 'terminated' : 'suspended';
 
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: hosting '{$entryDomain}' is {$state} and cannot be invoiced.",
                 ]);
@@ -248,14 +251,14 @@ class GenerateAssetInvoice extends Tool
             $clientError = $this->assignClient($model, $entryDomain, $clientIdInput);
 
             if (is_string($clientError) && str_starts_with($clientError, 'error:')) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: ".substr($clientError, 6),
                 ]);
             }
 
             if (! $model->client_id) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: Asset '{$entryDomain}' ({$type}) does not have a client assigned. Provide client_id.",
                 ]);
@@ -264,7 +267,7 @@ class GenerateAssetInvoice extends Tool
             if ($clientId === null) {
                 $clientId = $model->client_id;
             } elseif ($model->client_id !== $clientId) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "Cart entry #{$index}: Asset '{$entryDomain}' belongs to client ID {$model->client_id}, but the cart is for client ID {$clientId}. All cart assets must belong to the same client.",
                 ]);
@@ -276,14 +279,14 @@ class GenerateAssetInvoice extends Tool
         }
 
         if (empty($items) && empty($extras)) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Cart must contain at least one asset or extra entry.',
             ]);
         }
 
         if (empty($items) && $clientIdInput === null) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'A cart with only extras requires client_id.',
             ]);
@@ -297,7 +300,7 @@ class GenerateAssetInvoice extends Tool
                 $client = Client::find($clientIdInput);
 
                 if (! $client) {
-                    return ToolResult::json([
+                    return Response::json([
                         'status' => 'error',
                         'message' => "Client with ID {$clientIdInput} does not exist.",
                     ]);
@@ -319,7 +322,7 @@ class GenerateAssetInvoice extends Tool
                 }
             }
 
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'success',
                 'message' => 'Cart invoice generated successfully for: '.implode(', ', $labels).'.',
                 'invoice' => $lastInvoice ? [
@@ -333,7 +336,7 @@ class GenerateAssetInvoice extends Tool
                 ] : null,
             ]);
         } catch (\Exception $e) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Failed to generate cart invoice: '.$e->getMessage(),
             ]);

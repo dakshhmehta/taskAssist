@@ -8,6 +8,7 @@ use App\Mcp\Tools\MarkInvoiceAsPaid;
 use App\Models\Client;
 use App\Models\Invoice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class InvoiceTypeLutTest extends TestCase
@@ -23,8 +24,8 @@ class InvoiceTypeLutTest extends TestCase
             'client_id' => $client->id,
         ]);
 
-        $result = (new GetInvoice)->handle(['invoice_id' => $invoice->id]);
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $result = (new GetInvoice)->handle(new Request(['invoice_id' => $invoice->id]));
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertSame('TAX', $payload['invoice']['type']);
@@ -40,8 +41,8 @@ class InvoiceTypeLutTest extends TestCase
             'client_id' => $client->id,
         ]);
 
-        $result = (new MarkInvoiceAsPaid)->handle(['invoice_id' => $invoice->id]);
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $result = (new MarkInvoiceAsPaid)->handle(new Request(['invoice_id' => $invoice->id]));
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertSame('TAX', $payload['invoice']['type']);
@@ -52,13 +53,13 @@ class InvoiceTypeLutTest extends TestCase
     {
         $client = Client::create(['billing_name' => 'Extras Client', 'nickname' => 'EC']);
 
-        $result = (new GenerateAssetInvoice)->handle([
+        $result = (new GenerateAssetInvoice)->handle(new Request([
             'cart' => json_encode([
                 ['type' => 'extra', 'line_title' => 'Consulting', 'price' => 1000],
             ]),
             'client_id' => $client->id,
-        ]);
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        ]));
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertSame('PROFORMA', $payload['invoice']['type']);

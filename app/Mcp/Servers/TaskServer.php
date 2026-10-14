@@ -8,26 +8,26 @@ use App\Mcp\Tools\CompleteTask;
 use App\Mcp\Tools\GetDailyBriefing;
 use App\Mcp\Tools\GetTask;
 use App\Mcp\Tools\GetTimesheet;
-use App\Mcp\Tools\ListTeamMembers;
+use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Tools\ListTags;
+use App\Mcp\Tools\ListTasks;
+use App\Mcp\Tools\ListTeamMembers;
 use App\Mcp\Tools\RecordLeave;
 use App\Mcp\Tools\SetTimer;
 use App\Mcp\Tools\SetTimesheet;
 use App\Mcp\Tools\SyncTasks;
-use App\Mcp\Tools\ListTasks;
-use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Tools\UpdateTask;
 use Laravel\Mcp\Server;
 
 class TaskServer extends Server
 {
-    public string $serverName = 'Task Server';
+    protected string $name = 'Task Server';
 
-    public string $serverVersion = '1.13.0';
+    protected string $version = '1.13.0';
 
-    public string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
+    protected string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 
-    public array $tools = [
+    protected array $tools = [
         SyncTasks::class,
         // AddTask::class,
         CompleteTask::class,
@@ -45,11 +45,11 @@ class TaskServer extends Server
         SetTimer::class,
     ];
 
-    public array $resources = [
+    protected array $resources = [
         //
     ];
 
-    public array $prompts = [
+    protected array $prompts = [
         //
     ];
 }

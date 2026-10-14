@@ -11,8 +11,8 @@ use App\Mcp\Tools\GetInvoice;
 use App\Mcp\Tools\GetNewAssetsWithoutInvoices;
 use App\Mcp\Tools\GetResellerBalance;
 use App\Mcp\Tools\GetUpcomingRenewals;
-use App\Mcp\Tools\ListPendingProformas;
 use App\Mcp\Tools\ListNotifications;
+use App\Mcp\Tools\ListPendingProformas;
 use App\Mcp\Tools\MarkInvoiceAsPaid;
 use App\Mcp\Tools\SendInvoiceEmail;
 use App\Mcp\Tools\UpdateClient;
@@ -21,13 +21,13 @@ use Laravel\Mcp\Server;
 
 class ResellerServer extends Server
 {
-    public string $serverName = 'Reseller Server';
+    protected string $name = 'Reseller Server';
 
-    public string $serverVersion = '0.11.0';
+    protected string $version = '0.11.0';
 
-    public string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
+    protected string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
 
-    public array $tools = [
+    protected array $tools = [
         GetResellerBalance::class,
         GetUpcomingRenewals::class,
         GetInvoice::class,
@@ -45,11 +45,11 @@ class ResellerServer extends Server
         ListNotifications::class,
     ];
 
-    public array $resources = [
+    protected array $resources = [
         // ExampleResource::class,
     ];
 
-    public array $prompts = [
+    protected array $prompts = [
         // ExamplePrompt::class,
     ];
 }

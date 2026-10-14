@@ -5,34 +5,34 @@ namespace App\Mcp\Tools;
 use App\Models\Task;
 use App\Models\Timesheet;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Set Timer')]
 class SetTimer extends Tool
 {
+    protected string $title = 'Set Timer';
+
     public function description(): string
     {
         return 'Start or stop the timer on a task for the authenticated user. Multiple timers can run in parallel. To start a timer, task_id is required. To stop a timer, task_id is optional: when omitted, all running timers for the authenticated user are stopped.';
     }
 
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->integer('task_id')
-            ->description('The ID of the task to start or stop the timer on. Required when action is "start"; optional when action is "stop" (omitting it stops all running timers for the user).')
-            ->string('action')
-            ->description('Either "start" or "stop".')
-            ->required();
+        return [
+            'task_id' => $schema->integer()->description('The ID of the task to start or stop the timer on. Required when action is "start"; optional when action is "stop" (omitting it stops all running timers for the user).'),
+            'action' => $schema->string()->description('Either "start" or "stop".')->required(),
+        ];
     }
 
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $action = strtolower((string) ($arguments['action'] ?? ''));
+        $action = strtolower((string) ($request->get('action') ?? ''));
 
         if (! in_array($action, ['start', 'stop'])) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'Action must be "start" or "stop".',
             ]);
@@ -41,13 +41,13 @@ class SetTimer extends Tool
         $user = auth()->user();
 
         if (! $user) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'No authenticated user found.',
             ]);
         }
 
-        $taskId = $arguments['task_id'] ?? null;
+        $taskId = $request->get('task_id') ?? null;
 
         if ($action === 'start') {
             return $this->startTimer($user->id, $taskId);
@@ -56,10 +56,10 @@ class SetTimer extends Tool
         return $this->stopTimers($user->id, $taskId);
     }
 
-    private function startTimer(int $userId, mixed $taskId): ToolResult
+    private function startTimer(int $userId, mixed $taskId): Response
     {
         if (! $taskId) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => 'task_id is required to start a timer.',
             ]);
@@ -68,21 +68,21 @@ class SetTimer extends Tool
         $task = Task::find($taskId);
 
         if (! $task) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Task {$taskId} not found.",
             ]);
         }
 
         if ($task->is_completed) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Task {$taskId} is already completed.",
             ]);
         }
 
         if ($task->isTimeStarted($userId)) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Timer is already running on task {$taskId}.",
             ]);
@@ -98,20 +98,20 @@ class SetTimer extends Tool
         ]);
 
         if (! $timesheet->save()) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Failed to start timer on task {$taskId}.",
             ]);
         }
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'message' => "Timer started on task {$taskId}: {$task->title}",
             'task_id' => (int) $taskId,
         ]);
     }
 
-    private function stopTimers(int $userId, mixed $taskId): ToolResult
+    private function stopTimers(int $userId, mixed $taskId): Response
     {
         if ($taskId) {
             return $this->stopSingleTimer($userId, $taskId);
@@ -120,19 +120,19 @@ class SetTimer extends Tool
         return $this->stopAllTimers($userId);
     }
 
-    private function stopSingleTimer(int $userId, mixed $taskId): ToolResult
+    private function stopSingleTimer(int $userId, mixed $taskId): Response
     {
         $task = Task::find($taskId);
 
         if (! $task) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Task {$taskId} not found.",
             ]);
         }
 
         if ($task->is_completed) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
                 'message' => "Task {$taskId} is already completed.",
             ]);
@@ -141,20 +141,20 @@ class SetTimer extends Tool
         $result = $task->endTimer();
 
         if ($result) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'success',
                 'message' => "Timer stopped on task {$taskId}: {$task->title}",
                 'task_id' => (int) $taskId,
             ]);
         }
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'error',
             'message' => "No running timer found for task {$taskId}.",
         ]);
     }
 
-    private function stopAllTimers(int $userId): ToolResult
+    private function stopAllTimers(int $userId): Response
     {
         $runningTimers = Timesheet::where('user_id', $userId)
             ->whereNull('end_at')
@@ -171,7 +171,7 @@ class SetTimer extends Tool
         }
 
         if ($stopped === 0) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'success',
                 'message' => 'No running timers found for the authenticated user.',
                 'stopped' => 0,
@@ -182,7 +182,7 @@ class SetTimer extends Tool
             ? 'Stopped 1 running timer.'
             : "Stopped {$stopped} running timers.";
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'message' => $message,
             'stopped' => $stopped,

@@ -6,6 +6,7 @@ use App\Mcp\Servers\ResellerServer;
 use App\Mcp\Tools\UpdateClient;
 use App\Models\Client;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class UpdateClientTest extends TestCase
@@ -20,10 +21,10 @@ class UpdateClientTest extends TestCase
             'email' => 'kimaya@example.com',
         ]);
 
-        $result = (new UpdateClient)->handle([
+        $result = (new UpdateClient)->handle(new Request([
             'name' => 'Kimaya Interiors',
             'new_gstin' => '24aajfu3158q1zj',
-        ]);
+        ]));
         $response = $this->decode($result);
 
         $this->assertSame('success', $response['status']);
@@ -44,7 +45,7 @@ class UpdateClientTest extends TestCase
             ['email' => 'lookup@example.com'],
             ['gstin' => '22AAAAA1111A1Z1'],
         ] as $identifier) {
-            $result = (new UpdateClient)->handle($identifier + ['nickname' => 'LC']);
+            $result = (new UpdateClient)->handle(new Request($identifier + ['nickname' => 'LC']));
             $response = $this->decode($result);
 
             $this->assertSame('success', $response['status'], json_encode($identifier));
@@ -58,12 +59,12 @@ class UpdateClientTest extends TestCase
     {
         $client = Client::create(['billing_name' => 'Old Name']);
 
-        $result = (new UpdateClient)->handle([
+        $result = (new UpdateClient)->handle(new Request([
             'client_id' => $client->id,
             'billing_name' => 'New Name',
             'new_email' => 'new@example.com',
             'address' => '42 New Street',
-        ]);
+        ]));
         $response = $this->decode($result);
 
         $this->assertSame('success', $response['status']);
@@ -78,10 +79,10 @@ class UpdateClientTest extends TestCase
 
     public function test_it_returns_error_when_client_is_not_found(): void
     {
-        $result = (new UpdateClient)->handle([
+        $result = (new UpdateClient)->handle(new Request([
             'name' => 'Nobody Here',
             'nickname' => 'Ghost',
-        ]);
+        ]));
         $response = $this->decode($result);
 
         $this->assertSame('error', $response['status']);
@@ -92,10 +93,10 @@ class UpdateClientTest extends TestCase
         Client::create(['billing_name' => 'Acme One']);
         Client::create(['billing_name' => 'Acme Two']);
 
-        $result = (new UpdateClient)->handle([
+        $result = (new UpdateClient)->handle(new Request([
             'name' => 'Acme',
             'nickname' => 'Ambiguous',
-        ]);
+        ]));
         $response = $this->decode($result);
 
         $this->assertSame('error', $response['status']);
@@ -106,16 +107,16 @@ class UpdateClientTest extends TestCase
     {
         $client = Client::create(['billing_name' => 'Valid Corp']);
 
-        $badGstin = $this->decode((new UpdateClient)->handle([
+        $badGstin = $this->decode((new UpdateClient)->handle(new Request([
             'client_id' => $client->id,
             'new_gstin' => 'NOT-A-GSTIN',
-        ]));
+        ])));
         $this->assertSame('error', $badGstin['status']);
 
-        $badEmail = $this->decode((new UpdateClient)->handle([
+        $badEmail = $this->decode((new UpdateClient)->handle(new Request([
             'client_id' => $client->id,
             'new_email' => 'not-an-email',
-        ]));
+        ])));
         $this->assertSame('error', $badEmail['status']);
     }
 
@@ -126,10 +127,10 @@ class UpdateClientTest extends TestCase
 
         $client = Client::create(['billing_name' => 'GSTIN Borrower']);
 
-        $result = (new UpdateClient)->handle([
+        $result = (new UpdateClient)->handle(new Request([
             'client_id' => $client->id,
             'new_gstin' => '22AAAAA1111A1Z1',
-        ]);
+        ]));
         $response = $this->decode($result);
 
         $this->assertSame('success', $response['status']);
@@ -141,23 +142,21 @@ class UpdateClientTest extends TestCase
     {
         $client = Client::create(['billing_name' => 'Needy Corp']);
 
-        $noIdentifier = $this->decode((new UpdateClient)->handle(['nickname' => 'X']));
+        $noIdentifier = $this->decode((new UpdateClient)->handle(new Request(['nickname' => 'X'])));
         $this->assertSame('error', $noIdentifier['status']);
 
-        $noFields = $this->decode((new UpdateClient)->handle(['client_id' => $client->id]));
+        $noFields = $this->decode((new UpdateClient)->handle(new Request(['client_id' => $client->id])));
         $this->assertSame('error', $noFields['status']);
     }
 
     public function test_it_is_registered_with_the_mcp_server(): void
     {
-        $server = new ResellerServer;
-
-        $this->assertContains(UpdateClient::class, $server->tools);
-        $this->assertSame('0.11.0', $server->serverVersion);
+        $this->assertContains(UpdateClient::class, $this->mcpServerToolClasses(ResellerServer::class));
+        $this->assertSame('0.11.0', $this->mcpServerProperty(ResellerServer::class, 'version'));
     }
 
     private function decode($result): array
     {
-        return json_decode($result->toArray()['content'][0]['text'], true);
+        return json_decode((string) $result->content(), true);
     }
 }

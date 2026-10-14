@@ -2,15 +2,16 @@
 
 namespace Tests\Unit;
 
+use App\Mcp\Tools\AddTask;
+use App\Mcp\Tools\UpdateTask;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
-use App\Mcp\Tools\AddTask;
-use App\Mcp\Tools\UpdateTask;
 use App\Notifications\NewTaskAssignedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Notification;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class TaskAssignmentNotificationTest extends TestCase
@@ -49,15 +50,15 @@ class TaskAssignmentNotificationTest extends TestCase
 
         $this->actingAs($actor);
 
-        $result = (new AddTask)->handle([
+        $result = (new AddTask)->handle(new Request([
             'task' => 'MCP created task',
             'project' => 'taskAssist',
             'priority' => 'P2',
             'estimated_minutes' => 60,
             'assignee_id' => $assignee->id,
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
         $this->assertSame('success', $payload['status']);
 
         Notification::assertSentTo($assignee, NewTaskAssignedNotification::class);
@@ -74,15 +75,15 @@ class TaskAssignmentNotificationTest extends TestCase
 
         $this->actingAs($actor);
 
-        $result = (new AddTask)->handle([
+        $result = (new AddTask)->handle(new Request([
             'task' => 'MCP self-assigned task',
             'project' => 'taskAssist',
             'priority' => 'P2',
             'estimated_minutes' => 60,
             'assignee_id' => $actor->id,
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
         $this->assertSame('success', $payload['status']);
 
         Notification::assertNotSentTo($actor, NewTaskAssignedNotification::class);
@@ -100,12 +101,12 @@ class TaskAssignmentNotificationTest extends TestCase
 
         $this->actingAs($actor);
 
-        $result = (new UpdateTask)->handle([
+        $result = (new UpdateTask)->handle(new Request([
             'task_id' => $task->id,
             'assignee_id' => $newAssignee->id,
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
         $this->assertSame('success', $payload['status']);
 
         Notification::assertSentTo($newAssignee, NewTaskAssignedNotification::class);
@@ -123,12 +124,12 @@ class TaskAssignmentNotificationTest extends TestCase
 
         $this->actingAs($actor);
 
-        $result = (new UpdateTask)->handle([
+        $result = (new UpdateTask)->handle(new Request([
             'task_id' => $task->id,
             'task' => 'Only title changed',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
         $this->assertSame('success', $payload['status']);
 
         Notification::assertNotSentTo($assignee, NewTaskAssignedNotification::class);

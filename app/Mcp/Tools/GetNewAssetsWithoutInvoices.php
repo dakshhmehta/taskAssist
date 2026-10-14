@@ -5,31 +5,32 @@ namespace App\Mcp\Tools;
 use App\Models\Domain;
 use App\Models\Email;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Get New Assets Without Invoices')]
 class GetNewAssetsWithoutInvoices extends Tool
 {
+    protected string $title = 'Get New Assets Without Invoices';
+
     public function description(): string
     {
         return 'Get newly added domains and Workspace accounts that have no invoice history yet.';
     }
 
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        $schema->integer('days', 'Optional. Look back this many days for newly added records. Defaults to 30 days.');
-        $schema->string('domain', 'Optional. Filter by domain name.');
-
-        return $schema;
+        return [
+            'days' => $schema->integer()->description('Optional. Look back this many days for newly added records. Defaults to 30 days.'),
+            'domain' => $schema->string()->description('Optional. Filter by domain name.'),
+        ];
     }
 
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $days = max(1, (int) ($arguments['days'] ?? 30));
-        $domainFilter = $arguments['domain'] ?? null;
+        $days = max(1, (int) ($request->get('days') ?? 30));
+        $domainFilter = $request->get('domain') ?? null;
         $since = now()->subDays($days)->startOfDay();
 
         $items = [];
@@ -83,7 +84,7 @@ class GetNewAssetsWithoutInvoices extends Tool
             return strcmp($right['created_at'] ?? '', $left['created_at'] ?? '');
         });
 
-        return ToolResult::json([
+        return Response::json([
             'since' => $since->format('Y-m-d H:i:s'),
             'count' => count($items),
             'items' => $items,

@@ -4,14 +4,15 @@ namespace App\Mcp\Tools;
 
 use App\Models\Tag;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('List Tags')]
 class ListTags extends Tool
 {
+    protected string $title = 'List Tags';
+
     /**
      * A description of the tool.
      */
@@ -23,22 +24,20 @@ class ListTags extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema;
+        return [];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
         $tags = Tag::orderBy('name', 'ASC')->get(['id', 'name']);
 
-        return ToolResult::json([
-            'tags' => $tags->map(fn($tag) => [
+        return Response::json([
+            'tags' => $tags->map(fn ($tag) => [
                 'id' => $tag->id,
                 'name' => $tag->name,
             ])->toArray(),

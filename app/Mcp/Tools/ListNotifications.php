@@ -6,35 +6,38 @@ use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Notifications\DatabaseNotification;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('List Notifications')]
 class ListNotifications extends Tool
 {
+    protected string $title = 'List Notifications';
+
     public function description(): string
     {
         return 'List notifications for active users, including their related user and task data. Defaults to unread notifications only.';
     }
 
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->integer('user_id', 'The ID of the user whose notifications to list.')
-            ->string('from_date', 'The first notification date to include (Y-m-d).')
-            ->string('to_date', 'The last notification date to include (Y-m-d).')
-            ->boolean('includes_read', 'Set true to include read notifications. Defaults to false.');
+        return [
+            'user_id' => $schema->integer()->description('The ID of the user whose notifications to list.'),
+            'from_date' => $schema->string()->description('The first notification date to include (Y-m-d).'),
+            'to_date' => $schema->string()->description('The last notification date to include (Y-m-d).'),
+            'includes_read' => $schema->boolean()->description('Set true to include read notifications. Defaults to false.'),
+        ];
     }
 
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
         try {
-            $fromDate = isset($arguments['from_date']) ? Carbon::parse($arguments['from_date'])->startOfDay() : null;
-            $toDate = isset($arguments['to_date']) ? Carbon::parse($arguments['to_date'])->endOfDay() : null;
+            $fromDate = $request->get('from_date') !== null ? Carbon::parse($request->get('from_date'))->startOfDay() : null;
+            $toDate = $request->get('to_date') !== null ? Carbon::parse($request->get('to_date'))->endOfDay() : null;
         } catch (\Exception) {
-            return ToolResult::error('Invalid date format. Please use Y-m-d format.');
+            return Response::error('Invalid date format. Please use Y-m-d format.');
         }
 
         $notifications = DatabaseNotification::query()
@@ -43,8 +46,8 @@ class ListNotifications extends Tool
             ->whereIn('notifiable_id', User::query()
                 ->select('id')
                 ->where(fn ($query) => $query->where('is_disabled', false)->orWhereNull('is_disabled')))
-            ->when(isset($arguments['user_id']), fn ($query) => $query->where('notifiable_id', $arguments['user_id']))
-            ->when(! ($arguments['includes_read'] ?? false), fn ($query) => $query->whereNull('read_at'))
+            ->when($request->get('user_id') !== null, fn ($query) => $query->where('notifiable_id', $request->get('user_id')))
+            ->when(! ($request->get('includes_read') ?? false), fn ($query) => $query->whereNull('read_at'))
             ->when($fromDate, fn ($query) => $query->where('created_at', '>=', $fromDate))
             ->when($toDate, fn ($query) => $query->where('created_at', '<=', $toDate))
             ->latest()
@@ -54,7 +57,7 @@ class ListNotifications extends Tool
             ->get()
             ->keyBy('id');
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'notifications' => $notifications->map(fn (DatabaseNotification $notification) => [
                 'id' => $notification->id,

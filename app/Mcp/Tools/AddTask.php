@@ -7,14 +7,15 @@ use App\Models\Tag;
 use App\Models\Task;
 use App\Notifications\NewTaskAssignedNotification;
 use Generator;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
 
-#[Title('Add Task')]
 class AddTask extends Tool
 {
+    protected string $title = 'Add Task';
+
     /**
      * A description of the tool.
      */
@@ -26,71 +27,71 @@ class AddTask extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->string('task', 'The title of the task')->required()
-            ->string('project', 'The project/tag name to search for')->required()
-            ->string('priority', 'Priority (P1, P2, P3, P4)')->required()
-            ->integer('estimated_minutes', 'Estimated time in minutes')->required()
-            ->integer('assignee_id', 'The ID of the user to assign the task to (Defaults to authenticated user)')
-            ->integer('timepro_task_id', 'Task ID (should not be present for new tasks)');
+        return [
+            'task' => $schema->string()->description('The title of the task')->required(),
+            'project' => $schema->string()->description('The project/tag name to search for')->required(),
+            'priority' => $schema->string()->description('Priority (P1, P2, P3, P4)')->required(),
+            'estimated_minutes' => $schema->integer()->description('Estimated time in minutes')->required(),
+            'assignee_id' => $schema->integer()->description('The ID of the user to assign the task to (Defaults to authenticated user)'),
+            'timepro_task_id' => $schema->integer()->description('Task ID (should not be present for new tasks)'),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        if (isset($arguments['timepro_task_id'])) {
-            return ToolResult::json([
+        if ($request->get('timepro_task_id') !== null) {
+            return Response::json([
                 'status' => 'error',
                 'message' => 'AddTask failed: timepro_task_id detected. Use SyncTasks for existing tasks.',
             ]);
         }
 
-        if (empty($arguments['task'] ?? '')) {
-            return ToolResult::error('Task title is required.');
+        if (empty($request->get('task') ?? '')) {
+            return Response::error('Task title is required.');
         }
 
         $validPriorities = ['P1', 'P2', 'P3', 'P4'];
-        $priority = $arguments['priority'] ?? 'P2';
+        $priority = $request->get('priority') ?? 'P2';
 
-        if (!in_array($priority, $validPriorities, true)) {
-            return ToolResult::error("Invalid priority '{$priority}'. Must be one of: P1, P2, P3, P4.");
+        if (! in_array($priority, $validPriorities, true)) {
+            return Response::error("Invalid priority '{$priority}'. Must be one of: P1, P2, P3, P4.");
         }
 
         $validEstimates = array_keys(config('options.estimate'));
-        $estimate = $arguments['estimated_minutes'] ?? 60;
+        $estimate = $request->get('estimated_minutes') ?? 60;
 
-        if (!in_array((int) $estimate, $validEstimates, true)) {
-            return ToolResult::error("Invalid estimated_minutes '{$estimate}'. Must be one of: " . implode(', ', $validEstimates) . ".");
+        if (! in_array((int) $estimate, $validEstimates, true)) {
+            return Response::error("Invalid estimated_minutes '{$estimate}'. Must be one of: ".implode(', ', $validEstimates).'.');
         }
 
-        $assigneeId = $arguments['assignee_id'] ?? auth()->id() ?? 1;
+        $assigneeId = $request->get('assignee_id') ?? auth()->id() ?? 1;
 
-        if (!\App\Models\User::where('id', $assigneeId)->exists()) {
-            return ToolResult::error("Assignee with ID {$assigneeId} not found.");
+        if (! \App\Models\User::where('id', $assigneeId)->exists()) {
+            return Response::error("Assignee with ID {$assigneeId} not found.");
         }
 
         $isUrgent = in_array($priority, ['P1', 'P3']);
         $isImportant = in_array($priority, ['P1', 'P2']);
 
         // Find Tag (Project)
-        $projectName = $arguments['project'] ?? '';
+        $projectName = $request->get('project') ?? '';
         if (empty($projectName)) {
-            return ToolResult::error("Project/tag name was not provided. Please retry with the correct tag.");
+            return Response::error('Project/tag name was not provided. Please retry with the correct tag.');
         }
 
         $tag = Tag::findFromStringOfAnyType($projectName)->first();
 
-        if (!$tag) {
-            return ToolResult::error("Tag '{$projectName}' not found. Please retry with the correct tag.");
+        if (! $tag) {
+            return Response::error("Tag '{$projectName}' not found. Please retry with the correct tag.");
         }
 
         $task = Task::create([
-            'title' => $arguments['task'],
+            'title' => $request->get('task'),
             'estimate' => $estimate,
             'is_urgent' => $isUrgent,
             'is_important' => $isImportant,
@@ -109,7 +110,7 @@ class AddTask extends Tool
             $task->assignee->notify(new NewTaskAssignedNotification($task));
         }
 
-        return ToolResult::json([
+        return Response::json([
             'status' => 'success',
             'message' => 'Task added successfully.',
             'task_id' => $task->id,

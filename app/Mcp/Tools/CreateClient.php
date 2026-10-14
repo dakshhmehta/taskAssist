@@ -3,17 +3,18 @@
 namespace App\Mcp\Tools;
 
 use App\Models\Client;
-use Ri\Accounting\Models\Account;
 use Generator;
-use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\Title;
-use Laravel\Mcp\Server\Tools\ToolInputSchema;
-use Laravel\Mcp\Server\Tools\ToolResult;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tool;
+use Ri\Accounting\Models\Account;
 
-#[Title('Create Client')]
 class CreateClient extends Tool
 {
+    protected string $title = 'Create Client';
+
     /**
      * A description of the tool.
      */
@@ -25,32 +26,32 @@ class CreateClient extends Tool
     /**
      * The input schema of the tool.
      */
-    public function schema(ToolInputSchema $schema): ToolInputSchema
+    public function schema(JsonSchema $schema): array
     {
-        return $schema->string('billing_name', 'The billing name of the client.')->required()
-            ->string('nickname', 'An optional nickname for the client.')
-            ->string('email', 'The email address of the client.')
-            ->string('gstin', 'The GSTIN of the client, updated under their Account.')
-            ->string('address', 'The billing address of the client, updated under their Account.');
+        return [
+            'billing_name' => $schema->string()->description('The billing name of the client.')->required(),
+            'nickname' => $schema->string()->description('An optional nickname for the client.'),
+            'email' => $schema->string()->description('The email address of the client.'),
+            'gstin' => $schema->string()->description('The GSTIN of the client, updated under their Account.'),
+            'address' => $schema->string()->description('The billing address of the client, updated under their Account.'),
+        ];
     }
 
     /**
      * Execute the tool call.
-     *
-     * @return ToolResult|Generator
      */
-    public function handle(array $arguments): ToolResult|Generator
+    public function handle(Request $request): Response|Generator
     {
-        $billingName = $arguments['billing_name'];
-        $nickname = $arguments['nickname'] ?? null;
-        $email = $arguments['email'] ?? null;
-        $address = $arguments['address'] ?? null;
-        $gstin = $arguments['gstin'] ?? null;
+        $billingName = $request->get('billing_name');
+        $nickname = $request->get('nickname') ?? null;
+        $email = $request->get('email') ?? null;
+        $address = $request->get('address') ?? null;
+        $gstin = $request->get('gstin') ?? null;
 
         // Perform email validation if provided
         if ($email !== null && $email !== '') {
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return ToolResult::json([
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return Response::json([
                     'status' => 'error',
                     'message' => 'Invalid email address format.',
                 ]);
@@ -60,8 +61,8 @@ class CreateClient extends Tool
         // Perform GSTIN validation if provided
         if ($gstin !== null && $gstin !== '') {
             $gstin = strtoupper(trim($gstin));
-            if (!preg_match('/^([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1})$/i', $gstin)) {
-                return ToolResult::json([
+            if (! preg_match('/^([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1})$/i', $gstin)) {
+                return Response::json([
                     'status' => 'error',
                     'message' => 'Invalid GSTIN format. It must match the 15-character pattern: 22AAAAA1111A1Z1.',
                 ]);
@@ -69,7 +70,7 @@ class CreateClient extends Tool
 
             // Check unique constraint for GSTIN in accounts table
             if (Account::where('gstin', $gstin)->exists()) {
-                return ToolResult::json([
+                return Response::json([
                     'status' => 'error',
                     'message' => "An account with the GSTIN '{$gstin}' already exists.",
                 ]);
@@ -101,7 +102,7 @@ class CreateClient extends Tool
                         $account->save();
                     }
 
-                    return ToolResult::json([
+                    return Response::json([
                         'status' => 'success',
                         'message' => 'Client already exists. Updated existing record.',
                         'client' => [
@@ -119,55 +120,55 @@ class CreateClient extends Tool
                         ],
                     ]);
                 } else {
-                $client = Client::create([
-                    'billing_name' => $billingName,
-                    'nickname' => $nickname,
-                    'email' => $email,
-                ]);
+                    $client = Client::create([
+                        'billing_name' => $billingName,
+                        'nickname' => $nickname,
+                        'email' => $email,
+                    ]);
 
-                // 2. Fetch the newly created account.
-                $account = $client->account()->first();
-
-                if (!$account) {
-                    // Fallback to manual sync if for any reason it wasn't triggered automatically
-                    $client->syncWithLedger();
+                    // 2. Fetch the newly created account.
                     $account = $client->account()->first();
-                }
 
-                if ($account) {
-                    $account->billing_name = $billingName;
-                    if ($address !== null) {
-                        $account->billing_address = $address;
+                    if (! $account) {
+                        // Fallback to manual sync if for any reason it wasn't triggered automatically
+                        $client->syncWithLedger();
+                        $account = $client->account()->first();
                     }
-                    if ($gstin !== null) {
-                        $account->gstin = $gstin;
-                    }
-                    $account->save();
-                }
 
-                return ToolResult::json([
-                    'status' => 'success',
-                    'message' => 'Client and its associated account created successfully.',
-                    'client' => [
-                        'id' => $client->id,
-                        'billing_name' => $client->billing_name,
-                        'nickname' => $client->nickname,
-                        'email' => $client->email,
-                        'account' => $account ? [
-                            'id' => $account->id,
-                            'name' => $account->name,
-                            'billing_name' => $account->billing_name,
-                            'billing_address' => $account->billing_address,
-                            'gstin' => $account->gstin,
-                        ] : null,
-                    ],
-                ]);
+                    if ($account) {
+                        $account->billing_name = $billingName;
+                        if ($address !== null) {
+                            $account->billing_address = $address;
+                        }
+                        if ($gstin !== null) {
+                            $account->gstin = $gstin;
+                        }
+                        $account->save();
+                    }
+
+                    return Response::json([
+                        'status' => 'success',
+                        'message' => 'Client and its associated account created successfully.',
+                        'client' => [
+                            'id' => $client->id,
+                            'billing_name' => $client->billing_name,
+                            'nickname' => $client->nickname,
+                            'email' => $client->email,
+                            'account' => $account ? [
+                                'id' => $account->id,
+                                'name' => $account->name,
+                                'billing_name' => $account->billing_name,
+                                'billing_address' => $account->billing_address,
+                                'gstin' => $account->gstin,
+                            ] : null,
+                        ],
+                    ]);
                 }
             });
         } catch (\Exception $e) {
-            return ToolResult::json([
+            return Response::json([
                 'status' => 'error',
-                'message' => 'Failed to create client: ' . $e->getMessage(),
+                'message' => 'Failed to create client: '.$e->getMessage(),
             ]);
         }
     }

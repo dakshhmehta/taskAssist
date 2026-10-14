@@ -6,6 +6,7 @@ use App\Mcp\Tools\GenerateServiceInvoice;
 use App\Models\Client;
 use App\Models\Invoice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class GenerateServiceInvoiceTest extends TestCase
@@ -20,7 +21,7 @@ class GenerateServiceInvoiceTest extends TestCase
         ]);
 
         // February 2026 belongs to the 2025-26 financial year.
-        $result = (new GenerateServiceInvoice)->handle([
+        $result = (new GenerateServiceInvoice)->handle(new Request([
             'client_id' => $client->id,
             'extras' => json_encode([
                 [
@@ -30,9 +31,9 @@ class GenerateServiceInvoiceTest extends TestCase
                 ],
             ]),
             'date' => '2026-02-15',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status'], $payload['message'] ?? 'no message');
 

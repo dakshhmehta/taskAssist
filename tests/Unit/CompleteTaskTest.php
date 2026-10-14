@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Laravel\Mcp\Request;
 use Tests\TestCase;
 
 class CompleteTaskTest extends TestCase
@@ -25,13 +26,13 @@ class CompleteTaskTest extends TestCase
 
         $this->actingAs($user);
 
-        $tool = new CompleteTask();
-        $result = $tool->handle([
+        $tool = new CompleteTask;
+        $result = $tool->handle(new Request([
             'timepro_task_id' => $task->id,
             'closing_remarks' => 'Implemented the fix and verified the result.',
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertNotNull($task->fresh()->completed_at);
@@ -53,12 +54,12 @@ class CompleteTaskTest extends TestCase
 
         $this->actingAs($user);
 
-        $tool = new CompleteTask();
-        $result = $tool->handle([
+        $tool = new CompleteTask;
+        $result = $tool->handle(new Request([
             'timepro_task_id' => $task->id,
-        ]);
+        ]));
 
-        $payload = json_decode($result->toArray()['content'][0]['text'], true);
+        $payload = json_decode((string) $result->content(), true);
 
         $this->assertSame('success', $payload['status']);
         $this->assertNotNull($task->fresh()->completed_at);
