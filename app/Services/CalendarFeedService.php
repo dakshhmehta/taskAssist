@@ -12,6 +12,8 @@ class CalendarFeedService
 {
     protected User $user;
 
+    protected string $timezone = 'Asia/Kolkata';
+
     public function __construct(User $user)
     {
         $this->user = $user;
@@ -28,7 +30,7 @@ class CalendarFeedService
             $calendar->event(
                 Event::create($task->title)
                     ->uniqueIdentifier("task-{$task->id}@taskassist")
-                    ->startsAt($task->due_date)
+                    ->startsAt($task->due_date->copy()->setTimezone($this->timezone))
                     ->endsAt($this->resolveEndTime($task))
                     ->description($this->buildDescription($task))
             );
@@ -57,7 +59,7 @@ class CalendarFeedService
     {
         $estimate = $task->estimate ?: 30;
 
-        return $task->due_date->copy()->addMinutes($estimate);
+        return $task->due_date->copy()->setTimezone($this->timezone)->addMinutes($estimate);
     }
 
     protected function buildDescription(Task $task): string
