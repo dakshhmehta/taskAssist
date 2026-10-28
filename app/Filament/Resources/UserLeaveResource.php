@@ -56,6 +56,11 @@ class UserLeaveResource extends Resource
                 Forms\Components\DatePicker::make('from_date')
                     ->displayFormat(config('app.date_format'))
                     ->reactive()
+                    // The model guard still enforces this; the rule is here so the error reaches the field.
+                    ->rules(fn(Get $get) => $get('code') === 'CL'
+                        ? ['after_or_equal:' . UserLeave::earliestClDate()->toDateString()]
+                        : [])
+                    ->validationMessages(['after_or_equal' => UserLeave::clAdvanceNoticeMessage()])
                     ->required(),
                 Forms\Components\DatePicker::make('to_date')
                     ->displayFormat(config('app.date_format'))
@@ -76,7 +81,8 @@ class UserLeaveResource extends Resource
 
                         return $leaveTypes;
                     })
-                    ->required(),
+                    ->required()
+                    ->reactive(),
                 Textarea::make('remarks')
                     ->required(),
             ]);

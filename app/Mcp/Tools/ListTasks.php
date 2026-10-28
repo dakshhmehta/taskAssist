@@ -20,7 +20,7 @@ class ListTasks extends Tool
      */
     public function description(): string
     {
-        return 'List tasks for a specific user, filtered by a maximum due date, optional limit, and optional tags.';
+        return 'List tasks for a specific user, paginated, filtered by a maximum due date, page size, and optional tags. Returns tasks plus pagination metadata (total, last_page, has_more).';
     }
 
     /**
@@ -30,7 +30,9 @@ class ListTasks extends Tool
     {
         return [
             'user_id' => $schema->integer()->description('The ID of the user to list tasks for. Defaults to the logged-in user.'),
-            'limit' => $schema->integer()->description('The limit number of tasks to return (defaults to -1 for no limit)'),
+            'page' => $schema->integer()->description('The page of results to return (defaults to 1)'),
+            'per_page' => $schema->integer()->description('The number of tasks per page (defaults to 25, max 100)'),
+            'limit' => $schema->integer()->description('Alias for per_page, kept for backwards compatibility. -1 uses the default page size.'),
             'till_date' => $schema->string()->description('The date (Y-m-d format) to list tasks up to (defaults to today)'),
             'tags' => $schema->string()->description('Comma-separated tag names to filter tasks (e.g. "bug,urgent"). Tasks matching any tag are returned.'),
         ];
@@ -42,7 +44,10 @@ class ListTasks extends Tool
     public function handle(Request $request): Response|Generator
     {
         $userId = $request->get('user_id') ?? Auth::id();
-        $limit = $request->get('limit') ?? -1;
+        // limit:-1 used to mean "no limit"; a paginated response falls back to the default page size.
+        $perPage = (int) ($request->get('per_page') ?? $request->get('limit') ?? 25);
+        $perPage = $perPage > 0 ? min($perPage, 100) : 25;
+        $page = max((int) ($request->get('page') ?? 1), 1);
         $tags = $request->get('tags') ?? null;
 
         try {
@@ -63,15 +68,11 @@ class ListTasks extends Tool
             $query->withAnyTags($tagNames);
         }
 
-        if ($limit > 0) {
-            $query->limit($limit);
-        }
-
-        $tasks = $query->get();
+        $tasks = $query->paginate($perPage, ['*'], 'page', $page);
 
         return Response::json([
             'status' => 'success',
-            'tasks' => $tasks->map(fn ($task) => [
+            'tasks' => $tasks->getCollection()->map(fn ($task) => [
                 'id' => $task->id,
                 'title' => $task->title,
                 'description' => $task->description,
@@ -81,6 +82,13 @@ class ListTasks extends Tool
                 'is_important' => $task->is_important,
                 'project' => $task->tag,
             ])->toArray(),
+            'pagination' => [
+                'current_page' => $tasks->currentPage(),
+                'per_page' => $tasks->perPage(),
+                'total' => $tasks->total(),
+                'last_page' => $tasks->lastPage(),
+                'has_more' => $tasks->hasMorePages(),
+            ],
         ]);
     }
 }

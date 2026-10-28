@@ -34,13 +34,10 @@ class UserLeave extends Model
                 $leave->user_id = Auth::user()->id;
             }
 
-            if ($leave->code === 'CL' && $leave->from_date && $leave->isDirty('from_date')) {
-                $minDate = Carbon::today()->addDays(4);
-                if ($leave->from_date->lt($minDate)) {
-                    throw ValidationException::withMessages([
-                        'from_date' => 'CL must be applied at least 4 days in advance. Earliest available date: ' . $minDate->format('d-m-Y'),
-                    ]);
-                }
+            if ($leave->isDirty('from_date') && $leave->code === 'CL' && $leave->from_date?->lt(static::earliestClDate())) {
+                throw ValidationException::withMessages([
+                    'from_date' => static::clAdvanceNoticeMessage(),
+                ]);
             }
         });
 
@@ -66,6 +63,19 @@ class UserLeave extends Model
                 $leave->notifyUserOfStatusChange();
             }
         });
+    }
+
+    /**
+     * CL can only be applied this far ahead; shared by the model guard and the form rule.
+     */
+    public static function earliestClDate(): Carbon
+    {
+        return Carbon::today()->addDays(4);
+    }
+
+    public static function clAdvanceNoticeMessage(): string
+    {
+        return 'CL must be applied at least 4 days in advance. Earliest available date: ' . static::earliestClDate()->format('d-m-Y');
     }
 
     public function getLeaveDaysAttribute()

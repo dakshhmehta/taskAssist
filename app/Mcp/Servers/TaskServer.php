@@ -23,7 +23,7 @@ class TaskServer extends Server
 {
     protected string $name = 'Task Server';
 
-    protected string $version = '1.13.0';
+    protected string $version = '1.14.0';
 
     protected string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 
