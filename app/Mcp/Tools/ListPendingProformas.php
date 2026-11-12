@@ -51,6 +51,7 @@ class ListPendingProformas extends Tool
             ->where('date', '>=', $startDate)
             ->where('invoice_no', 'NOT LIKE', 'SI-%')
             ->doesntHave('taxInvoice')
+            ->notVoid()
             ->with('client', 'items')
             ->orderBy('date', 'DESC')
             ->get();

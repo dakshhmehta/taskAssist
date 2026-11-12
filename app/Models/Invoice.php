@@ -17,17 +17,24 @@ class Invoice extends Model
 
     use HasFilamentComments;
 
+    public const STATUS_OPEN = 'open';
+
+    public const STATUS_CLOSED = 'closed';
+
+    public const STATUS_VOID = 'void';
+
     protected $guarded = [];
 
     protected $touches = ['client'];
 
     protected $attributes = [
-        'status' => 'open', // That's just for test env, sqlite driver
+        'status' => self::STATUS_OPEN, // That's just for test env, sqlite driver
     ];
 
     protected $casts = [
         'date' => 'date',
         'paid_date' => 'date',
+        'voided_at' => 'datetime',
     ];
 
     public function items()
@@ -52,11 +59,53 @@ class Invoice extends Model
 
     public function scopeUnpaid($q)
     {
-        return $q->whereNull('paid_date')->whereDoesntHave('taxInvoice');
+        return $q->whereNull('paid_date')->whereDoesntHave('taxInvoice')->notVoid();
+    }
+
+    public function scopeNotVoid($q)
+    {
+        return $q->where(function ($q) {
+            $q->whereNull('status')->orWhere('status', '!=', self::STATUS_VOID);
+        });
+    }
+
+    public function scopeVoided($q)
+    {
+        return $q->where('status', self::STATUS_VOID);
+    }
+
+    public function isVoid(): bool
+    {
+        return $this->status === self::STATUS_VOID;
+    }
+
+    /**
+     * Cancel the invoice. A reason is mandatory because a voided invoice is a
+     * cancelled document — the reason is the audit trail for why.
+     */
+    public function void(string $reason): void
+    {
+        if (trim($reason) === '') {
+            throw new \InvalidArgumentException('A reason is required to void an invoice.');
+        }
+
+        if ($this->isVoid()) {
+            throw new \Exception("Invoice '{$this->invoice_no}' is already void.");
+        }
+
+        $this->status = self::STATUS_VOID;
+        $this->void_reason = trim($reason);
+        $this->voided_at = now();
+
+        $this->save();
     }
 
     public function markAsPaid($date = null, $remarks = null)
     {
+        if ($this->isVoid()) {
+            throw new \Exception("Invoice '{$this->invoice_no}' is void and cannot be marked as paid.");
+        }
+
         $this->paid_date = $date;
         $this->payment_remarks = $remarks;
 
@@ -135,8 +184,26 @@ class Invoice extends Model
         return $result . "" . ($points ? "and " . $points . " paise" : "only");
     }
 
+    /**
+     * Invoice series are dash-terminated (DH-, SI-, SR-, RE-, PRO-). Normalize
+     * the prefix so callers passing "SR", "sr" or "SR " cannot fork a separate
+     * "SR00001/2026" series next to "SR-00001/2026".
+     */
+    protected static function normalizePrefix(string $prefix): string
+    {
+        $prefix = strtoupper(trim($prefix));
+
+        if ($prefix === '' || str_ends_with($prefix, '-') || str_ends_with($prefix, '/')) {
+            return $prefix;
+        }
+
+        return $prefix . '-';
+    }
+
     public static function nextInvoiceNumber($prefix = 'DH-', $date = null)
     {
+        $prefix = self::normalizePrefix((string) $prefix);
+
         // Numbering follows the financial year (April - March), so dates from
         // January to March still belong to the previous year's series.
         $suffix = '/' . FinancialYear::startYear($date ?? now());

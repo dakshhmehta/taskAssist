@@ -69,6 +69,23 @@ class InvoiceNumberTest extends TestCase
         $this->assertSame('SR-00001/2025', Invoice::nextInvoiceNumber('SR-', '2026-03-31'));
     }
 
+    public function test_it_normalizes_the_prefix_instead_of_starting_a_new_series(): void
+    {
+        Invoice::create([
+            'client_id' => $this->makeClient()->id,
+            'date' => '2026-10-09',
+            'invoice_no' => 'SR-00003/2026',
+        ]);
+
+        foreach (['SR', 'sr', 'sr-', 'SR-', ' SR '] as $prefix) {
+            $this->assertSame(
+                'SR-00004/2026',
+                Invoice::nextInvoiceNumber($prefix, '2026-10-09'),
+                "Prefix '{$prefix}' forked a new series."
+            );
+        }
+    }
+
     public function test_it_ignores_invoices_with_a_different_prefix(): void
     {
         Invoice::create([

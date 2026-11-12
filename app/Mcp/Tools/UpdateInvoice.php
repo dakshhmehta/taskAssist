@@ -43,6 +43,22 @@ class UpdateInvoice extends Tool
             return Response::json(['status' => 'error', 'message' => 'Invoice not found.']);
         }
 
+        if ($invoice->isVoid()) {
+            return Response::json([
+                'status' => 'error',
+                'message' => "Invoice '{$invoice->invoice_no}' is void and cannot be updated.",
+            ]);
+        }
+
+        $status = $request->get('status');
+
+        if ($status !== null && ! in_array($status, [Invoice::STATUS_OPEN, Invoice::STATUS_CLOSED], true)) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'Status can only be set to open or closed here. Use the void-invoice tool to cancel an invoice.',
+            ]);
+        }
+
         // Update basic invoice fields
         $invoiceUpdateData = [];
         foreach (['date', 'status', 'payment_remarks', 'footnote'] as $field) {

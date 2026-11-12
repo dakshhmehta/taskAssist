@@ -212,6 +212,19 @@
             top: 100px;
             left: 2770px;
         }
+
+        .void-stamp {
+            top: 830px;
+            left: 620px;
+            width: 2300px;
+            text-align: center;
+            font-size: 460px;
+            font-weight: 900;
+            letter-spacing: 60px;
+            color: rgba(220, 38, 38, 0.22);
+            transform: rotate(-24deg);
+            z-index: 10;
+        }
     </style>
 </head>
 
@@ -221,6 +234,10 @@
             @include('invoices.normal_format')
         @else
             @include('invoices.tax_format')
+        @endif
+
+        @if($invoice->isVoid())
+            <div class="abs void-stamp">VOID</div>
         @endif
     </div>
 </body>

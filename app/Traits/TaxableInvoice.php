@@ -24,6 +24,10 @@ trait TaxableInvoice
 
     public function createTaxInvoice(): Invoice
     {
+        if ($this->isVoid()) {
+            throw new \Exception("Void invoice '{$this->invoice_no}' cannot be converted to a tax invoice.");
+        }
+
         if ($this->hasTaxInvoice()) {
             throw new \Exception("A tax invoice already exists for this proforma invoice.");
         }

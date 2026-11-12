@@ -17,13 +17,14 @@ use App\Mcp\Tools\MarkInvoiceAsPaid;
 use App\Mcp\Tools\SendInvoiceEmail;
 use App\Mcp\Tools\UpdateClient;
 use App\Mcp\Tools\UpdateInvoice;
+use App\Mcp\Tools\VoidInvoice;
 use Laravel\Mcp\Server;
 
 class ResellerServer extends Server
 {
     protected string $name = 'Reseller Server';
 
-    protected string $version = '0.11.0';
+    protected string $version = '0.12.0';
 
     protected string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
 
@@ -39,6 +40,7 @@ class ResellerServer extends Server
         ListPendingProformas::class,
         ConvertToTaxInvoice::class,
         MarkInvoiceAsPaid::class,
+        VoidInvoice::class,
         CreateClient::class,
         FindClient::class,
         UpdateClient::class,

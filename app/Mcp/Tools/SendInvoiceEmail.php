@@ -46,6 +46,13 @@ class SendInvoiceEmail extends Tool
             return Response::json(['status' => 'error', 'message' => 'Invoice not found.']);
         }
 
+        if ($invoice->isVoid()) {
+            return Response::json([
+                'status' => 'error',
+                'message' => "Invoice '{$invoice->invoice_no}' is void and cannot be emailed.",
+            ]);
+        }
+
         $firstItem = $invoice->items->first()?->itemable;
         $firstExtraTitle = $invoice->extras->first()?->line_title;
 

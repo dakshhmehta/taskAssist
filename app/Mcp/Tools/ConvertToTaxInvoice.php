@@ -63,6 +63,13 @@ class ConvertToTaxInvoice extends Tool
             ]);
         }
 
+        if ($invoice->isVoid()) {
+            return Response::json([
+                'status' => 'error',
+                'message' => "Invoice '{$invoice->invoice_no}' is void and cannot be converted.",
+            ]);
+        }
+
         try {
             $taxInvoice = $invoice->createTaxInvoice();
 

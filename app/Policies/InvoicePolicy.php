@@ -37,7 +37,7 @@ class InvoicePolicy
      */
     public function update(User $user, Invoice $invoice): bool
     {
-        return $user->is_admin && $invoice->paid_date == null;
+        return $user->is_admin && $invoice->paid_date == null && ! $invoice->isVoid();
     }
 
     /**
@@ -66,6 +66,10 @@ class InvoicePolicy
 
     public function markAsPaid(User $user, Invoice $invoice): bool
     {
+        if ($invoice->isVoid()) {
+            return false;
+        }
+
         if($invoice->date->lte(config('app.gstin_start_date'))){
             return $user->is_admin && $invoice->paid_date == null;
         }
@@ -76,9 +80,22 @@ class InvoicePolicy
     public function convertToTaxInvoice(User $user, Invoice $invoice): bool
     {
         if($invoice->date->gte(config('app.gstin_start_date'))){
-            return $user->is_admin && $invoice->paid_date == null && $invoice->type == 'PROFORMA' && !$invoice->hasTaxInvoice();
+            return $user->is_admin && $invoice->paid_date == null && $invoice->type == 'PROFORMA' && !$invoice->hasTaxInvoice() && ! $invoice->isVoid();
         }
 
         return false;
+    }
+
+    /**
+     * A voided invoice is a cancelled document, so it cannot be re-voided.
+     * Paid invoices and proformas already converted to a tax invoice are
+     * cancelled through their own document instead.
+     */
+    public function void(User $user, Invoice $invoice): bool
+    {
+        return $user->is_admin
+            && ! $invoice->isVoid()
+            && $invoice->paid_date == null
+            && ! $invoice->hasTaxInvoice();
     }
 }

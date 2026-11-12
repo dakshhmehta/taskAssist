@@ -33,7 +33,7 @@ class GenerateServiceInvoice extends Tool
             'items' => $schema->string()->description('Optional. JSON array of invoice items. Each item: {"itemable_type":"domain|hosting|email","itemable_id":42,"price":1500,"discount_value":0,"expiry_date":"2026-06-15","line_description":"..."} . Price auto-calculates from config if omitted.'),
             'extras' => $schema->string()->description('Optional. JSON array of extra line items. Each extra: {"line_title":"...","line_description":"...","line_duration":"...","price":500,"discount_value":0}'),
             'date' => $schema->string()->description('Optional. Invoice date (Y-m-d). Defaults to today.'),
-            'invoice_prefix' => $schema->string()->description('Optional. Invoice number prefix. Auto-generates with "SR-" prefix if omitted.'),
+            'invoice_prefix' => $schema->string()->description('Optional. Invoice series prefix. Defaults to "SR-". Case and the trailing dash are normalized, so "SR" continues the "SR-" series instead of starting a new one.'),
             'footnote' => $schema->string()->description('Optional. Footnote text for the invoice.'),
         ];
     }

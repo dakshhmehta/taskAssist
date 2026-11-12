@@ -82,7 +82,7 @@ class Hosting extends Model
                 return true;
             }
     
-            $invoice = $this->invoices()->where('date', 'LIKE', $this->expiry_date->format('Y') . '%')->exists();
+            $invoice = $this->invoices()->notVoid()->where('date', 'LIKE', $this->expiry_date->format('Y') . '%')->exists();
     
             return $invoice;
         }
@@ -135,12 +135,12 @@ class Hosting extends Model
 
     public function getLastInvoicedDateAttribute()
     {
-        return optional($this->invoices()->orderBy('date', 'DESC')->first())->date;
+        return optional($this->invoices()->notVoid()->orderBy('date', 'DESC')->first())->date;
     }
 
     public function getLastInvoice()
     {
-        return $this->invoices()->orderBy('date', 'DESC')->first();
+        return $this->invoices()->notVoid()->orderBy('date', 'DESC')->first();
     }
 
     public function client()

@@ -19,6 +19,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
@@ -179,6 +180,13 @@ class InvoiceResource extends Resource
                     ->columns(5)
                     ->columnSpan(12)
                     ->addActionLabel('Add Extra'),
+                Textarea::make('void_reason')
+                    ->label('Void Reason')
+                    ->rows(2)
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->visible(fn (?Invoice $record): bool => (bool) $record?->isVoid())
+                    ->columnSpan(12),
                 Textarea::make('footnote')
                     ->label('Footnote')
                     ->rows(3)
@@ -197,6 +205,16 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('invoice_no')
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                    ->color(fn (string $state): string => match ($state) {
+                        Invoice::STATUS_VOID => 'danger',
+                        Invoice::STATUS_CLOSED => 'gray',
+                        default => 'info',
+                    })
+                    ->description(fn (Invoice $record): ?string => $record->isVoid() ? $record->voided_at?->format('d-m-Y') : null)
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('date')
                     ->sortable()
                     ->searchable()
@@ -211,6 +229,12 @@ class InvoiceResource extends Resource
             ])
             ->defaultSort('date', 'DESC')
             ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        Invoice::STATUS_OPEN => 'Open',
+                        Invoice::STATUS_CLOSED => 'Closed',
+                        Invoice::STATUS_VOID => 'Void',
+                    ]),
                 // TODO: Reuse these same filters in Domain -> Invoices tab
                 Filter::make('paid_date_range')
                     ->form([
@@ -295,7 +319,31 @@ class InvoiceResource extends Resource
                     }),
                 ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn($record) => ! $record->hasTaxInvoice()),
+                    ->visible(fn($record) => ! $record->hasTaxInvoice() && ! $record->isVoid()),
+
+                Action::make('void')
+                    ->label('Void')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (Invoice $invoice): string => "Void invoice {$invoice->invoice_no}")
+                    ->modalDescription('Voiding cancels this invoice. It will no longer be counted as receivable, paid, converted or emailed.')
+                    ->form([
+                        Textarea::make('reason')
+                            ->label('Reason')
+                            ->rows(3)
+                            ->required()
+                            ->maxLength(1000),
+                    ])
+                    ->visible(fn(?Invoice $invoice): bool => Gate::allows('void', $invoice))
+                    ->action(function (array $data, Invoice $record): void {
+                        $record->void($data['reason']);
+
+                        Notification::make()
+                            ->title("Invoice {$record->invoice_no} voided")
+                            ->success()
+                            ->send();
+                    }),
 
                 Action::make('print')
                     // ->icon('printer')
@@ -305,6 +353,7 @@ class InvoiceResource extends Resource
                 // Add the Email Invoice button
                 Action::make('email')
                     ->label('Email')
+                    ->visible(fn (Invoice $invoice): bool => ! $invoice->isVoid())
                     ->action(fn(Invoice $invoice) => EmailInvoice::dispatch($invoice, $invoice->items()->first()?->itemable, $invoice->extras()->first()?->line_title)),
                 
                 CommentsAction::make(),

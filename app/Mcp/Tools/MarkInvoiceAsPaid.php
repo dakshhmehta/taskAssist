@@ -66,6 +66,13 @@ class MarkInvoiceAsPaid extends Tool
             ]);
         }
 
+        if ($invoice->isVoid()) {
+            return Response::json([
+                'status' => 'error',
+                'message' => "Invoice '{$invoice->invoice_no}' is void and cannot be marked as paid.",
+            ]);
+        }
+
         if ($invoice->type === 'PROFORMA') {
             return Response::json([
                 'status' => 'error',
