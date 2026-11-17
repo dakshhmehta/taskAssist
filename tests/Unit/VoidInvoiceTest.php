@@ -7,6 +7,7 @@ use App\Mcp\Tools\MarkInvoiceAsPaid;
 use App\Mcp\Tools\VoidInvoice;
 use App\Models\Client;
 use App\Models\Invoice;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Mcp\Request;
 use Tests\TestCase;
@@ -107,7 +108,7 @@ class VoidInvoiceTest extends TestCase
 
         $this->assertSame('error', $payload['status']);
         $this->assertStringContainsString('paid', $payload['message']);
-        $this->assertSame(Invoice::STATUS_OPEN, $invoice->refresh()->status);
+        $this->assertSame(Invoice::STATUS_CLOSED, $invoice->refresh()->status);
     }
 
     public function test_it_rejects_voiding_a_proforma_that_has_a_tax_invoice(): void
@@ -123,6 +124,47 @@ class VoidInvoiceTest extends TestCase
         $this->assertSame('error', $payload['status']);
         $this->assertStringContainsString('tax invoice', $payload['message']);
         $this->assertSame(Invoice::STATUS_OPEN, $invoice->refresh()->status);
+    }
+
+    public function test_a_tax_invoice_can_be_voided_on_the_day_it_was_created(): void
+    {
+        Carbon::setTestNow('2026-05-10 15:00:00');
+
+        $invoice = $this->makeInvoice([
+            'invoice_no' => 'SI-00002/2026',
+            'date' => '2026-05-10',
+        ]);
+
+        $payload = $this->payload((new VoidInvoice)->handle(new Request([
+            'invoice_id' => $invoice->id,
+            'reason' => 'Wrong GSTIN, reissuing',
+        ])));
+
+        $this->assertSame('success', $payload['status'], $payload['message'] ?? 'no message');
+        $this->assertTrue($invoice->refresh()->isVoid());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_a_tax_invoice_from_an_earlier_day_cannot_be_voided(): void
+    {
+        Carbon::setTestNow('2026-05-10 15:00:00');
+
+        $invoice = $this->makeInvoice([
+            'invoice_no' => 'SI-00003/2026',
+            'date' => '2026-05-09',
+        ]);
+
+        $payload = $this->payload((new VoidInvoice)->handle(new Request([
+            'invoice_id' => $invoice->id,
+            'reason' => 'Changed my mind',
+        ])));
+
+        $this->assertSame('error', $payload['status']);
+        $this->assertStringContainsString('day it was created', $payload['message']);
+        $this->assertSame(Invoice::STATUS_OPEN, $invoice->refresh()->status);
+
+        Carbon::setTestNow();
     }
 
     public function test_a_void_invoice_cannot_be_marked_paid_or_converted(): void

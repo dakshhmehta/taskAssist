@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Jobs\ScheduleTasksForUser;
 use App\Mail\LeaveRequestSubmittedMail;
 use App\Mail\LeaveStatusChangedMail;
+use App\Notifications\LeaveRequestSubmittedNotification;
+use App\Notifications\LeaveStatusChangedNotification;
 use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -127,13 +129,15 @@ class UserLeave extends Model
             return;
         }
 
-        $recipients = User::admins()->pluck('email')->filter()->all();
+        $admins = User::admins()->filter(fn (User $admin) => filled($admin->email));
 
-        if (empty($recipients)) {
+        if ($admins->isEmpty()) {
             return;
         }
 
-        Mail::to($recipients)->send(new LeaveRequestSubmittedMail($this));
+        Mail::to($admins->pluck('email')->all())->send(new LeaveRequestSubmittedMail($this));
+
+        $admins->each->notify(new LeaveRequestSubmittedNotification($this));
     }
 
     public function notifyUserOfStatusChange(): void
@@ -147,6 +151,8 @@ class UserLeave extends Model
         }
 
         Mail::to($this->user->email)->send(new LeaveStatusChangedMail($this));
+
+        $this->user->notify(new LeaveStatusChangedNotification($this));
     }
 
     public function isRaisedByAdmin(): bool

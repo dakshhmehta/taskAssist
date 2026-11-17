@@ -45,6 +45,20 @@ class VoidInvoiceFilamentTest extends TestCase
         $this->assertSame('Billed to the wrong client', $invoice->void_reason);
     }
 
+    public function test_the_void_action_is_hidden_for_a_tax_invoice_from_an_earlier_day(): void
+    {
+        $user = User::factory()->create(['id' => 1]);
+        $invoice = $this->makeInvoice([
+            'invoice_no' => 'SI-00008/2026',
+            'date' => now()->subDay()->toDateString(),
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ListInvoices::class)
+            ->assertTableActionHidden('void', $invoice);
+    }
+
     public function test_the_void_action_is_hidden_once_the_invoice_is_void_or_paid(): void
     {
         $user = User::factory()->create(['id' => 1]);

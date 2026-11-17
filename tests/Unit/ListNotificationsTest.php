@@ -6,6 +6,7 @@ use App\Mcp\Servers\ResellerServer;
 use App\Mcp\Tools\ListNotifications;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\UserLeave;
 use App\Notifications\NewTaskAssignedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
@@ -117,6 +118,28 @@ class ListNotificationsTest extends TestCase
             $this->assertSame($assignee->id, $notification['data']['actor_id']);
             $this->assertSame($task->id, $notification['task']['id']);
         }
+    }
+
+    public function test_it_returns_leave_notifications_with_their_related_leave(): void
+    {
+        $admin = User::factory()->create(['email' => 'admin@example.com']);
+        $employee = User::factory()->create(['email' => 'employee@example.com']);
+
+        $leave = UserLeave::create([
+            'user_id' => $employee->id,
+            'from_date' => now()->addDays(10)->toDateString(),
+            'to_date' => now()->addDays(11)->toDateString(),
+            'code' => 'SL',
+            'remarks' => 'Not feeling well',
+            'status' => 'NEW',
+        ]);
+
+        $result = (new ListNotifications)->handle(new Request(['user_id' => $admin->id]));
+        $response = json_decode((string) $result->content(), true);
+
+        $this->assertCount(1, $response['notifications']);
+        $this->assertSame('leave_request_submitted', $response['notifications'][0]['data']['event']);
+        $this->assertSame($leave->id, $response['notifications'][0]['leave']['id']);
     }
 
     private function createNotification(User $user, string $createdAt, ?string $readAt = null): DatabaseNotification

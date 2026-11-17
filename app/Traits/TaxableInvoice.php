@@ -22,6 +22,19 @@ trait TaxableInvoice
         return static::where('proforma_invoice_id', $this->id)->exists();
     }
 
+    /**
+     * Same as hasTaxInvoice(), but reuses an eager-loaded relation so listing
+     * invoices does not fire a query per row.
+     */
+    public function isConvertedToTaxInvoice(): bool
+    {
+        if ($this->relationLoaded('taxInvoice')) {
+            return $this->taxInvoice !== null;
+        }
+
+        return $this->hasTaxInvoice();
+    }
+
     public function createTaxInvoice(): Invoice
     {
         if ($this->isVoid()) {

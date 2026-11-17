@@ -74,9 +74,47 @@ class Invoice extends Model
         return $q->where('status', self::STATUS_VOID);
     }
 
+    /**
+     * Every invoice that is not an SI- series invoice is a proforma.
+     */
+    public function scopeTaxInvoices($q)
+    {
+        return $q->where('invoice_no', 'like', 'SI-%');
+    }
+
+    public function scopeProformas($q)
+    {
+        return $q->where('invoice_no', 'not like', 'SI-%');
+    }
+
+    public function isTaxInvoice(): bool
+    {
+        return str_starts_with((string) $this->invoice_no, 'SI-');
+    }
+
     public function isVoid(): bool
     {
         return $this->status === self::STATUS_VOID;
+    }
+
+    /**
+     * What the invoice really is right now, independent of the stored status:
+     *
+     *  - Proforma : open until converted, then converted.
+     *  - Tax      : open until paid, then closed.
+     *  - Void     : cancelled, for either type.
+     */
+    public function getDisplayStatusAttribute(): string
+    {
+        if ($this->isVoid()) {
+            return self::STATUS_VOID;
+        }
+
+        if (! $this->isTaxInvoice()) {
+            return $this->isConvertedToTaxInvoice() ? 'converted' : self::STATUS_OPEN;
+        }
+
+        return $this->paid_date !== null ? self::STATUS_CLOSED : self::STATUS_OPEN;
     }
 
     /**
@@ -91,6 +129,15 @@ class Invoice extends Model
 
         if ($this->isVoid()) {
             throw new \Exception("Invoice '{$this->invoice_no}' is already void.");
+        }
+
+        if ($this->paid_date !== null) {
+            throw new \Exception("Paid invoice '{$this->invoice_no}' cannot be voided.");
+        }
+
+        // GST: a tax invoice may only be cancelled on the day it was issued.
+        if ($this->isTaxInvoice() && ! $this->date->isToday()) {
+            throw new \Exception("Tax invoice '{$this->invoice_no}' can only be voided on the day it was created.");
         }
 
         $this->status = self::STATUS_VOID;
@@ -108,14 +155,20 @@ class Invoice extends Model
 
         $this->paid_date = $date;
         $this->payment_remarks = $remarks;
+        $this->status = self::STATUS_CLOSED;
 
         $this->save();
     }
 
     public function revertPaidStatus()
     {
+        if ($this->isVoid()) {
+            return;
+        }
+
         $this->paid_date = null;
         $this->payment_remarks = null;
+        $this->status = self::STATUS_OPEN;
 
         $this->save();
     }
@@ -281,13 +334,7 @@ class Invoice extends Model
 
     public function getTypeAttribute()
     {
-        $invoiceType = $this->invoice_no;
-
-        if (strpos($invoiceType, 'SI') === 0) {
-            return 'TAX';
-        }
-
-        return 'PROFORMA';
+        return $this->isTaxInvoice() ? 'TAX' : 'PROFORMA';
     }
 
     public function getLutNoAttribute()

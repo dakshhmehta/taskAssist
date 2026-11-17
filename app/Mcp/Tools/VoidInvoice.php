@@ -18,7 +18,7 @@ class VoidInvoice extends Tool
      */
     public function description(): string
     {
-        return 'Void (cancel) an invoice by invoice ID or invoice number. A reason is mandatory. Voided invoices are excluded from receivables and cannot be paid, converted, edited or emailed.';
+        return 'Void (cancel) an invoice by invoice ID or invoice number. A reason is mandatory. Proforma invoices can be voided until they are converted; tax invoices can only be voided on the day they were issued. Voided invoices are excluded from receivables and cannot be paid, converted, edited or emailed.';
     }
 
     /**
@@ -85,6 +85,13 @@ class VoidInvoice extends Tool
             return Response::json([
                 'status' => 'error',
                 'message' => "Invoice '{$invoice->invoice_no}' was paid on {$invoice->paid_date->format('Y-m-d')} and cannot be voided. Issue a credit note instead.",
+            ]);
+        }
+
+        if ($invoice->type === 'TAX' && ! $invoice->date->isToday()) {
+            return Response::json([
+                'status' => 'error',
+                'message' => "Tax invoice '{$invoice->invoice_no}' can only be voided on the day it was created (invoice date {$invoice->date->format('Y-m-d')}).",
             ]);
         }
 

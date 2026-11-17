@@ -8,6 +8,7 @@ use App\Mcp\Tools\CompleteTask;
 use App\Mcp\Tools\GetDailyBriefing;
 use App\Mcp\Tools\GetTask;
 use App\Mcp\Tools\GetTimesheet;
+use App\Mcp\Tools\ListLeaves;
 use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Tools\ListTags;
 use App\Mcp\Tools\ListTasks;
@@ -35,6 +36,7 @@ class TaskServer extends Server
         // RecordLeave::class,
         ListTeamMembers::class,
         ListTags::class,
+        ListLeaves::class,
         // UpdateTask::class,
         ListTasks::class,
         GetTask::class,

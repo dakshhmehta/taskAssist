@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\TaskResource\RelationManagers;
+namespace App\Filament\RelationManagers;
 
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;

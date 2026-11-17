@@ -152,7 +152,7 @@ class UpdateClientTest extends TestCase
     public function test_it_is_registered_with_the_mcp_server(): void
     {
         $this->assertContains(UpdateClient::class, $this->mcpServerToolClasses(ResellerServer::class));
-        $this->assertSame('0.11.0', $this->mcpServerProperty(ResellerServer::class, 'version'));
+        $this->assertSame('0.12.0', $this->mcpServerProperty(ResellerServer::class, 'version'));
     }
 
     private function decode($result): array

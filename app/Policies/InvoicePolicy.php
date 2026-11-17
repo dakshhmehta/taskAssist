@@ -89,13 +89,19 @@ class InvoicePolicy
     /**
      * A voided invoice is a cancelled document, so it cannot be re-voided.
      * Paid invoices and proformas already converted to a tax invoice are
-     * cancelled through their own document instead.
+     * cancelled through their own document instead. Per GST, a tax invoice
+     * can only be voided on the day it was issued.
      */
     public function void(User $user, Invoice $invoice): bool
     {
-        return $user->is_admin
-            && ! $invoice->isVoid()
-            && $invoice->paid_date == null
-            && ! $invoice->hasTaxInvoice();
+        if (! $user->is_admin || $invoice->isVoid() || $invoice->paid_date != null) {
+            return false;
+        }
+
+        if ($invoice->isTaxInvoice()) {
+            return $invoice->date->isToday();
+        }
+
+        return ! $invoice->hasTaxInvoice();
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Actions\TaskCommentsAction;
+use App\Filament\RelationManagers\ActivitiesRelationManager;
 use App\Filament\Resources\TaskResource\Pages;
-use App\Filament\Resources\TaskResource\RelationManagers\ActivitiesRelationManager;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;

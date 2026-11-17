@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\ActivitiesRelationManager;
 use App\Filament\Resources\UserLeaveResource\Pages;
 use App\Models\User;
 use App\Models\UserLeave;
@@ -175,7 +176,7 @@ class UserLeaveResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ActivitiesRelationManager::class,
         ];
     }
 

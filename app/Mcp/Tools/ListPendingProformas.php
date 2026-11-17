@@ -49,7 +49,7 @@ class ListPendingProformas extends Tool
         // Proforma invoices do not start with 'SI-' and do not have an associated tax invoice
         $invoices = Invoice::query()
             ->where('date', '>=', $startDate)
-            ->where('invoice_no', 'NOT LIKE', 'SI-%')
+            ->proformas()
             ->doesntHave('taxInvoice')
             ->notVoid()
             ->with('client', 'items')

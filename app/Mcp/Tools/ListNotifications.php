@@ -4,6 +4,7 @@ namespace App\Mcp\Tools;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Models\UserLeave;
 use Carbon\Carbon;
 use Generator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -18,7 +19,7 @@ class ListNotifications extends Tool
 
     public function description(): string
     {
-        return 'List notifications for active users, including their related user and task data. Defaults to unread notifications only.';
+        return 'List notifications for active users, including their related user, task and leave data. Defaults to unread notifications only.';
     }
 
     public function schema(JsonSchema $schema): array
@@ -57,6 +58,10 @@ class ListNotifications extends Tool
             ->get()
             ->keyBy('id');
 
+        $leaves = UserLeave::whereKey($notifications->pluck('data.leave_id')->filter()->unique())
+            ->get()
+            ->keyBy('id');
+
         return Response::json([
             'status' => 'success',
             'notifications' => $notifications->map(fn (DatabaseNotification $notification) => [
@@ -67,6 +72,7 @@ class ListNotifications extends Tool
                 'created_at' => $notification->created_at,
                 'user' => $notification->notifiable?->only(['id', 'name', 'email']),
                 'task' => $tasks->get($notification->data['task_id'] ?? null)?->toArray(),
+                'leave' => $leaves->get($notification->data['leave_id'] ?? null)?->toArray(),
             ])->values()->all(),
         ]);
     }

@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Filament\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Resources\UserLeaveResource;
 use App\Mail\LeaveRequestSubmittedMail;
 use App\Mail\LeaveStatusChangedMail;
 use App\Models\User;
 use App\Models\UserLeave;
+use App\Notifications\LeaveRequestSubmittedNotification;
+use App\Notifications\LeaveStatusChangedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -124,5 +128,82 @@ class LeaveNotificationTest extends TestCase
                 && $mail->leave->admin_remarks === 'Insufficient leave balance'
                 && str_contains($mail->render(), 'Insufficient leave balance');
         });
+    }
+
+    public function test_admins_get_a_database_notification_when_a_leave_request_is_made(): void
+    {
+        $admin = $this->admin();
+        $employee = User::factory()->create(['email' => 'employee@example.com']);
+
+        $leave = $this->createLeave($employee);
+
+        $notification = $admin->notifications()->sole();
+
+        $this->assertSame(LeaveRequestSubmittedNotification::class, $notification->type);
+        $this->assertSame($leave->id, $notification->data['leave_id']);
+        $this->assertSame($employee->id, $notification->data['user_id']);
+        $this->assertSame('leave_request_submitted', $notification->data['event']);
+    }
+
+    public function test_no_database_notification_for_an_already_approved_leave(): void
+    {
+        $admin = $this->admin();
+        $employee = User::factory()->create(['email' => 'employee@example.com']);
+
+        $this->createLeave($employee, 'APPROVED');
+
+        $this->assertCount(0, $admin->notifications);
+    }
+
+    public function test_no_database_notification_when_the_admin_raises_their_own_leave(): void
+    {
+        $admin = $this->admin();
+
+        $leave = $this->createLeave($admin);
+
+        $this->assertCount(0, $admin->notifications);
+
+        $this->actingAs($admin);
+        $leave->approve();
+
+        $this->assertCount(0, $admin->notifications()->where('type', LeaveStatusChangedNotification::class)->get());
+    }
+
+    public function test_team_member_gets_a_database_notification_when_the_request_is_approved(): void
+    {
+        $admin = $this->admin();
+        $employee = User::factory()->create(['email' => 'employee@example.com']);
+
+        $leave = $this->createLeave($employee);
+
+        $this->actingAs($admin);
+        $leave->approve();
+
+        $notification = $employee->notifications()->where('type', LeaveStatusChangedNotification::class)->sole();
+
+        $this->assertSame($leave->id, $notification->data['leave_id']);
+        $this->assertSame('APPROVED', $notification->data['status']);
+        $this->assertSame($admin->id, $notification->data['actor_id']);
+    }
+
+    public function test_team_member_gets_a_database_notification_when_the_request_is_rejected(): void
+    {
+        $admin = $this->admin();
+        $employee = User::factory()->create(['email' => 'employee@example.com']);
+
+        $leave = $this->createLeave($employee);
+
+        $this->actingAs($admin);
+        $leave->reject('Insufficient leave balance');
+
+        $notification = $employee->notifications()->where('type', LeaveStatusChangedNotification::class)->sole();
+
+        $this->assertSame('REJECTED', $notification->data['status']);
+        $this->assertSame($leave->id, $notification->data['leave_id']);
+    }
+
+    public function test_leave_resource_shows_the_activity_log(): void
+    {
+        $this->assertContains(ActivitiesRelationManager::class, UserLeaveResource::getRelations());
     }
 }

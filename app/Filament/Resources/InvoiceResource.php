@@ -205,16 +205,18 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('invoice_no')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('status')
+                TextColumn::make('display_status')
+                    ->label('Status')
                     ->badge()
+                    ->state(fn (Invoice $record): string => $record->display_status)
                     ->formatStateUsing(fn (string $state): string => ucfirst($state))
                     ->color(fn (string $state): string => match ($state) {
                         Invoice::STATUS_VOID => 'danger',
-                        Invoice::STATUS_CLOSED => 'gray',
+                        'converted' => 'gray',
+                        Invoice::STATUS_CLOSED => 'success',
                         default => 'info',
                     })
-                    ->description(fn (Invoice $record): ?string => $record->isVoid() ? $record->voided_at?->format('d-m-Y') : null)
-                    ->sortable(),
+                    ->description(fn (Invoice $record): ?string => $record->isVoid() ? $record->voided_at?->format('d-m-Y') : null),
                 Tables\Columns\TextColumn::make('date')
                     ->sortable()
                     ->searchable()
@@ -229,12 +231,38 @@ class InvoiceResource extends Resource
             ])
             ->defaultSort('date', 'DESC')
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        Invoice::STATUS_OPEN => 'Open',
-                        Invoice::STATUS_CLOSED => 'Closed',
-                        Invoice::STATUS_VOID => 'Void',
-                    ]),
+                Filter::make('status')
+                    ->label('Status')
+                    ->form([
+                        Forms\Components\Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                Invoice::STATUS_OPEN => 'Open',
+                                'converted' => 'Converted',
+                                Invoice::STATUS_CLOSED => 'Closed',
+                                Invoice::STATUS_VOID => 'Void',
+                            ])
+                            ->placeholder('All statuses'),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return match ($data['status'] ?? null) {
+                            Invoice::STATUS_VOID => $query->where('status', Invoice::STATUS_VOID),
+                            'converted' => $query->notVoid()
+                                ->proformas()
+                                ->whereHas('taxInvoice'),
+                            Invoice::STATUS_CLOSED => $query->notVoid()
+                                ->taxInvoices()
+                                ->whereNotNull('paid_date'),
+                            Invoice::STATUS_OPEN => $query->notVoid()->where(function (Builder $query) {
+                                $query->where(function (Builder $query) {
+                                    $query->proformas()->whereDoesntHave('taxInvoice');
+                                })->orWhere(function (Builder $query) {
+                                    $query->taxInvoices()->whereNull('paid_date');
+                                });
+                            }),
+                            default => $query,
+                        };
+                    }),
                 // TODO: Reuse these same filters in Domain -> Invoices tab
                 Filter::make('paid_date_range')
                     ->form([
@@ -367,6 +395,13 @@ class InvoiceResource extends Resource
                     ->icon('heroicon-o-arrow-path')
                     ->action(fn (Collection $records) => $records->each->revertPaidStatus()),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        // The displayed status checks conversion, so load the tax invoice
+        // relation once instead of querying per row.
+        return parent::getEloquentQuery()->with('taxInvoice');
     }
 
     public static function getRelations(): array
