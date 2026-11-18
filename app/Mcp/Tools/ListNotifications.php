@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Generator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -41,13 +42,33 @@ class ListNotifications extends Tool
             return Response::error('Invalid date format. Please use Y-m-d format.');
         }
 
+        $user = Auth::user();
+
+        if (! $user) {
+            return Response::error('No authenticated user.');
+        }
+
+        $requestedUserId = $request->get('user_id');
+
+        // Team members can only read their own notifications.
+        if (! $user->is_admin) {
+            if ($requestedUserId !== null && (int) $requestedUserId !== (int) $user->id) {
+                return Response::json([
+                    'status' => 'error',
+                    'message' => 'Team members can only list their own notifications.',
+                ]);
+            }
+
+            $requestedUserId = $user->id;
+        }
+
         $notifications = DatabaseNotification::query()
             ->with('notifiable')
             ->where('notifiable_type', User::class)
             ->whereIn('notifiable_id', User::query()
                 ->select('id')
                 ->where(fn ($query) => $query->where('is_disabled', false)->orWhereNull('is_disabled')))
-            ->when($request->get('user_id') !== null, fn ($query) => $query->where('notifiable_id', $request->get('user_id')))
+            ->when($requestedUserId !== null, fn ($query) => $query->where('notifiable_id', $requestedUserId))
             ->when(! ($request->get('includes_read') ?? false), fn ($query) => $query->whereNull('read_at'))
             ->when($fromDate, fn ($query) => $query->where('created_at', '>=', $fromDate))
             ->when($toDate, fn ($query) => $query->where('created_at', '<=', $toDate))

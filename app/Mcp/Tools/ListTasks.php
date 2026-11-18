@@ -43,7 +43,22 @@ class ListTasks extends Tool
      */
     public function handle(Request $request): Response|Generator
     {
-        $userId = $request->get('user_id') ?? Auth::id();
+        $user = Auth::user();
+
+        if (! $user) {
+            return Response::error('No authenticated user.');
+        }
+
+        $userId = $request->get('user_id') ?? $user->id;
+
+        // Team members can only list their own tasks.
+        if (! $user->is_admin && (int) $userId !== (int) $user->id) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'Team members can only list their own tasks.',
+            ]);
+        }
+
         // limit:-1 used to mean "no limit"; a paginated response falls back to the default page size.
         $perPage = (int) ($request->get('per_page') ?? $request->get('limit') ?? 25);
         $perPage = $perPage > 0 ? min($perPage, 100) : 25;

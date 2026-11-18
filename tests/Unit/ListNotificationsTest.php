@@ -46,6 +46,8 @@ class ListNotificationsTest extends TestCase
             'data' => ['message' => 'Disabled user notification'],
         ]);
 
+        $this->actingAs($activeUser);
+
         $result = (new ListNotifications)->handle(new Request([]));
         $response = json_decode((string) $result->content(), true);
 
@@ -63,6 +65,8 @@ class ListNotificationsTest extends TestCase
         $readNotification = $this->createNotification($user, '2026-09-02 10:00:00', '2026-09-02 12:00:00');
         $unreadNotification = $this->createNotification($user, '2026-09-03 10:00:00');
         $outsideDateRange = $this->createNotification($user, '2026-09-04 10:00:00');
+
+        $this->actingAs($user);
 
         $result = (new ListNotifications)->handle(new Request([
             'user_id' => $user->id,
@@ -101,6 +105,9 @@ class ListNotificationsTest extends TestCase
         ]);
         $task->complete();
 
+        // The admin (first user) may read any user's notifications.
+        $this->actingAs($admin);
+
         $result = (new ListNotifications)->handle(new Request([
             'user_id' => $admin->id,
             'includes_read' => true,
@@ -133,6 +140,8 @@ class ListNotificationsTest extends TestCase
             'remarks' => 'Not feeling well',
             'status' => 'NEW',
         ]);
+
+        $this->actingAs($admin);
 
         $result = (new ListNotifications)->handle(new Request(['user_id' => $admin->id]));
         $response = json_decode((string) $result->content(), true);

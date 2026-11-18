@@ -50,6 +50,16 @@ class CompleteTask extends Tool
             ]);
         }
 
+        $user = auth()->user();
+
+        // Team members can only complete tasks assigned to them.
+        if ($user && ! $user->is_admin && (int) $task->assignee_id !== (int) $user->id) {
+            return Response::json([
+                'status' => 'error',
+                'message' => "Task {$taskId} is not assigned to you, so you cannot complete it.",
+            ]);
+        }
+
         if (! $task->isCompletable()) {
             return Response::json([
                 'status' => 'error',

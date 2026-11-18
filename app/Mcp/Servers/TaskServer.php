@@ -18,10 +18,23 @@ use App\Mcp\Tools\SetTimer;
 use App\Mcp\Tools\SetTimesheet;
 use App\Mcp\Tools\SyncTasks;
 use App\Mcp\Tools\UpdateTask;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Server;
+use Laravel\Mcp\Server\ServerContext;
 
 class TaskServer extends Server
 {
+    /**
+     * Tools that team members (non-admins) must not see or call at all.
+     *
+     * @var array<int, class-string>
+     */
+    private const ADMIN_ONLY_TOOLS = [
+        GetTimesheet::class,
+        SetTimesheet::class,
+        SetTimer::class,
+    ];
+
     protected string $name = 'Task Server';
 
     protected string $version = '1.14.0';
@@ -54,4 +67,25 @@ class TaskServer extends Server
     protected array $prompts = [
         //
     ];
+
+    /**
+     * Hide the admin-only tools from team members so they are neither listed
+     * by tools/list nor callable through tools/call.
+     */
+    public function createContext(): ServerContext
+    {
+        if (Auth::user()?->is_admin) {
+            return parent::createContext();
+        }
+
+        $tools = $this->tools;
+
+        try {
+            $this->tools = array_values(array_diff($tools, self::ADMIN_ONLY_TOOLS));
+
+            return parent::createContext();
+        } finally {
+            $this->tools = $tools;
+        }
+    }
 }

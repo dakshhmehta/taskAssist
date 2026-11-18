@@ -61,6 +61,9 @@ class ListTasksTest extends TestCase
             'estimate' => 60,
         ]);
 
+        // The first user is the admin, so listing another user's tasks is allowed.
+        $this->actingAs($user);
+
         $tool = new ListTasks;
 
         // Test listing up to today (2026-05-20), limit = -1
@@ -103,6 +106,8 @@ class ListTasksTest extends TestCase
                 'estimate' => 30,
             ]);
         }
+
+        $this->actingAs($user);
 
         $tool = new ListTasks;
 
@@ -149,6 +154,8 @@ class ListTasksTest extends TestCase
                 'estimate' => 30,
             ]);
         }
+
+        $this->actingAs($user);
 
         $tool = new ListTasks;
 

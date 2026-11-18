@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Models\Task;
 use Generator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -44,6 +45,16 @@ class GetTask extends Tool
             return Response::json([
                 'status' => 'error',
                 'message' => "No task found with ID: {$taskId}",
+            ]);
+        }
+
+        $user = Auth::user();
+
+        // Team members can only read the tasks assigned to them.
+        if (! $user?->is_admin && (int) $task->assignee_id !== (int) $user?->id) {
+            return Response::json([
+                'status' => 'error',
+                'message' => "You are not authorized to view task {$taskId}.",
             ]);
         }
 

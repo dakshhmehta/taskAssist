@@ -40,6 +40,8 @@ class GetTaskTest extends TestCase
 
         activity()->performedOn($task)->log('Task viewed');
 
+        $this->actingAs($assignee);
+
         $result = (new GetTask)->handle(new Request(['timepro_task_id' => $task->id]));
         $payload = json_decode((string) $result->content(), true);
 

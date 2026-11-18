@@ -67,6 +67,20 @@ class SyncTasks extends Tool
 
         $assigneeId = $request->get('assignee_id') ?? auth()->id() ?? 1;
 
+        $user = auth()->user();
+
+        // Team members can only create/update tasks assigned to themselves.
+        if ($user && ! $user->is_admin) {
+            if ($request->get('assignee_id') !== null && (int) $request->get('assignee_id') !== (int) $user->id) {
+                return Response::json([
+                    'status' => 'error',
+                    'message' => 'Team members can only sync tasks assigned to themselves.',
+                ]);
+            }
+
+            $assigneeId = $user->id;
+        }
+
         if (! \App\Models\User::where('id', $assigneeId)->exists()) {
             return Response::error("Assignee with ID {$assigneeId} not found.");
         }
