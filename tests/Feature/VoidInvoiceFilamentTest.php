@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Resources\InvoiceResource\Pages\ListInvoices;
+use App\Filament\Resources\InvoiceResource\Pages\EditInvoice;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
@@ -28,17 +28,17 @@ class VoidInvoiceFilamentTest extends TestCase
         ], $overrides));
     }
 
-    public function test_an_admin_can_void_an_invoice_from_the_list_with_a_reason(): void
+    public function test_an_admin_can_void_an_invoice_from_the_edit_page_with_a_reason(): void
     {
         $user = User::factory()->create(['id' => 1]);
         $invoice = $this->makeInvoice();
 
         $this->actingAs($user);
 
-        Livewire::test(ListInvoices::class)
-            ->assertTableActionVisible('void', $invoice)
-            ->callTableAction('void', $invoice, data: ['reason' => 'Billed to the wrong client'])
-            ->assertHasNoTableActionErrors();
+        Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+            ->assertActionVisible('void')
+            ->callAction('void', data: ['reason' => 'Billed to the wrong client'])
+            ->assertHasNoActionErrors();
 
         $invoice->refresh();
         $this->assertSame(Invoice::STATUS_VOID, $invoice->status);
@@ -55,8 +55,8 @@ class VoidInvoiceFilamentTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(ListInvoices::class)
-            ->assertTableActionHidden('void', $invoice);
+        Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+            ->assertActionHidden('void');
     }
 
     public function test_the_void_action_is_hidden_once_the_invoice_is_void_or_paid(): void
@@ -71,8 +71,9 @@ class VoidInvoiceFilamentTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(ListInvoices::class)
-            ->assertTableActionHidden('void', $voided)
-            ->assertTableActionHidden('void', $paid);
+        foreach ([$voided, $paid] as $invoice) {
+            Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+                ->assertActionHidden('void');
+        }
     }
 }

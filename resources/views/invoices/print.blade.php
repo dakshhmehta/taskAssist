@@ -37,6 +37,16 @@
             left: 330px;
         }
 
+        .void-type {
+            margin-left: 40px;
+            padding: 6px 24px;
+            border: 6px solid rgba(220, 38, 38, 0.85);
+            border-radius: 12px;
+            color: rgba(220, 38, 38, 0.85);
+            font-size: 44px;
+            letter-spacing: 8px;
+        }
+
         .invoice-date {
             top: 435px;
             left: 2780px;

@@ -7,8 +7,10 @@ use App\Models\Invoice;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Gate;
 use Ri\Accounting\Models\Account;
 
 class EditInvoice extends EditRecord
@@ -50,6 +52,29 @@ class EditInvoice extends EditRecord
                 // ->icon('printer')
                 ->label('Print')
                 ->url(fn(Invoice $invoice): string => route('invoices.print', [$invoice->id, 'force' => 1]), true),
+            Action::make('void')
+                ->label('Void')
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->requiresConfirmation()
+                ->modalHeading(fn (Invoice $invoice): string => "Void invoice {$invoice->invoice_no}")
+                ->modalDescription('Voiding cancels this invoice. It will no longer be counted as receivable, paid, converted or emailed.')
+                ->form([
+                    Textarea::make('reason')
+                        ->label('Reason')
+                        ->rows(3)
+                        ->required()
+                        ->maxLength(1000),
+                ])
+                ->visible(fn(?Invoice $invoice): bool => Gate::allows('void', $invoice))
+                ->action(function (array $data, Invoice $invoice): void {
+                    $invoice->void($data['reason']);
+
+                    Notification::make()
+                        ->title("Invoice {$invoice->invoice_no} voided")
+                        ->success()
+                        ->send();
+                }),
             Actions\DeleteAction::make(),
         ];
     }

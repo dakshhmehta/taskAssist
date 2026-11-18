@@ -19,7 +19,7 @@ class ClientReceivablesTable extends BaseWidget
             ->heading('Client Receivables')
             ->query(
                 Client::whereHas('invoices', function ($q) {
-                    $q->whereNull('paid_date');
+                    $q->whereNull('paid_date')->notVoid();
                 })
             )
             ->paginated(false)

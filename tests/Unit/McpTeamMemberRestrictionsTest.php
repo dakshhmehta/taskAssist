@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Mcp\Servers\ResellerServer;
 use App\Mcp\Servers\TaskServer;
 use App\Mcp\Tools\CompleteTask;
 use App\Mcp\Tools\GetTask;
@@ -259,11 +260,30 @@ class McpTeamMemberRestrictionsTest extends TestCase
         $this->assertContains('set-timer', $adminTools);
     }
 
-    private function serverToolNames(): array
+    public function test_reseller_tools_are_unavailable_to_team_members(): void
     {
-        $server = (new \ReflectionClass(TaskServer::class))->newInstanceWithoutConstructor();
+        $this->admin();
+        $member = $this->member();
 
-        return $server->createContext()->tools()->map(fn ($tool) => $tool->name())->all();
+        $this->actingAs($member);
+
+        $this->assertSame([], $this->serverToolNames(ResellerServer::class));
+    }
+
+    public function test_reseller_tools_stay_available_to_admin(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin);
+
+        $this->assertContains('get-invoice', $this->serverToolNames(ResellerServer::class));
+    }
+
+    private function serverToolNames(string $server = TaskServer::class): array
+    {
+        $instance = (new \ReflectionClass($server))->newInstanceWithoutConstructor();
+
+        return $instance->createContext()->tools()->map(fn ($tool) => $tool->name())->all();
     }
 
     private function createNotificationFor(User $user): DatabaseNotification

@@ -12,6 +12,9 @@
     @else
     EXPORT INVOICE
     @endif
+    @if($invoice->isVoid())
+    <span class="void-type">VOID</span>
+    @endif
 </div>
 @if($invoice->client->account?->country != 'India')
 <div class="abs lut-no">

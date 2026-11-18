@@ -13,7 +13,6 @@ use Ri\Accounting\Models\Account;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Textarea;
 use Illuminate\Support\Facades\Gate;
 
 class ViewInvoice extends ViewRecord
@@ -67,30 +66,6 @@ class ViewInvoice extends ViewRecord
                     $newInvoice = $invoice->createTaxInvoice();
 
                     return redirect(self::getUrl('edit', ['record' => $newInvoice]));
-                }),
-
-            Action::make('void')
-                ->label('Void')
-                ->color('danger')
-                ->icon('heroicon-o-x-circle')
-                ->requiresConfirmation()
-                ->modalHeading(fn (Invoice $invoice): string => "Void invoice {$invoice->invoice_no}")
-                ->modalDescription('Voiding cancels this invoice. It will no longer be counted as receivable, paid, converted or emailed.')
-                ->form([
-                    Textarea::make('reason')
-                        ->label('Reason')
-                        ->rows(3)
-                        ->required()
-                        ->maxLength(1000),
-                ])
-                ->visible(fn(?Invoice $invoice): bool => Gate::allows('void', $invoice))
-                ->action(function (array $data, Invoice $invoice): void {
-                    $invoice->void($data['reason']);
-
-                    Notification::make()
-                        ->title("Invoice {$invoice->invoice_no} voided")
-                        ->success()
-                        ->send();
                 }),
 
             CommentsAction::make(),

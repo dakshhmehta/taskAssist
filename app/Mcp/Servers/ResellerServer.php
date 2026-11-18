@@ -18,7 +18,9 @@ use App\Mcp\Tools\SendInvoiceEmail;
 use App\Mcp\Tools\UpdateClient;
 use App\Mcp\Tools\UpdateInvoice;
 use App\Mcp\Tools\VoidInvoice;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Server;
+use Laravel\Mcp\Server\ServerContext;
 
 class ResellerServer extends Server
 {
@@ -54,4 +56,25 @@ class ResellerServer extends Server
     protected array $prompts = [
         // ExamplePrompt::class,
     ];
+
+    /**
+     * The reseller server is admin-only: team members get no tools at all,
+     * so nothing is listed by tools/list and every call fails as unknown.
+     */
+    public function createContext(): ServerContext
+    {
+        if (Auth::user()?->is_admin) {
+            return parent::createContext();
+        }
+
+        $tools = $this->tools;
+
+        try {
+            $this->tools = [];
+
+            return parent::createContext();
+        } finally {
+            $this->tools = $tools;
+        }
+    }
 }
