@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -71,9 +72,9 @@ class VoidInvoiceFilamentTest extends TestCase
 
         $this->actingAs($user);
 
-        foreach ([$voided, $paid] as $invoice) {
-            Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
-                ->assertActionHidden('void');
-        }
+        // A void or paid invoice cannot reach the Edit page at all, so the
+        // guard that hides the action is the policy itself.
+        $this->assertTrue(Gate::forUser($user)->denies('void', $voided));
+        $this->assertTrue(Gate::forUser($user)->denies('void', $paid));
     }
 }

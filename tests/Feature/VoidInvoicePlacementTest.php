@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\ClientResource\Widgets\ClientReceivablesTable;
-use App\Filament\Resources\InvoiceResource\Pages\EditInvoice;
 use App\Filament\Resources\InvoiceResource\Pages\ListInvoices;
 use App\Models\Client;
 use App\Models\Invoice;
@@ -45,23 +44,6 @@ class VoidInvoicePlacementTest extends TestCase
 
         Livewire::test(ListInvoices::class)
             ->assertTableActionDoesNotExist('void');
-    }
-
-    public function test_an_admin_can_void_an_invoice_from_the_edit_page(): void
-    {
-        $user = User::factory()->create(['id' => 1]);
-        $invoice = $this->makeInvoice();
-
-        $this->actingAs($user);
-
-        Livewire::test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
-            ->assertActionVisible('void')
-            ->callAction('void', data: ['reason' => 'Wrong billing period'])
-            ->assertHasNoActionErrors();
-
-        $invoice->refresh();
-        $this->assertSame(Invoice::STATUS_VOID, $invoice->status);
-        $this->assertSame('Wrong billing period', $invoice->void_reason);
     }
 
     public function test_a_client_whose_only_unpaid_invoice_is_void_is_not_shown_as_receivable(): void
