@@ -2,11 +2,15 @@
 
 namespace App\Mcp\Tools;
 
+use App\Models\Domain;
+use App\Models\Hosting;
 use App\Models\Invoice;
 use App\Models\InvoiceExtra;
 use App\Models\InvoiceItem;
+use App\Support\InvoiceTerm;
 use Generator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -32,6 +36,7 @@ class UpdateInvoice extends Tool
             'extras' => $schema->array()->description('Extras to update/add. Each extra can have: id, line_title, line_description, line_duration, price.'),
             'delete_items' => $schema->array()->description('IDs of items to remove.'),
             'delete_extras' => $schema->array()->description('IDs of extras to remove.'),
+            'term' => $schema->integer()->description('Optional. Years to advance the expiry_date of existing domain and hosting items (0 or more). Items given an explicit expiry_date in items are left alone. Prices are not recalculated. Term is relative, so calling it twice shifts twice.'),
         ];
     }
 
@@ -59,61 +64,92 @@ class UpdateInvoice extends Tool
             ]);
         }
 
-        // Update basic invoice fields
-        $invoiceUpdateData = [];
-        foreach (['date', 'status', 'payment_remarks', 'footnote'] as $field) {
-            if ($request->get($field) !== null) {
-                $invoiceUpdateData[$field] = $request->get($field);
-            }
-        }
-        if (! empty($invoiceUpdateData)) {
-            $invoice->update($invoiceUpdateData);
+        $term = (int) ($request->get('term') ?? 0);
+
+        if ($term < 0) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'term must be zero or a positive number of years.',
+            ]);
         }
 
-        // Handle Deletions
-        if ($request->get('delete_items') !== null) {
-            InvoiceItem::where('invoice_id', $invoice->id)->whereIn('id', $request->get('delete_items'))->delete();
-        }
-        if ($request->get('delete_extras') !== null) {
-            InvoiceExtra::where('invoice_id', $invoice->id)->whereIn('id', $request->get('delete_extras'))->delete();
-        }
-
-        // Update/Add Items
-        if ($request->get('items') !== null) {
-            foreach ($request->get('items') as $itemData) {
-                $item = null;
-                if (isset($itemData['id'])) {
-                    $item = InvoiceItem::where('invoice_id', $invoice->id)->find($itemData['id']);
-                }
-
-                if ($item) {
-                    $item->update(array_filter($itemData, fn ($key) => in_array($key, ['price', 'discount_value', 'line_description', 'expiry_date']), ARRAY_FILTER_USE_KEY));
-                } else {
-                    $item = $invoice->items()->create(array_filter($itemData, fn ($key) => in_array($key, ['price', 'discount_value', 'line_description', 'expiry_date', 'itemable_id', 'itemable_type']), ARRAY_FILTER_USE_KEY));
-                }
-
-                // Update Itemable data if provided
-                if (isset($itemData['itemable_data']) && $item->itemable) {
-                    $item->itemable->update($itemData['itemable_data']);
+        DB::transaction(function () use ($invoice, $request, $term) {
+            // Update basic invoice fields
+            $invoiceUpdateData = [];
+            foreach (['date', 'status', 'payment_remarks', 'footnote'] as $field) {
+                if ($request->get($field) !== null) {
+                    $invoiceUpdateData[$field] = $request->get($field);
                 }
             }
-        }
+            if (! empty($invoiceUpdateData)) {
+                $invoice->update($invoiceUpdateData);
+            }
 
-        // Update/Add Extras
-        if ($request->get('extras') !== null) {
-            foreach ($request->get('extras') as $extraData) {
-                $extra = null;
-                if (isset($extraData['id'])) {
-                    $extra = InvoiceExtra::where('invoice_id', $invoice->id)->find($extraData['id']);
-                }
+            // Handle Deletions
+            if ($request->get('delete_items') !== null) {
+                InvoiceItem::where('invoice_id', $invoice->id)->whereIn('id', $request->get('delete_items'))->delete();
+            }
+            if ($request->get('delete_extras') !== null) {
+                InvoiceExtra::where('invoice_id', $invoice->id)->whereIn('id', $request->get('delete_extras'))->delete();
+            }
 
-                if ($extra) {
-                    $extra->update(array_filter($extraData, fn ($key) => in_array($key, ['line_title', 'line_description', 'line_duration', 'price']), ARRAY_FILTER_USE_KEY));
-                } else {
-                    $invoice->extras()->create(array_filter($extraData, fn ($key) => in_array($key, ['line_title', 'line_description', 'line_duration', 'price']), ARRAY_FILTER_USE_KEY));
+            // Update/Add Items
+            if ($request->get('items') !== null) {
+                foreach ($request->get('items') as $itemData) {
+                    $item = null;
+                    if (isset($itemData['id'])) {
+                        $item = InvoiceItem::where('invoice_id', $invoice->id)->find($itemData['id']);
+                    }
+
+                    if ($item) {
+                        $item->update(array_filter($itemData, fn ($key) => in_array($key, ['price', 'discount_value', 'line_description', 'expiry_date']), ARRAY_FILTER_USE_KEY));
+                    } else {
+                        $item = $invoice->items()->create(array_filter($itemData, fn ($key) => in_array($key, ['price', 'discount_value', 'line_description', 'expiry_date', 'itemable_id', 'itemable_type']), ARRAY_FILTER_USE_KEY));
+                    }
+
+                    // Update Itemable data if provided
+                    if (isset($itemData['itemable_data']) && $item->itemable) {
+                        $item->itemable->update($itemData['itemable_data']);
+                    }
                 }
             }
-        }
+
+            // Advance the line expiry of domain and hosting items when a term is given.
+            if ($term > 0) {
+                $explicitExpiryItemIds = collect($request->get('items') ?? [])
+                    ->filter(fn ($item) => isset($item['id'], $item['expiry_date']))
+                    ->pluck('id')
+                    ->all();
+
+                foreach ($invoice->items()->get() as $item) {
+                    if (! in_array($item->itemable_type, [Domain::class, Hosting::class], true)) {
+                        continue;
+                    }
+
+                    if (in_array($item->id, $explicitExpiryItemIds)) {
+                        continue;
+                    }
+
+                    $item->update(['expiry_date' => InvoiceTerm::shift($item->expiry_date, $term)]);
+                }
+            }
+
+            // Update/Add Extras
+            if ($request->get('extras') !== null) {
+                foreach ($request->get('extras') as $extraData) {
+                    $extra = null;
+                    if (isset($extraData['id'])) {
+                        $extra = InvoiceExtra::where('invoice_id', $invoice->id)->find($extraData['id']);
+                    }
+
+                    if ($extra) {
+                        $extra->update(array_filter($extraData, fn ($key) => in_array($key, ['line_title', 'line_description', 'line_duration', 'price']), ARRAY_FILTER_USE_KEY));
+                    } else {
+                        $invoice->extras()->create(array_filter($extraData, fn ($key) => in_array($key, ['line_title', 'line_description', 'line_duration', 'price']), ARRAY_FILTER_USE_KEY));
+                    }
+                }
+            }
+        });
 
         // Refresh and return
         $invoice->load(['items.itemable', 'extras']);

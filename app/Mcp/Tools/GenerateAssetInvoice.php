@@ -37,6 +37,7 @@ class GenerateAssetInvoice extends Tool
             'footnote' => $schema->string()->description('Optional. Custom footnote text stored on the invoice.'),
             'invoice_date' => $schema->string()->description('Optional. The date for the invoice (Y-m-d). Defaults to today.'),
             'client_id' => $schema->integer()->description('Optional. The ID of the client to assign to the asset if not already assigned.'),
+            'term' => $schema->integer()->description('Optional. Years to advance the line expiry on domain and hosting items (0 or more, default 0). Domain lines are re-priced from the shifted expiry and hosting prices are multiplied by the term.'),
         ];
     }
 
@@ -49,9 +50,17 @@ class GenerateAssetInvoice extends Tool
         $footnote = $request->get('footnote') ?? null;
         $invoiceDate = $request->get('invoice_date') ?? null;
         $clientIdInput = $request->get('client_id') ?? null;
+        $term = (int) ($request->get('term') ?? 0);
+
+        if ($term < 0) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'term must be zero or a positive number of years.',
+            ]);
+        }
 
         if ($cartJson) {
-            return $this->handleCart($cartJson, $footnote, $invoiceDate, $clientIdInput);
+            return $this->handleCart($cartJson, $footnote, $invoiceDate, $clientIdInput, $term);
         }
 
         $domainName = $request->get('domain') ?? null;
@@ -125,7 +134,7 @@ class GenerateAssetInvoice extends Tool
             }
 
             // Dispatch the job synchronously to get immediate results
-            GenerateInvoiceJob::dispatchSync($items, $invoiceDate, [], $footnote);
+            GenerateInvoiceJob::dispatchSync($items, $invoiceDate, [], $footnote, [], $term);
 
             // Fetch the newly created invoice for this asset
             $lastInvoice = $model->getLastInvoice();
@@ -160,7 +169,7 @@ class GenerateAssetInvoice extends Tool
     /**
      * Handle a multi-entry cart billed together on one DH invoice.
      */
-    protected function handleCart(string $cartJson, ?string $footnote, ?string $invoiceDate, mixed $clientIdInput): Response|Generator
+    protected function handleCart(string $cartJson, ?string $footnote, ?string $invoiceDate, mixed $clientIdInput, int $term = 0): Response|Generator
     {
         $entries = json_decode($cartJson, true);
 
@@ -294,7 +303,7 @@ class GenerateAssetInvoice extends Tool
 
         try {
             if (! empty($items)) {
-                GenerateInvoiceJob::dispatchSync($items, $invoiceDate, $extras, $footnote, $itemDiscounts);
+                GenerateInvoiceJob::dispatchSync($items, $invoiceDate, $extras, $footnote, $itemDiscounts, $term);
                 $lastInvoice = $items[0]->getLastInvoice();
             } else {
                 $client = Client::find($clientIdInput);

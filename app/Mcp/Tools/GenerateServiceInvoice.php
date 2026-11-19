@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceExtra;
 use App\Models\InvoiceItem;
 use App\Services\InvoicePricingService;
+use App\Support\InvoiceTerm;
 use Carbon\Carbon;
 use Generator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -33,6 +34,7 @@ class GenerateServiceInvoice extends Tool
             'items' => $schema->string()->description('Optional. JSON array of invoice items. Each item: {"itemable_type":"domain|hosting|email","itemable_id":42,"price":1500,"discount_value":0,"expiry_date":"2026-06-15","line_description":"..."} . Price auto-calculates from config if omitted.'),
             'extras' => $schema->string()->description('Optional. JSON array of extra line items. Each extra: {"line_title":"...","line_description":"...","line_duration":"...","price":500,"discount_value":0}'),
             'date' => $schema->string()->description('Optional. Invoice date (Y-m-d). Defaults to today.'),
+            'term' => $schema->integer()->description('Optional. Years to advance the line expiry on domain and hosting items (0 or more, default 0). Domain lines are re-priced from the shifted expiry and hosting prices are multiplied by the term. An explicit item expiry_date wins.'),
             'invoice_prefix' => $schema->string()->description('Optional. Invoice series prefix. Defaults to "SR-". Case and the trailing dash are normalized, so "SR" continues the "SR-" series instead of starting a new one.'),
             'footnote' => $schema->string()->description('Optional. Footnote text for the invoice.'),
         ];
@@ -46,6 +48,14 @@ class GenerateServiceInvoice extends Tool
         $date = $request->get('date') ?? now()->format('Y-m-d');
         $invoicePrefix = $request->get('invoice_prefix') ?? 'SR-';
         $footnote = $request->get('footnote') ?? null;
+        $term = (int) ($request->get('term') ?? 0);
+
+        if ($term < 0) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'term must be zero or a positive number of years.',
+            ]);
+        }
 
         if (! $clientId) {
             return Response::json([
@@ -135,18 +145,23 @@ class GenerateServiceInvoice extends Tool
                 $warnings[] = "Item #{$index}: Asset already belongs to client ID {$model->client_id}, not {$client->id}. Client not reassigned.";
             }
 
+            $invoiceDate = Carbon::parse($date);
+
+            $shiftExpiry = in_array($type, ['domain', 'hosting'], true);
+            $shiftedExpiry = $shiftExpiry
+                ? InvoiceTerm::shift($model->expiry_date, $term)
+                : $model->expiry_date;
+
             $price = $itemData['price'] ?? null;
 
             if ($price === null) {
-                $invoiceDate = Carbon::parse($date);
-
                 $price = match ($type) {
                     'domain' => InvoicePricingService::getDomainPrice(
                         $model->tld,
                         $invoiceDate,
-                        $model->expiry_date
+                        $shiftedExpiry
                     ),
-                    'hosting' => InvoicePricingService::getHostingPrice($model),
+                    'hosting' => InvoicePricingService::getHostingPrice($model, max(1, $term)),
                     'email' => InvoicePricingService::getEmailPrice(
                         $model,
                         $invoiceDate,
@@ -155,7 +170,7 @@ class GenerateServiceInvoice extends Tool
                 };
             }
 
-            $expiryDate = $itemData['expiry_date'] ?? ($model->expiry_date?->format('Y-m-d'));
+            $expiryDate = $itemData['expiry_date'] ?? ($shiftedExpiry?->format('Y-m-d'));
 
             $invoiceItems[] = [
                 'itemable_type' => get_class($model),

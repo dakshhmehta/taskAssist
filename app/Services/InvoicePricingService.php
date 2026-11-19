@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Domain;
 use App\Models\Email;
 use App\Models\Hosting;
 use Carbon\Carbon;
@@ -20,9 +19,9 @@ class InvoicePricingService
         return $basePrice * $years;
     }
 
-    public static function getHostingPrice(Hosting $hosting): float
+    public static function getHostingPrice(Hosting $hosting, int $years = 1): float
     {
-        return $hosting->package?->price ?? config('pricing.hosting.default_price', 0);
+        return ($hosting->package?->price ?? config('pricing.hosting.default_price', 0)) * $years;
     }
 
     public static function getEmailPrice(Email $email, Carbon $invoiceDate, ?Carbon $expiryDate): float
