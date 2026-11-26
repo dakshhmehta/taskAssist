@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EmailResource\Pages;
+use App\Filament\Support\InvoiceTermInput;
 use App\Jobs\GenerateInvoice;
 use App\Models\Email;
 use Filament\Forms;
@@ -127,8 +128,16 @@ class EmailResource extends Resource
                     // Previous invoice is older than 1 year and client already exists
                     ->visible(fn(Email $email) => $email->dueForRenewal())
                     ->color('success')
-                    ->action(function (Email $email) {
-                        GenerateInvoice::dispatch([$email], now());
+                    ->form([InvoiceTermInput::make()])
+                    ->action(function (Email $email, array $data) {
+                        GenerateInvoice::dispatch(
+                            [$email],
+                            now(),
+                            [],
+                            null,
+                            [],
+                            (int) ($data['term'] ?? 0)
+                        );
                     }),
             ])
             ->bulkActions([
@@ -141,7 +150,10 @@ class EmailResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Generate Invoices for Selected Emails')
                         ->modalDescription('This will create invoices for the selected email accounts grouped by client.')
-                        ->action(function ($records) {
+                        ->form([InvoiceTermInput::make()])
+                        ->action(function ($records, array $data) {
+                            $term = (int) ($data['term'] ?? 0);
+
                             // Group emails by client_id
                             $groupedByClient = $records->groupBy('client_id');
 
@@ -157,7 +169,7 @@ class EmailResource extends Resource
                                 $invoiceDate = now();
 
                                 // Dispatch the job
-                                GenerateInvoice::dispatch($items, $invoiceDate);
+                                GenerateInvoice::dispatch($items, $invoiceDate, [], null, [], $term);
                                 $invoiceCount++;
                             }
 

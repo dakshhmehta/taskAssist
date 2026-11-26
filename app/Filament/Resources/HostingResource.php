@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\HostingResource\Pages;
 use App\Filament\Resources\HostingResource\RelationManagers\ActivitylogRelationManager;
+use App\Filament\Support\InvoiceTermInput;
 use App\Jobs\GenerateInvoice;
 use App\Models\Hosting;
 use App\Models\HostingPackage;
@@ -170,8 +171,16 @@ class HostingResource extends Resource
                     ->label('Generate Invoice')
                     ->visible(fn (Hosting $hosting) => $hosting->dueForRenewal())
                     ->color('success')
-                    ->action(function (Hosting $hosting) {
-                        GenerateInvoice::dispatch([$hosting], $hosting->expiry_date->subYear());
+                    ->form([InvoiceTermInput::make()])
+                    ->action(function (Hosting $hosting, array $data) {
+                        GenerateInvoice::dispatch(
+                            [$hosting],
+                            $hosting->expiry_date->subYear(),
+                            [],
+                            null,
+                            [],
+                            (int) ($data['term'] ?? 0)
+                        );
                     }),
 
                 CommentsAction::make(),
@@ -186,7 +195,10 @@ class HostingResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Generate Invoices for Selected Hostings')
                         ->modalDescription('This will create invoices for the selected hostings grouped by client.')
-                        ->action(function ($records) {
+                        ->form([InvoiceTermInput::make()])
+                        ->action(function ($records, array $data) {
+                            $term = (int) ($data['term'] ?? 0);
+
                             // Group hostings by client_id
                             $groupedByClient = $records->groupBy('client_id');
 
@@ -204,7 +216,7 @@ class HostingResource extends Resource
                                 $invoiceDate = Carbon::parse($earliestExpiryDate)->subYear();
 
                                 // Dispatch the job
-                                GenerateInvoice::dispatch($items, $invoiceDate);
+                                GenerateInvoice::dispatch($items, $invoiceDate, [], null, [], $term);
                                 $invoiceCount++;
                             }
 

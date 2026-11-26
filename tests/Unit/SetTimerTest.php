@@ -190,4 +190,102 @@ class SetTimerTest extends TestCase
         $this->assertSame('error', $payload['status']);
         $this->assertSame(0, $this->runningTimesheets($user->id));
     }
+
+    public function test_team_member_cannot_start_timer_on_another_users_task(): void
+    {
+        User::factory()->create(); // admin
+        $member = User::factory()->create();
+        $other = User::factory()->create();
+        $otherTask = $this->createTask($other, 'Their task');
+
+        $this->actingAs($member);
+
+        $payload = $this->handle(['task_id' => $otherTask->id, 'action' => 'start']);
+
+        $this->assertSame('error', $payload['status']);
+        $this->assertStringContainsString('not assigned to you', $payload['message']);
+        $this->assertSame(0, $this->runningTimesheets($member->id));
+        $this->assertSame(0, $this->runningTimesheets($other->id));
+    }
+
+    public function test_team_member_can_start_and_stop_timer_on_own_task(): void
+    {
+        User::factory()->create(); // admin
+        $member = User::factory()->create();
+        $task = $this->createTask($member);
+
+        $this->actingAs($member);
+
+        $started = $this->handle(['task_id' => $task->id, 'action' => 'start']);
+        $stopped = $this->handle(['task_id' => $task->id, 'action' => 'stop']);
+
+        $this->assertSame('success', $started['status']);
+        $this->assertSame('success', $stopped['status']);
+        $this->assertSame(0, $this->runningTimesheets($member->id));
+    }
+
+    public function test_team_member_cannot_stop_timer_on_another_users_task(): void
+    {
+        User::factory()->create(); // admin
+        $member = User::factory()->create();
+        $other = User::factory()->create();
+        $otherTask = $this->createTask($other, 'Their task');
+
+        $timesheet = Timesheet::create([
+            'user_id' => $member->id,
+            'task_id' => $otherTask->id,
+            'start_at' => now(),
+        ]);
+
+        $this->actingAs($member);
+
+        $payload = $this->handle(['task_id' => $otherTask->id, 'action' => 'stop']);
+
+        $this->assertSame('error', $payload['status']);
+        $this->assertStringContainsString('not assigned to you', $payload['message']);
+        $this->assertNull($timesheet->fresh()->end_at);
+    }
+
+    public function test_admin_cannot_start_or_stop_timer_on_another_users_task(): void
+    {
+        $admin = User::factory()->create();
+        $other = User::factory()->create();
+        $otherTask = $this->createTask($other, 'Their task');
+
+        $this->actingAs($admin);
+
+        $start = $this->handle(['task_id' => $otherTask->id, 'action' => 'start']);
+
+        $this->assertSame('error', $start['status']);
+        $this->assertSame(0, $this->runningTimesheets($admin->id));
+        $this->assertSame(0, $this->runningTimesheets($other->id));
+
+        $timesheet = Timesheet::create([
+            'user_id' => $admin->id,
+            'task_id' => $otherTask->id,
+            'start_at' => now(),
+        ]);
+
+        $stop = $this->handle(['task_id' => $otherTask->id, 'action' => 'stop']);
+
+        $this->assertSame('error', $stop['status']);
+        $this->assertNull($timesheet->fresh()->end_at);
+    }
+
+    public function test_stop_without_task_id_is_not_restricted_by_assignment(): void
+    {
+        User::factory()->create(); // admin
+        $member = User::factory()->create();
+        $task = $this->createTask($member);
+
+        $this->actingAs($member);
+
+        $this->handle(['task_id' => $task->id, 'action' => 'start']);
+
+        $payload = $this->handle(['action' => 'stop']);
+
+        $this->assertSame('success', $payload['status']);
+        $this->assertSame(1, $payload['stopped']);
+        $this->assertSame(0, $this->runningTimesheets($member->id));
+    }
 }

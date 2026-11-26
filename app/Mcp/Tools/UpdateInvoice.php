@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Models\Domain;
+use App\Models\Email;
 use App\Models\Hosting;
 use App\Models\Invoice;
 use App\Models\InvoiceExtra;
@@ -36,7 +37,7 @@ class UpdateInvoice extends Tool
             'extras' => $schema->array()->description('Extras to update/add. Each extra can have: id, line_title, line_description, line_duration, price.'),
             'delete_items' => $schema->array()->description('IDs of items to remove.'),
             'delete_extras' => $schema->array()->description('IDs of extras to remove.'),
-            'term' => $schema->integer()->description('Optional. Years to advance the expiry_date of existing domain and hosting items (0 or more). Items given an explicit expiry_date in items are left alone. Prices are not recalculated. Term is relative, so calling it twice shifts twice.'),
+            'term' => $schema->integer()->description('Optional. Years to advance the expiry_date of existing domain, hosting and email items (0 or more). Items given an explicit expiry_date in items are left alone. Prices are not recalculated. Term is relative, so calling it twice shifts twice.'),
         ];
     }
 
@@ -122,7 +123,7 @@ class UpdateInvoice extends Tool
                     ->all();
 
                 foreach ($invoice->items()->get() as $item) {
-                    if (! in_array($item->itemable_type, [Domain::class, Hosting::class], true)) {
+                    if (! in_array($item->itemable_type, [Domain::class, Hosting::class, Email::class], true)) {
                         continue;
                     }
 

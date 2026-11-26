@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Domain;
 use App\Models\Email;
+use App\Models\Hosting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -16,6 +17,7 @@ class UpcomingRenewalsService
 
         return collect()
             ->merge($this->getDomains($domainFilter, $tillDate, $today))
+            ->merge($this->getHostings($domainFilter, $tillDate, $today))
             ->merge($this->getEmails($domainFilter, $tillDate, $today))
             ->sortBy([
                 ['is_expired', 'desc'],

@@ -16,6 +16,11 @@ class UserPolicy
         return $user->is_admin;
     }
 
+    public function viewProjectTracker(User $user): bool
+    {
+        return $user->is_admin;
+    }
+
     /**
      * Determine whether the user can view any models.
      */

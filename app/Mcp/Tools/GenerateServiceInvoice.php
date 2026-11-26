@@ -34,7 +34,7 @@ class GenerateServiceInvoice extends Tool
             'items' => $schema->string()->description('Optional. JSON array of invoice items. Each item: {"itemable_type":"domain|hosting|email","itemable_id":42,"price":1500,"discount_value":0,"expiry_date":"2026-06-15","line_description":"..."} . Price auto-calculates from config if omitted.'),
             'extras' => $schema->string()->description('Optional. JSON array of extra line items. Each extra: {"line_title":"...","line_description":"...","line_duration":"...","price":500,"discount_value":0}'),
             'date' => $schema->string()->description('Optional. Invoice date (Y-m-d). Defaults to today.'),
-            'term' => $schema->integer()->description('Optional. Years to advance the line expiry on domain and hosting items (0 or more, default 0). Domain lines are re-priced from the shifted expiry and hosting prices are multiplied by the term. An explicit item expiry_date wins.'),
+            'term' => $schema->integer()->description('Optional. Years to advance the line expiry on domain, hosting and email items (0 or more, default 0). Domain and email lines are re-priced from the shifted expiry and hosting prices are multiplied by the term. An explicit item expiry_date wins.'),
             'invoice_prefix' => $schema->string()->description('Optional. Invoice series prefix. Defaults to "SR-". Case and the trailing dash are normalized, so "SR" continues the "SR-" series instead of starting a new one.'),
             'footnote' => $schema->string()->description('Optional. Footnote text for the invoice.'),
         ];
@@ -147,10 +147,7 @@ class GenerateServiceInvoice extends Tool
 
             $invoiceDate = Carbon::parse($date);
 
-            $shiftExpiry = in_array($type, ['domain', 'hosting'], true);
-            $shiftedExpiry = $shiftExpiry
-                ? InvoiceTerm::shift($model->expiry_date, $term)
-                : $model->expiry_date;
+            $shiftedExpiry = InvoiceTerm::shift($model->expiry_date, $term);
 
             $price = $itemData['price'] ?? null;
 
@@ -165,7 +162,7 @@ class GenerateServiceInvoice extends Tool
                     'email' => InvoicePricingService::getEmailPrice(
                         $model,
                         $invoiceDate,
-                        $model->expiry_date
+                        $shiftedExpiry
                     ),
                 };
             }

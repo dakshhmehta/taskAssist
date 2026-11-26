@@ -14,6 +14,7 @@ use App\Mcp\Tools\GetUpcomingRenewals;
 use App\Mcp\Tools\ListNotifications;
 use App\Mcp\Tools\ListPendingProformas;
 use App\Mcp\Tools\MarkInvoiceAsPaid;
+use App\Mcp\Tools\Search;
 use App\Mcp\Tools\SendInvoiceEmail;
 use App\Mcp\Tools\UpdateClient;
 use App\Mcp\Tools\UpdateInvoice;
@@ -31,6 +32,7 @@ class ResellerServer extends Server
     protected string $instructions = 'Example instructions for LLMs connecting to this MCP server.';
 
     protected array $tools = [
+        Search::class,
         GetResellerBalance::class,
         GetUpcomingRenewals::class,
         GetInvoice::class,

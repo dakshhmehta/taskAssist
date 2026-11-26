@@ -16,7 +16,7 @@ class SetTimer extends Tool
 
     public function description(): string
     {
-        return 'Start or stop the timer on a task for the authenticated user. Multiple timers can run in parallel. To start a timer, task_id is required. To stop a timer, task_id is optional: when omitted, all running timers for the authenticated user are stopped.';
+        return 'Start or stop the timer on a task for the authenticated user. Only tasks assigned to the authenticated user can be used. Multiple timers can run in parallel. To start a timer, task_id is required. To stop a timer, task_id is optional: when omitted, all running timers for the authenticated user are stopped.';
     }
 
     public function schema(JsonSchema $schema): array
@@ -72,6 +72,10 @@ class SetTimer extends Tool
                 'status' => 'error',
                 'message' => "Task {$taskId} not found.",
             ]);
+        }
+
+        if ($denied = $this->denyIfNotAssigned($task, $userId)) {
+            return $denied;
         }
 
         if ($task->is_completed) {
@@ -131,6 +135,10 @@ class SetTimer extends Tool
             ]);
         }
 
+        if ($denied = $this->denyIfNotAssigned($task, $userId)) {
+            return $denied;
+        }
+
         if ($task->is_completed) {
             return Response::json([
                 'status' => 'error',
@@ -151,6 +159,22 @@ class SetTimer extends Tool
         return Response::json([
             'status' => 'error',
             'message' => "No running timer found for task {$taskId}.",
+        ]);
+    }
+
+    /**
+     * Every user, admins included, may only start or stop timers on tasks
+     * assigned to them.
+     */
+    private function denyIfNotAssigned(Task $task, int $userId): ?Response
+    {
+        if ((int) $task->assignee_id === $userId) {
+            return null;
+        }
+
+        return Response::json([
+            'status' => 'error',
+            'message' => "Task {$task->id} is not assigned to you. You can only start or stop timers on your own assigned tasks.",
         ]);
     }
 

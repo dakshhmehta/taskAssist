@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Resources\TaskResource\Widgets\UserWorkingTaskList;
 use App\Filament\Pages\MyNotes;
+use App\Filament\Pages\Profile;
 use App\Filament\Resources\UserResource\Widgets\UserPerformance;
 use App\Filament\Resources\UserResource\Widgets\UserStar;
 use App\Filament\Widgets\QuoteOfDay;
@@ -34,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->profile(isSimple: false)
+            ->profile(Profile::class, isSimple: false)
             ->userMenuItems([
                 \Filament\Navigation\MenuItem::make()
                     ->label('My Notes')

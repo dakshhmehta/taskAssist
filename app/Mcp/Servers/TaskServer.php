@@ -32,12 +32,11 @@ class TaskServer extends Server
     private const ADMIN_ONLY_TOOLS = [
         GetTimesheet::class,
         SetTimesheet::class,
-        SetTimer::class,
     ];
 
     protected string $name = 'Task Server';
 
-    protected string $version = '1.14.0';
+    protected string $version = '1.15.0';
 
     protected string $instructions = 'Server for managing Daksh\'s tasks, schedules, and leaves.';
 

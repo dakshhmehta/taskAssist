@@ -232,7 +232,7 @@ class McpTeamMemberRestrictionsTest extends TestCase
         $this->assertSame('success', $payload['status']);
     }
 
-    public function test_timesheet_and_timer_tools_are_unavailable_to_team_members(): void
+    public function test_timesheet_tools_are_unavailable_to_team_members(): void
     {
         $this->admin();
         $member = $this->member();
@@ -243,11 +243,11 @@ class McpTeamMemberRestrictionsTest extends TestCase
 
         $this->assertNotContains('get-timesheet', $memberTools);
         $this->assertNotContains('set-timesheet', $memberTools);
-        $this->assertNotContains('set-timer', $memberTools);
+        $this->assertContains('set-timer', $memberTools);
         $this->assertContains('list-tasks', $memberTools);
     }
 
-    public function test_timesheet_and_timer_tools_stay_available_to_admin(): void
+    public function test_timer_tool_stays_available_to_admin(): void
     {
         $admin = $this->admin();
 

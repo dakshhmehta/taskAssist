@@ -20,7 +20,7 @@ class ListTasks extends Tool
      */
     public function description(): string
     {
-        return 'List tasks for a specific user, paginated, filtered by a maximum due date, page size, and optional tags. Returns tasks plus pagination metadata (total, last_page, has_more).';
+        return 'List tasks for a specific user, paginated, filtered by status (open, completed, all), completed date range, maximum due date, page size, and optional tags. Returns tasks plus pagination metadata (total, last_page, has_more).';
     }
 
     /**
@@ -35,6 +35,9 @@ class ListTasks extends Tool
             'limit' => $schema->integer()->description('Alias for per_page, kept for backwards compatibility. -1 uses the default page size.'),
             'till_date' => $schema->string()->description('The date (Y-m-d format) to list tasks up to (defaults to today)'),
             'tags' => $schema->string()->description('Comma-separated tag names to filter tasks (e.g. "bug,urgent"). Tasks matching any tag are returned.'),
+            'status' => $schema->string()->description('Which tasks to return: "open" (default), "completed", or "all".'),
+            'from_date' => $schema->string()->description('Only include tasks completed on or after this date (Y-m-d). Applies to completed tasks.'),
+            'to_date' => $schema->string()->description('Only include tasks completed on or before this date (Y-m-d). Applies to completed tasks.'),
         ];
     }
 
@@ -65,18 +68,57 @@ class ListTasks extends Tool
         $page = max((int) ($request->get('page') ?? 1), 1);
         $tags = $request->get('tags') ?? null;
 
+        $status = $request->get('status') ?? 'open';
+
+        if (! in_array($status, ['open', 'completed', 'all'], true)) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'Invalid status. Must be one of: open, completed, all.',
+            ]);
+        }
+
         try {
             $tillDate = $request->get('till_date') !== null
                 ? Carbon::parse($request->get('till_date'))->endOfDay()
                 : now()->endOfDay();
+            $fromDate = $request->get('from_date') !== null
+                ? Carbon::parse($request->get('from_date'))->startOfDay()
+                : null;
+            $toDate = $request->get('to_date') !== null
+                ? Carbon::parse($request->get('to_date'))->endOfDay()
+                : null;
         } catch (\Exception $e) {
-            return Response::error('Invalid till_date format. Please use Y-m-d format.');
+            return Response::error('Invalid date format. Please use Y-m-d format.');
         }
 
-        $query = Task::where('assignee_id', $userId)
-            ->whereNull('completed_at')
-            ->where('due_date', '<=', $tillDate)
-            ->orderBy('due_date', 'ASC');
+        if ($fromDate && $toDate && $fromDate->gt($toDate)) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'from_date must be on or before to_date.',
+            ]);
+        }
+
+        $completedInRange = fn ($query) => $query
+            ->when($fromDate, fn ($q) => $q->where('completed_at', '>=', $fromDate))
+            ->when($toDate, fn ($q) => $q->where('completed_at', '<=', $toDate));
+
+        $query = Task::where('assignee_id', $userId);
+
+        match ($status) {
+            'open' => $query
+                ->whereNull('completed_at')
+                ->where('due_date', '<=', $tillDate)
+                ->orderBy('due_date', 'ASC'),
+            'completed' => $completedInRange($query->whereNotNull('completed_at'))
+                ->orderByDesc('completed_at'),
+            'all' => $query
+                ->where(fn ($q) => $q
+                    ->where(fn ($open) => $open
+                        ->whereNull('completed_at')
+                        ->where('due_date', '<=', $tillDate))
+                    ->orWhere(fn ($done) => $completedInRange($done->whereNotNull('completed_at'))))
+                ->orderByDesc('completed_at'),
+        };
 
         if ($tags) {
             $tagNames = array_map('trim', explode(',', $tags));
@@ -92,6 +134,8 @@ class ListTasks extends Tool
                 'title' => $task->title,
                 'description' => $task->description,
                 'due_date' => $task->due_date,
+                'completed_at' => $task->completed_at,
+                'status' => $task->completed_at ? 'completed' : 'open',
                 'estimate' => $task->estimate,
                 'is_urgent' => $task->is_urgent,
                 'is_important' => $task->is_important,

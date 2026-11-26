@@ -37,7 +37,7 @@ class GenerateAssetInvoice extends Tool
             'footnote' => $schema->string()->description('Optional. Custom footnote text stored on the invoice.'),
             'invoice_date' => $schema->string()->description('Optional. The date for the invoice (Y-m-d). Defaults to today.'),
             'client_id' => $schema->integer()->description('Optional. The ID of the client to assign to the asset if not already assigned.'),
-            'term' => $schema->integer()->description('Optional. Years to advance the line expiry on domain and hosting items (0 or more, default 0). Domain lines are re-priced from the shifted expiry and hosting prices are multiplied by the term.'),
+            'term' => $schema->integer()->description('Optional. Years to advance the line expiry on domain, hosting and email items (0 or more, default 0). Domain and email lines are re-priced from the shifted expiry and hosting prices are multiplied by the term.'),
         ];
     }
 

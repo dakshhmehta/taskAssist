@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DomainInvoicesRelationManagerResource\RelationManagers\DomainResourceRelationManager;
 use App\Filament\Resources\DomainResource\Pages;
+use App\Filament\Support\InvoiceTermInput;
 use App\Jobs\GenerateInvoice;
 use App\Models\Domain;
 use Filament\Forms;
@@ -127,8 +128,16 @@ class DomainResource extends Resource
                     // Previous invoice is older than 1 year and client is already exist
                     ->visible(fn(Domain $domain) => $domain->dueForRenewal())
                     ->color('success')
-                    ->action(function (Domain $domain) {
-                        GenerateInvoice::dispatch([$domain, $domain->hosting ?? null], $domain->expiry_date->subYear());
+                    ->form([InvoiceTermInput::make()])
+                    ->action(function (Domain $domain, array $data) {
+                        GenerateInvoice::dispatch(
+                            [$domain, $domain->hosting ?? null],
+                            $domain->expiry_date->subYear(),
+                            [],
+                            null,
+                            [],
+                            (int) ($data['term'] ?? 0)
+                        );
                     }),
             ])
             ->bulkActions([
@@ -141,7 +150,10 @@ class DomainResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Generate Invoices for Selected Domains')
                         ->modalDescription('This will create invoices for the selected domains grouped by client. Each domain\'s hosting will be included if it exists.')
-                        ->action(function ($records) {
+                        ->form([InvoiceTermInput::make()])
+                        ->action(function ($records, array $data) {
+                            $term = (int) ($data['term'] ?? 0);
+
                             // Group domains by client_id
                             $groupedByClient = $records->groupBy('client_id');
 
@@ -165,7 +177,7 @@ class DomainResource extends Resource
                                 $invoiceDate = \Carbon\Carbon::parse($earliestExpiryDate)->subYear();
 
                                 // Dispatch the job
-                                GenerateInvoice::dispatch($items, $invoiceDate);
+                                GenerateInvoice::dispatch($items, $invoiceDate, [], null, [], $term);
                                 $invoiceCount++;
                             }
 

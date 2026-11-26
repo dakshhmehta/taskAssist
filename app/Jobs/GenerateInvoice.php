@@ -40,7 +40,7 @@ class GenerateInvoice implements ShouldQueue
     public $itemDiscounts;
 
     /**
-     * Number of years to advance the domain/hosting line expiry by.
+     * Number of years to advance the line expiry by.
      */
     public $term = 0;
 
@@ -103,11 +103,8 @@ class GenerateInvoice implements ShouldQueue
             // Determine the itemable type
             $itemableType = get_class($item);
 
-            // Domain and hosting lines can be advanced by the requested term.
-            $shiftExpiry = in_array($itemableType, [Domain::class, Hosting::class], true);
-            $expiry = $shiftExpiry
-                ? InvoiceTerm::shift($item->expiry_date, $this->term)
-                : $item->expiry_date;
+            // Domain, hosting and email lines are advanced by the requested term.
+            $expiry = InvoiceTerm::shift($item->expiry_date, $this->term);
 
             // 4. Set the price based on item type and config
             $price = 0;
@@ -117,7 +114,7 @@ class GenerateInvoice implements ShouldQueue
             } elseif ($itemableType === Hosting::class) {
                 $price = InvoicePricingService::getHostingPrice($item, max(1, $this->term));
             } elseif ($itemableType === Email::class) {
-                $price = InvoicePricingService::getEmailPrice($item, $invoice->date, $item->expiry_date);
+                $price = InvoicePricingService::getEmailPrice($item, $invoice->date, $expiry);
             }
 
             // 5. Copy the expiry date as we did in InvoiceResource

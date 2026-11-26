@@ -4,18 +4,21 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Support\AvatarImage;
 use App\Traits\CustomLogOptions;
 use Carbon\Carbon;
+use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Romininteractive\Transaction\Traits\HasTransactions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasAvatar
 {
     use HasApiTokens;
     use CustomLogOptions;
@@ -32,6 +35,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar_path',
 
         'work_hours',
         'salary',
@@ -68,6 +72,44 @@ class User extends Authenticatable
             'is_probation' => 'boolean',
             'is_disabled' => 'boolean',
         ];
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_path ? Storage::disk('public')->url($this->avatar_path) : null;
+    }
+
+    /**
+     * The stored grayscale twin of the avatar, falling back to the colour one.
+     */
+    public function getGrayscaleAvatarUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        $grayscale = AvatarImage::grayscalePath($this->avatar_path);
+
+        return Storage::disk('public')->exists($grayscale)
+            ? Storage::disk('public')->url($grayscale)
+            : $this->getFilamentAvatarUrl();
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (User $user) {
+            if (! $user->wasChanged('avatar_path')) {
+                return;
+            }
+
+            if ($previous = $user->getOriginal('avatar_path')) {
+                AvatarImage::delete($previous);
+            }
+
+            if ($user->avatar_path) {
+                AvatarImage::generate($user->avatar_path);
+            }
+        });
     }
 
     public function leaves()

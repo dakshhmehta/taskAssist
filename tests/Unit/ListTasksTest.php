@@ -180,4 +180,95 @@ class ListTasksTest extends TestCase
         $this->assertCount(3, $capped['tasks']);
         $this->assertFalse($capped['pagination']['has_more']);
     }
+
+    public function test_list_tasks_filters_by_status_and_completed_date()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-20'));
+
+        $user = User::factory()->create();
+
+        $open = Task::create([
+            'title' => 'Open task',
+            'assignee_id' => $user->id,
+            'due_date' => '2026-05-19 12:00:00',
+        ]);
+
+        $completedInRange = Task::create([
+            'title' => 'Completed in May',
+            'assignee_id' => $user->id,
+            'due_date' => '2026-05-05 12:00:00',
+            'completed_at' => '2026-05-10 12:00:00',
+        ]);
+        $completedInRange->attachTag('Alpha');
+
+        Task::create([
+            'title' => 'Completed in April',
+            'assignee_id' => $user->id,
+            'due_date' => '2026-04-10 12:00:00',
+            'completed_at' => '2026-04-15 12:00:00',
+        ]);
+
+        $this->actingAs($user);
+
+        $tool = new ListTasks;
+
+        $default = $this->callTool($tool, ['user_id' => $user->id]);
+        $this->assertSame(['Open task'], array_column($default['tasks'], 'title'));
+        $this->assertSame('open', $default['tasks'][0]['status']);
+        $this->assertNull($default['tasks'][0]['completed_at']);
+
+        $completed = $this->callTool($tool, ['user_id' => $user->id, 'status' => 'completed']);
+        $this->assertSame(['Completed in May', 'Completed in April'], array_column($completed['tasks'], 'title'));
+        $this->assertSame('completed', $completed['tasks'][0]['status']);
+        $this->assertNotNull($completed['tasks'][0]['completed_at']);
+
+        $completedInMay = $this->callTool($tool, [
+            'user_id' => $user->id,
+            'status' => 'completed',
+            'from_date' => '2026-05-01',
+            'to_date' => '2026-05-31',
+        ]);
+        $this->assertSame(['Completed in May'], array_column($completedInMay['tasks'], 'title'));
+
+        $all = $this->callTool($tool, [
+            'user_id' => $user->id,
+            'status' => 'all',
+            'from_date' => '2026-05-01',
+            'to_date' => '2026-05-31',
+        ]);
+        $this->assertSame(['Completed in May', 'Open task'], array_column($all['tasks'], 'title'));
+
+        $completedWithTag = $this->callTool($tool, [
+            'user_id' => $user->id,
+            'status' => 'completed',
+            'tags' => 'Alpha',
+        ]);
+        $this->assertSame(['Completed in May'], array_column($completedWithTag['tasks'], 'title'));
+    }
+
+    public function test_list_tasks_rejects_invalid_status_and_date_range()
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-20'));
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $tool = new ListTasks;
+
+        $invalidStatus = $this->callTool($tool, ['user_id' => $user->id, 'status' => 'archived']);
+        $this->assertSame('error', $invalidStatus['status']);
+
+        $invalidRange = $this->callTool($tool, [
+            'user_id' => $user->id,
+            'status' => 'completed',
+            'from_date' => '2026-05-31',
+            'to_date' => '2026-05-01',
+        ]);
+        $this->assertSame('error', $invalidRange['status']);
+    }
+
+    private function callTool(ListTasks $tool, array $arguments): array
+    {
+        return json_decode((string) $tool->handle(new Request($arguments))->content(), true);
+    }
 }

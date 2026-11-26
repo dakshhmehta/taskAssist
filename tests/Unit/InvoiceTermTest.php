@@ -25,6 +25,33 @@ class InvoiceTermTest extends TestCase
         return Client::create(['billing_name' => 'Term Client', 'nickname' => 'TERM']);
     }
 
+    public function test_job_itself_creates_an_advance_invoice_for_domain_and_hosting(): void
+    {
+        $client = $this->client();
+        $package = HostingPackage::create(['storage' => 1000, 'price' => 1500]);
+
+        $domain = Domain::create([
+            'tld' => 'jobterm.com',
+            'client_id' => $client->id,
+            'expiry_date' => '2027-06-15',
+        ]);
+        $hosting = Hosting::create([
+            'domain' => 'jobterm.com',
+            'client_id' => $client->id,
+            'package_id' => $package->id,
+            'expiry_date' => '2027-06-15',
+        ]);
+
+        \App\Jobs\GenerateInvoice::dispatchSync([$domain, $hosting], '2026-06-15', [], null, [], 1);
+
+        $invoice = Invoice::firstOrFail();
+
+        $this->assertSame('2028-06-15', $invoice->items->firstWhere('itemable_type', Domain::class)->expiry_date->format('Y-m-d'));
+        $this->assertSame('2028-06-15', $invoice->items->firstWhere('itemable_type', Hosting::class)->expiry_date->format('Y-m-d'));
+        $this->assertEquals(config('pricing.domains.com') * 2, $invoice->items->firstWhere('itemable_type', Domain::class)->price);
+        $this->assertEquals(1500, $invoice->items->firstWhere('itemable_type', Hosting::class)->price);
+    }
+
     public function test_asset_invoice_shifts_domain_expiry_and_reprices_from_latest_config(): void
     {
         $client = $this->client();
@@ -78,7 +105,7 @@ class InvoiceTermTest extends TestCase
         $this->assertEquals(3000, $item->price);
     }
 
-    public function test_asset_cart_shifts_domain_and_hosting_but_leaves_email_and_extras_alone(): void
+    public function test_asset_cart_shifts_domain_hosting_and_email_but_leaves_extras_alone(): void
     {
         $client = $this->client();
         $package = HostingPackage::create(['storage' => 1000, 'price' => 1500]);
@@ -119,8 +146,37 @@ class InvoiceTermTest extends TestCase
 
         $this->assertSame('2028-06-15', $invoice->items->first(fn ($item) => $item->itemable_type === Domain::class && $item->itemable_id === $domain->id)->expiry_date->format('Y-m-d'));
         $this->assertSame('2028-06-15', $invoice->items->first(fn ($item) => $item->itemable_type === Hosting::class && $item->itemable_id === $hosting->id)->expiry_date->format('Y-m-d'));
-        $this->assertSame('2027-06-15', $invoice->items->first(fn ($item) => $item->itemable_type === Email::class && $item->itemable_id === $email->id)->expiry_date->format('Y-m-d'));
+        $this->assertSame('2028-06-15', $invoice->items->first(fn ($item) => $item->itemable_type === Email::class && $item->itemable_id === $email->id)->expiry_date->format('Y-m-d'));
         $this->assertEquals(500, $invoice->extras->first()->price);
+    }
+
+    public function test_service_invoice_shifts_email_expiry_and_reprices(): void
+    {
+        $client = $this->client();
+        $email = Email::create([
+            'domain' => 'serviceemail.com',
+            'provider' => 'google',
+            'client_id' => $client->id,
+            'accounts_count' => 3,
+            'expiry_date' => '2027-06-15',
+        ]);
+
+        $result = (new GenerateServiceInvoice)->handle(new Request([
+            'client_id' => $client->id,
+            'items' => json_encode([
+                ['itemable_type' => 'email', 'itemable_id' => $email->id],
+            ]),
+            'date' => '2026-06-15',
+            'term' => 1,
+        ]));
+
+        $payload = json_decode((string) $result->content(), true);
+        $this->assertSame('success', $payload['status'], $payload['message'] ?? '');
+
+        $item = Invoice::findOrFail($payload['invoice']['id'])->items()->firstOrFail();
+
+        $this->assertSame('2028-06-15', $item->expiry_date->format('Y-m-d'));
+        $this->assertEquals(config('pricing.workspace.price_per_account_per_year') * 3 * 2, $item->price);
     }
 
     public function test_service_invoice_shifts_expiry_and_reprices(): void
@@ -176,7 +232,7 @@ class InvoiceTermTest extends TestCase
         $this->assertSame('2027-01-01', $item->expiry_date->format('Y-m-d'));
     }
 
-    public function test_update_invoice_shifts_domain_and_hosting_expiry_without_repricing(): void
+    public function test_update_invoice_shifts_domain_hosting_and_email_expiry_without_repricing(): void
     {
         $client = $this->client();
         $package = HostingPackage::create(['storage' => 1000, 'price' => 1500]);
@@ -241,7 +297,7 @@ class InvoiceTermTest extends TestCase
 
         $this->assertSame('2028-06-15', $domainItem->expiry_date->format('Y-m-d'));
         $this->assertSame('2028-06-15', $hostingItem->expiry_date->format('Y-m-d'));
-        $this->assertSame('2027-06-15', $emailItem->expiry_date->format('Y-m-d'));
+        $this->assertSame('2028-06-15', $emailItem->expiry_date->format('Y-m-d'));
         $this->assertEquals(1000, $domainItem->price);
         $this->assertEquals(1500, $hostingItem->price);
     }
