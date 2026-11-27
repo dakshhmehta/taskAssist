@@ -46,6 +46,26 @@ class ProjectTrackerPageTest extends TestCase
         $this->get('/admin/project-tracker')->assertForbidden();
     }
 
+    public function test_project_tracker_is_in_the_navigation_for_admins(): void
+    {
+        $owner = User::factory()->create(['id' => 1]);
+
+        $this->actingAs($owner)
+            ->get('/admin')
+            ->assertOk()
+            ->assertSee('Project Tracker');
+    }
+
+    public function test_project_tracker_is_not_in_the_navigation_for_non_admins(): void
+    {
+        $other = User::factory()->create(['id' => 2]);
+
+        $this->actingAs($other)
+            ->get('/admin')
+            ->assertOk()
+            ->assertDontSee('Project Tracker');
+    }
+
     public function test_page_lists_hours_for_the_selected_month()
     {
         $owner = User::factory()->create(['id' => 1]);
