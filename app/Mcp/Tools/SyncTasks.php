@@ -37,6 +37,7 @@ class SyncTasks extends Tool
             'assignee_id' => $schema->integer()->description('The ID of the user to assign the task to (Defaults to authenticated user)'),
             'timepro_task_id' => $schema->integer()->description('The existing Task ID in Laravel (if updating)'),
             'description' => $schema->string()->description('Optional. Description of the task.'),
+            'tags' => $schema->array()->description('Optional. The complete set of additional tag names for the task. The project tag is always kept. Send the full list on every call; any tag not in it is removed. Unknown tag names fail the call.'),
         ];
     }
 
@@ -100,6 +101,24 @@ class SyncTasks extends Tool
             }
         }
 
+        $extraTagNames = $request->get('tags') ?? [];
+
+        if (! is_array($extraTagNames)) {
+            return Response::error('tags must be an array of tag names.');
+        }
+
+        $resolved = Tag::resolveMany($extraTagNames);
+
+        if ($resolved['missing']) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'Unknown tag(s): '.implode(', ', $resolved['missing']).'. Please use valid tags from list-tags.',
+            ]);
+        }
+
+        // The project tag is always kept; the caller's list is the full set of extra tags.
+        $tags = collect([$tag])->filter()->merge($resolved['tags'])->unique('id')->values();
+
         $attributes = [
             'title' => $request->get('task'),
             'description' => $request->get('description') ?? null,
@@ -127,9 +146,9 @@ class SyncTasks extends Tool
             $task = Task::create($attributes);
         }
 
-        // Attach Tag if found
-        if ($tag) {
-            $task->syncTags([$tag->name]);
+        // Attach Tags if found
+        if ($tags->isNotEmpty()) {
+            $task->syncTags($tags);
         }
 
         dispatch(new ScheduleTasksForUser($attributes['assignee_id']));
@@ -138,7 +157,8 @@ class SyncTasks extends Tool
             'status' => 'success',
             'message' => 'Task synced successfully.',
             'timepro_task_id' => $task->id,
-            'task' => $task->refresh()->toArray(),
+            'tags' => Tag::payload($task->refresh()->tags),
+            'task' => $task->toArray(),
         ]);
     }
 }

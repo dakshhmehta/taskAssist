@@ -134,4 +134,49 @@ class Tag extends BaseTag
     {
         return $this->cost ?: config('settings.company_hourly_rate');
     }
+
+    /**
+     * Resolve tag names to existing tags, reporting the ones that do not exist
+     * instead of silently creating them (which is what Spatie's syncTags does).
+     *
+     * @return array{tags: \Illuminate\Support\Collection<int, static>, missing: array<int, string>}
+     */
+    public static function resolveMany(array $names): array
+    {
+        $tags = collect();
+        $missing = [];
+
+        $names = array_unique(array_filter(
+            array_map(fn ($name) => trim((string) $name), $names),
+            fn (string $name) => $name !== ''
+        ));
+
+        foreach ($names as $name) {
+            $tag = static::findFromStringOfAnyType($name)->first();
+
+            if (! $tag) {
+                $missing[] = $name;
+
+                continue;
+            }
+
+            $tags->push($tag);
+        }
+
+        return ['tags' => $tags, 'missing' => $missing];
+    }
+
+    /**
+     * Shape tags the same way get-task returns them.
+     *
+     * @param  iterable<static>  $tags
+     */
+    public static function payload(iterable $tags): array
+    {
+        return collect($tags)->map(fn (Tag $tag) => [
+            'id' => $tag->id,
+            'name' => is_array($tag->name) ? ($tag->name['en'] ?? reset($tag->name)) : $tag->name,
+            'type' => $tag->type,
+        ])->values()->all();
+    }
 }
