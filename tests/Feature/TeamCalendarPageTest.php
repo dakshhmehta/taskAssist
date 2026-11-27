@@ -49,6 +49,23 @@ class TeamCalendarPageTest extends TestCase
             ->assertSee('Kaushal');
     }
 
+    public function test_it_uses_the_pastel_status_colours(): void
+    {
+        $viewer = User::factory()->create();
+
+        Holiday::create(['date' => '2026-11-10', 'occasion' => 'Diwali']);
+
+        $this->actingAs($viewer);
+
+        Livewire::test(TeamCalendar::class)
+            ->set('month', '2026-11')
+            ->assertSee('All present')
+            ->assertSee('Absent')
+            ->assertSee('#fecaca')
+            ->assertSee('#bbf7d0')
+            ->assertSee('#fde68a');
+    }
+
     public function test_the_month_picker_changes_the_calendar(): void
     {
         $viewer = User::factory()->create();

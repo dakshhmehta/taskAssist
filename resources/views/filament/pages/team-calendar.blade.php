@@ -10,9 +10,10 @@
 
     <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
         @foreach ([
-            'Sunday' => '#f3f4f6',
-            'Holiday' => '#fef3c7',
-            'Leave' => '#fee2e2',
+            'Sunday' => '#fecaca',
+            'Holiday' => '#fecaca',
+            'All present' => '#bbf7d0',
+            'Absent' => '#fde68a',
         ] as $label => $colour)
             <span class="flex items-center gap-2">
                 <span style="display:inline-block;height:0.75rem;width:0.75rem;border-radius:0.25rem;border:1px solid rgba(0,0,0,0.1);background:{{ $colour }}"></span>
@@ -38,16 +39,15 @@
                         <div></div>
                     @else
                         <div style="display:flex;flex-direction:column;min-height:6.5rem;border-radius:0.5rem;border:1px solid rgba(0,0,0,0.08);padding:0.5rem;background:{{ match ($day['status']) {
-                            'holiday' => '#fef3c7',
-                            'sunday' => '#f3f4f6',
-                            'leave' => '#fee2e2',
-                            default => '#ffffff',
+                            'holiday', 'sunday' => '#fecaca',
+                            'leave' => '#fde68a',
+                            default => '#bbf7d0',
                         } }};color:#111827">
                             <div class="flex items-start justify-between gap-2">
                                 <span class="text-sm font-semibold">{{ $day['day'] }}</span>
 
                                 @if ($day['holiday'])
-                                    <span class="text-xs font-medium" style="color:#92400e;text-align:right">
+                                    <span class="text-xs font-medium" style="color:#991b1b;text-align:right">
                                         {{ $day['holiday'] }}
                                     </span>
                                 @endif
